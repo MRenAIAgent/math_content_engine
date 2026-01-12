@@ -70,7 +70,6 @@ venv.bak/
 media/
 output/
 .manim_cache/
-*.mp4
 *.gif
 *.png
 *.svg

@@ -1,0 +1,422 @@
+"""
+Integration tests for algebra animations.
+
+These tests generate actual Manim animations to verify the full pipeline works.
+They require:
+1. ANTHROPIC_API_KEY or OPENAI_API_KEY environment variable
+2. Manim and its dependencies installed
+3. Sufficient time (each test renders a video)
+
+Run these tests with:
+    pytest tests/test_algebra_integration.py -v
+
+Run a specific test:
+    pytest tests/test_algebra_integration.py::TestAlgebraAnimations::test_linear_equation -v
+
+Skip slow rendering tests (code generation only):
+    pytest tests/test_algebra_integration.py -m "not slow"
+
+Test results are saved to: tests/test_output/
+"""
+
+import os
+import subprocess
+import pytest
+from pathlib import Path
+from datetime import datetime
+
+from math_content_engine import MathContentEngine, Config
+from math_content_engine.config import VideoQuality
+
+
+# Directory to save test results
+TEST_OUTPUT_DIR = Path(__file__).parent / "test_output"
+
+
+def latex_available():
+    """Check if LaTeX is available on the system."""
+    try:
+        result = subprocess.run(
+            ["latex", "--version"],
+            capture_output=True,
+            timeout=5
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
+def save_test_result(test_name: str, result, output_dir: Path):
+    """Save test result (code and video) to output directory.
+
+    Handles both GenerationResult (from preview_code) and AnimationResult (from generate).
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save the generated code
+    code_file = output_dir / f"{test_name}.py"
+    code_file.write_text(result.code)
+
+    # Check if this is an AnimationResult (from generate) or GenerationResult (from preview_code)
+    is_animation_result = hasattr(result, 'success')
+
+    # Save metadata
+    meta_file = output_dir / f"{test_name}_meta.txt"
+
+    if is_animation_result:
+        # AnimationResult from generate() or generate_from_code()
+        meta_content = f"""Test: {test_name}
+Timestamp: {datetime.now().isoformat()}
+Success: {result.success}
+Scene Name: {result.scene_name}
+Generation Attempts: {result.generation_attempts}
+Render Attempts: {result.render_attempts}
+Total Attempts: {result.total_attempts}
+Render Time: {result.render_time:.2f}s
+Video Path: {result.video_path}
+Error: {result.error_message or 'None'}
+"""
+    else:
+        # GenerationResult from preview_code()
+        meta_content = f"""Test: {test_name}
+Timestamp: {datetime.now().isoformat()}
+Valid: {result.validation.is_valid}
+Scene Name: {result.scene_name}
+Attempts: {result.attempts}
+Validation Errors: {result.validation.errors or 'None'}
+Validation Warnings: {result.validation.warnings or 'None'}
+"""
+
+    meta_file.write_text(meta_content)
+
+    # If video was created and exists in tmp, copy it (only for AnimationResult)
+    if is_animation_result and result.video_path and result.video_path.exists():
+        import shutil
+        dest_video = output_dir / f"{test_name}.mp4"
+        shutil.copy(result.video_path, dest_video)
+        return dest_video
+
+    return None
+
+
+# Skip all tests if no API key is configured
+pytestmark = pytest.mark.skipif(
+    not os.getenv("ANTHROPIC_API_KEY") and not os.getenv("OPENAI_API_KEY"),
+    reason="No API key configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY."
+)
+
+
+class TestAlgebraAnimations:
+    """
+    Integration tests that generate algebra animations.
+
+    These tests verify:
+    1. LLM generates valid Manim code
+    2. Code passes validation
+    3. Manim renders the video successfully
+    """
+
+    @pytest.fixture
+    def engine(self, tmp_path):
+        """Create engine with temporary output directory."""
+        config = Config()
+        config.output_dir = tmp_path / "output"
+        config.manim_cache_dir = tmp_path / "cache"
+        config.video_quality = VideoQuality.LOW  # Fast rendering for tests
+        config.max_retries = 3
+        return MathContentEngine(config)
+
+    @pytest.fixture
+    def output_dir(self):
+        """Return the persistent output directory for test results."""
+        TEST_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        return TEST_OUTPUT_DIR
+
+    # =========================================================================
+    # CODE GENERATION TESTS (Fast - no rendering)
+    # =========================================================================
+
+    def test_linear_equation_code_generation(self, engine, output_dir):
+        """Test that linear equation code is generated correctly."""
+        result = engine.preview_code(
+            topic="Solving the linear equation 2x + 3 = 7",
+            requirements="Show step-by-step solution. Use Text instead of MathTex to avoid LaTeX dependency.",
+            audience_level="middle school"
+        )
+
+        # Save result
+        save_test_result("linear_equation_code", result, output_dir)
+
+        assert result.code is not None
+        assert result.validation.is_valid, f"Validation errors: {result.validation.errors}"
+        assert "from manim import" in result.code
+        assert "Scene" in result.code
+        assert "construct" in result.code
+        print(f"\nGenerated scene: {result.scene_name}")
+        print(f"Attempts: {result.attempts}")
+        print(f"Code saved to: {output_dir}/linear_equation_code.py")
+
+    def test_quadratic_formula_code_generation(self, engine, output_dir):
+        """Test that quadratic formula code is generated correctly."""
+        result = engine.preview_code(
+            topic="The quadratic formula x = (-b ± sqrt(b²-4ac)) / 2a",
+            requirements="Show the formula. Use Text for labels to avoid LaTeX. If using MathTex, keep it simple.",
+            audience_level="high school"
+        )
+
+        # Save result
+        save_test_result("quadratic_formula_code", result, output_dir)
+
+        assert result.code is not None
+        assert result.validation.is_valid, f"Validation errors: {result.validation.errors}"
+        assert "from manim import" in result.code
+        print(f"\nGenerated scene: {result.scene_name}")
+        print(f"Code saved to: {output_dir}/quadratic_formula_code.py")
+
+    def test_slope_intercept_code_generation(self, engine, output_dir):
+        """Test that slope-intercept form code is generated correctly."""
+        result = engine.preview_code(
+            topic="Slope-intercept form y = mx + b",
+            requirements="Show a line on coordinate plane using Axes. Label slope and y-intercept using Text (not MathTex).",
+            audience_level="high school"
+        )
+
+        # Save result
+        save_test_result("slope_intercept_code", result, output_dir)
+
+        assert result.code is not None
+        assert result.validation.is_valid, f"Validation errors: {result.validation.errors}"
+        print(f"\nGenerated scene: {result.scene_name}")
+        print(f"Code saved to: {output_dir}/slope_intercept_code.py")
+
+    # =========================================================================
+    # FULL RENDERING TESTS (Slow - actually renders video)
+    # These tests avoid MathTex to work without LaTeX
+    # =========================================================================
+
+    @pytest.mark.slow
+    def test_linear_equation_full_render(self, engine, output_dir):
+        """Test full rendering of a linear equation animation."""
+        result = engine.generate(
+            topic="Solving 2x + 3 = 7 step by step",
+            requirements="""
+            IMPORTANT: Use Text() instead of MathTex() to avoid LaTeX dependency.
+            1. Show the equation using Text("2x + 3 = 7")
+            2. Show "Subtract 3 from both sides"
+            3. Show Text("2x = 4")
+            4. Show "Divide by 2"
+            5. Show Text("x = 2")
+            Use simple Text objects, NOT MathTex.
+            Keep it simple with clear steps.
+            """,
+            audience_level="middle school",
+            output_filename="test_linear_equation"
+        )
+
+        # Save result
+        video_path = save_test_result("linear_equation_render", result, output_dir)
+
+        print(f"\nSuccess: {result.success}")
+        print(f"Video path: {result.video_path}")
+        print(f"Render time: {result.render_time:.2f}s")
+        print(f"Total attempts: {result.total_attempts}")
+        print(f"Results saved to: {output_dir}")
+
+        if not result.success:
+            print(f"Error: {result.error_message}")
+            print(f"\nGenerated code:\n{result.code}")
+
+        assert result.success, f"Rendering failed: {result.error_message}"
+        assert result.video_path is not None
+        assert result.video_path.exists(), f"Video file not found at {result.video_path}"
+
+    @pytest.mark.slow
+    @pytest.mark.skipif(not latex_available(), reason="LaTeX not installed")
+    def test_quadratic_formula_full_render(self, engine, output_dir):
+        """Test full rendering of quadratic formula animation (requires LaTeX)."""
+        result = engine.generate(
+            topic="The quadratic formula",
+            requirements="""
+            Show x = (-b ± √(b²-4ac)) / 2a using MathTex
+            Use colors: a=blue, b=red, c=green
+            Add a title "The Quadratic Formula"
+            Keep animation under 10 seconds
+            """,
+            audience_level="high school",
+            output_filename="test_quadratic_formula"
+        )
+
+        # Save result
+        video_path = save_test_result("quadratic_formula_render", result, output_dir)
+
+        print(f"\nSuccess: {result.success}")
+        print(f"Video path: {result.video_path}")
+        print(f"Render time: {result.render_time:.2f}s")
+        print(f"Results saved to: {output_dir}")
+
+        if not result.success:
+            print(f"Error: {result.error_message}")
+
+        assert result.success, f"Rendering failed: {result.error_message}"
+        assert result.video_path.exists()
+
+    @pytest.mark.slow
+    def test_pythagorean_theorem_full_render(self, engine, output_dir):
+        """Test full rendering of Pythagorean theorem animation."""
+        result = engine.generate(
+            topic="Pythagorean theorem a² + b² = c²",
+            requirements="""
+            IMPORTANT: Use Text() instead of MathTex() to avoid LaTeX dependency.
+            1. Draw a right triangle using Polygon
+            2. Label sides as "a", "b", "c" using Text objects
+            3. Show the formula using Text("a² + b² = c²")
+            Use Text() NOT MathTex(). Simple animation, under 15 seconds.
+            """,
+            audience_level="middle school",
+            output_filename="test_pythagorean"
+        )
+
+        # Save result
+        video_path = save_test_result("pythagorean_render", result, output_dir)
+
+        print(f"\nSuccess: {result.success}")
+        print(f"Video path: {result.video_path}")
+        print(f"Results saved to: {output_dir}")
+
+        if not result.success:
+            print(f"Error: {result.error_message}")
+
+        assert result.success, f"Rendering failed: {result.error_message}"
+        assert result.video_path.exists()
+
+    # =========================================================================
+    # RENDER FROM EXISTING CODE TEST (No LaTeX needed)
+    # =========================================================================
+
+    @pytest.mark.slow
+    def test_render_existing_algebra_code(self, engine, output_dir):
+        """Test rendering from pre-written Manim code (no LaTeX)."""
+        algebra_code = '''
+from manim import *
+
+class SimpleAlgebraScene(Scene):
+    def construct(self):
+        # Title
+        title = Text("Solving for x").scale(0.8)
+        self.play(Write(title))
+        self.play(title.animate.to_edge(UP))
+
+        # Equation (using Text to avoid LaTeX)
+        eq1 = Text("2x + 4 = 10", font_size=48)
+        self.play(Write(eq1))
+        self.wait(0.5)
+
+        # Step 1: Subtract 4
+        step1 = Text("Subtract 4 from both sides", font_size=24)
+        step1.next_to(eq1, DOWN)
+        self.play(Write(step1))
+        self.wait(0.5)
+
+        eq2 = Text("2x = 6", font_size=48)
+        eq2.move_to(eq1.get_center())
+        self.play(
+            FadeOut(step1),
+            Transform(eq1, eq2)
+        )
+        self.wait(0.5)
+
+        # Step 2: Divide by 2
+        step2 = Text("Divide both sides by 2", font_size=24)
+        step2.next_to(eq1, DOWN)
+        self.play(Write(step2))
+        self.wait(0.5)
+
+        eq3 = Text("x = 3", font_size=48, color=GREEN)
+        eq3.move_to(eq1.get_center())
+        self.play(
+            FadeOut(step2),
+            Transform(eq1, eq3)
+        )
+
+        # Highlight answer
+        box = SurroundingRectangle(eq1, color=GREEN)
+        self.play(Create(box))
+        self.wait(1)
+'''
+
+        result = engine.generate_from_code(
+            code=algebra_code,
+            output_filename="test_existing_code"
+        )
+
+        # Save result
+        video_path = save_test_result("existing_code_render", result, output_dir)
+
+        print(f"\nSuccess: {result.success}")
+        print(f"Video path: {result.video_path}")
+        print(f"Render time: {result.render_time:.2f}s")
+        print(f"Results saved to: {output_dir}")
+
+        if not result.success:
+            print(f"Error: {result.error_message}")
+
+        assert result.success, f"Rendering failed: {result.error_message}"
+        assert result.video_path.exists()
+
+
+class TestAlgebraCodeValidation:
+    """Tests for validating generated algebra code without rendering."""
+
+    @pytest.fixture
+    def engine(self):
+        """Create engine for code validation."""
+        return MathContentEngine()
+
+    @pytest.fixture
+    def output_dir(self):
+        """Return the persistent output directory for test results."""
+        TEST_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        return TEST_OUTPUT_DIR
+
+    def test_multiple_topics_code_generation(self, engine, output_dir):
+        """Test code generation for multiple algebra topics."""
+        topics = [
+            ("Adding fractions: show 1/2 + 1/3 = 5/6 using Text objects", "elementary"),
+            ("Distributive property: show a(b+c) = ab + ac using Text", "middle school"),
+            ("Factoring: show x² - 9 = (x+3)(x-3) using Text objects", "high school"),
+        ]
+
+        results = []
+        for i, (topic, level) in enumerate(topics):
+            result = engine.preview_code(
+                topic=topic,
+                requirements="Use Text() instead of MathTex() to avoid LaTeX dependency.",
+                audience_level=level
+            )
+
+            # Save each result
+            save_test_result(f"topic_{i+1}_{level.replace(' ', '_')}", result, output_dir)
+
+            results.append({
+                "topic": topic,
+                "valid": result.validation.is_valid,
+                "errors": result.validation.errors,
+                "scene": result.scene_name,
+            })
+            print(f"\n{topic}: {'✓' if result.validation.is_valid else '✗'}")
+            if not result.validation.is_valid:
+                print(f"  Errors: {result.validation.errors}")
+
+        print(f"\nAll code saved to: {output_dir}")
+
+        # At least 2 out of 3 should be valid
+        valid_count = sum(1 for r in results if r["valid"])
+        assert valid_count >= 2, f"Only {valid_count}/3 topics generated valid code"
+
+
+# Register custom markers
+def pytest_configure(config):
+    """Register custom markers."""
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (renders actual videos)"
+    )

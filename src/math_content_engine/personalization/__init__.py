@@ -1,0 +1,37 @@
+"""
+Personalization module for adapting math content to student interests.
+
+This module enables generating math content that uses contexts, examples,
+and terminology from various interests like sports, music, gaming, etc.
+"""
+
+from .interests import (
+    InterestProfile,
+    get_interest_profile,
+    list_available_interests,
+    INTEREST_PROFILES,
+)
+from .personalizer import ContentPersonalizer
+from .textbook_parser import (
+    TextbookParser,
+    TextbookChapter,
+    TextbookSection,
+    MathExample,
+    parse_textbook,
+    get_animation_specs_from_textbook,
+)
+
+__all__ = [
+    "InterestProfile",
+    "get_interest_profile",
+    "list_available_interests",
+    "ContentPersonalizer",
+    "INTEREST_PROFILES",
+    # Textbook parsing
+    "TextbookParser",
+    "TextbookChapter",
+    "TextbookSection",
+    "MathExample",
+    "parse_textbook",
+    "get_animation_specs_from_textbook",
+]

@@ -1,0 +1,88 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "math-content-engine"
+version = "0.1.0"
+description = "Automated math animation generation using Manim + LLM"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Math Content Engine Team"}
+]
+keywords = ["manim", "math", "animation", "education", "llm", "ai"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+    "manim>=0.18.0",
+    "anthropic>=0.34.0",
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+tts = [
+    "edge-tts>=6.0.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+all = [
+    "math-content-engine[tts,dev]",
+]
+
+[project.scripts]
+math-engine = "math_content_engine.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/example/math-content-engine"
+Documentation = "https://github.com/example/math-content-engine#readme"
+Repository = "https://github.com/example/math-content-engine"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+markers = [
+    "slow: marks tests as slow (renders actual videos)",
+    "e2e: end-to-end tests requiring API keys and Manim",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = true

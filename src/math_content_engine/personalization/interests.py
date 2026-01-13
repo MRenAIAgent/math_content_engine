@@ -39,12 +39,20 @@ class InterestProfile:
     visual_themes: Dict[str, str] = field(default_factory=dict)
     analogies: Dict[str, str] = field(default_factory=dict)
     fun_facts: List[str] = field(default_factory=list)
+    cultural_references: List[str] = field(default_factory=list)  # Memes, quotes, iconic moments
+    historical_trivia: List[str] = field(default_factory=list)  # Historical facts
+    real_world_connections: List[str] = field(default_factory=list)  # How math is used in this field
+    motivational_quotes: List[str] = field(default_factory=list)  # Inspiring quotes from figures
 
     def get_personalization_prompt(self) -> str:
         """Generate a prompt section for LLM personalization."""
         figures_str = ", ".join(self.famous_figures[:5]) if self.famous_figures else "relevant figures"
         scenarios_str = "\n".join(f"  - {s}" for s in self.example_scenarios[:5])
         analogies_str = "\n".join(f"  - {k}: {v}" for k, v in list(self.analogies.items())[:5])
+        fun_facts_str = "\n".join(f"  - {f}" for f in self.fun_facts[:3]) if self.fun_facts else ""
+        cultural_refs_str = "\n".join(f"  - {c}" for c in self.cultural_references[:3]) if self.cultural_references else ""
+        trivia_str = "\n".join(f"  - {t}" for t in self.historical_trivia[:2]) if self.historical_trivia else ""
+        quotes_str = "\n".join(f"  - \"{q}\"" for q in self.motivational_quotes[:2]) if self.motivational_quotes else ""
 
         return f"""
 ## PERSONALIZATION CONTEXT: {self.display_name}
@@ -68,6 +76,18 @@ class InterestProfile:
 - Primary colors: {self.visual_themes.get('primary_colors', 'Use appropriate thematic colors')}
 - Imagery suggestions: {self.visual_themes.get('imagery', 'Use domain-relevant visuals')}
 
+**Fun Facts to Include (pick one per lesson):**
+{fun_facts_str}
+
+**Cultural References & Iconic Moments (use sparingly for humor/engagement):**
+{cultural_refs_str}
+
+**Historical Context (for depth):**
+{trivia_str}
+
+**Motivational Quotes (use for introduction or conclusion):**
+{quotes_str}
+
 **Important Guidelines:**
 1. Replace generic examples with {self.name}-themed scenarios
 2. Use terminology familiar to {self.name} fans
@@ -75,6 +95,8 @@ class InterestProfile:
 4. Keep the math rigorous while making context fun and relatable
 5. Include at least one fun fact or real-world application
 6. Use the basic knowledge above to ensure accuracy
+7. Sprinkle in cultural references to make content feel current and relatable
+8. Connect historical facts to show math's importance in the field
 """
 
 
@@ -165,11 +187,44 @@ will connect with examples about three-pointers, scoring totals, and their favor
         "inequalities": "comparing who scored more points",
     },
     fun_facts=[
-        "Stephen Curry has made more three-pointers than anyone in NBA history!",
+        "Stephen Curry has made more three-pointers than anyone in NBA history - over 3,700!",
         "LeBron James has scored more points than any other player ever - over 40,000!",
         "Wilt Chamberlain once scored 100 points in a single game in 1962",
-        "A triple-double means getting 10 or more in three categories: points, rebounds, and assists",
+        "A triple-double means getting 10+ in three categories: points, rebounds, and assists",
         "An NBA basketball court is 94 feet long - that's almost as long as a third of a football field!",
+        "The three-point line wasn't added to the NBA until 1979 - before that, all shots were worth 2 points!",
+        "Victor Wembanyama has the longest wingspan ever measured at the NBA Draft Combine: 8 feet!",
+        "The shot clock (24 seconds) was invented in 1954 to make games more exciting",
+    ],
+    cultural_references=[
+        "Steph Curry's 'Night Night' celebration after hitting clutch shots",
+        "LeBron's famous 'The Block' in Game 7 of the 2016 Finals",
+        "Michael Jordan's 'The Last Dance' documentary and 6 championship rings",
+        "'Ball don't lie' - what players say when a missed free throw proves a bad call",
+        "The 'Greek Freak' Giannis going from unknown to MVP in just a few years",
+        "Kobe's 'Mamba Mentality' - working harder than everyone else",
+        "Space Jam movies featuring NBA superstars",
+    ],
+    historical_trivia=[
+        "Basketball was invented in 1891 by James Naismith using a peach basket as the hoop!",
+        "The first NBA game was played on November 1, 1946 - almost 80 years ago",
+        "The NBA three-point line is 23 feet 9 inches - it was added in 1979",
+        "The tallest NBA player ever was Gheorghe Muresan at 7 feet 7 inches",
+        "The shortest NBA player was Muggsy Bogues at only 5 feet 3 inches",
+    ],
+    real_world_connections=[
+        "NBA teams use advanced analytics and math to calculate player efficiency ratings",
+        "Basketball coaches use probability to decide when to foul at the end of games",
+        "Sports betting uses algebra and statistics to set point spreads",
+        "Player salaries are calculated using complex formulas involving the salary cap",
+        "Shot charts use coordinate geometry to map where players shoot best",
+    ],
+    motivational_quotes=[
+        "I've failed over and over again in my life. And that is why I succeed. - Michael Jordan",
+        "Hard work beats talent when talent doesn't work hard. - Kevin Durant",
+        "I'm not the next anyone. I'm the first me. - Giannis Antetokounmpo",
+        "Excellence is not a singular act, but a habit. You are what you repeatedly do. - Shaquille O'Neal",
+        "I can accept failure, everyone fails at something. But I can't accept not trying. - Michael Jordan",
     ]
 )
 
@@ -263,6 +318,36 @@ favorite players that middle school students follow.""",
         "The longest field goal ever made was 66 yards by Justin Tucker in 2021",
         "Patrick Mahomes became the youngest quarterback to win both an MVP award and a Super Bowl",
         "An NFL football is about 11 inches long and weighs about 1 pound",
+        "The Super Bowl is watched by over 100 million people - more than any other US TV event!",
+        "NFL players run an average of 1.25 miles per game",
+        "The fastest NFL player ever ran the 40-yard dash in 4.22 seconds!",
+    ],
+    cultural_references=[
+        "Patrick Mahomes' famous no-look passes that seem impossible",
+        "Travis Kelce's relationship with Taylor Swift bringing new fans to football",
+        "The 'Philly Special' trick play from Super Bowl LII",
+        "'You like that!' - Kirk Cousins' catchphrase after wins",
+        "The iconic Gatorade shower coaches get after winning big games",
+        "Fantasy Football - millions of fans use math to build their dream teams",
+    ],
+    historical_trivia=[
+        "The first Super Bowl was played on January 15, 1967 - tickets cost just $12!",
+        "The forward pass wasn't legal until 1906 - before that, it was all running!",
+        "The NFL started in 1920 with just 11 teams, now there are 32",
+        "The first NFL draft was in 1936 at a Philadelphia hotel",
+    ],
+    real_world_connections=[
+        "NFL teams use analytics to calculate expected points on every play",
+        "Coaches use probability to decide whether to go for it on 4th down",
+        "Fantasy Football requires statistical analysis to pick the best players",
+        "Sports scientists use biomechanics (physics and math) to prevent injuries",
+        "NFL contracts involve complex salary cap math worth hundreds of millions",
+    ],
+    motivational_quotes=[
+        "Success is not forever, and failure is not fatal. - Don Shula",
+        "The only way to prove you're a good sport is to lose. - Ernie Banks",
+        "It's not whether you get knocked down, it's whether you get up. - Vince Lombardi",
+        "Set your goals high, and don't stop till you get there. - Bo Jackson",
     ]
 )
 
@@ -634,6 +719,38 @@ middle school gamers understand from their favorite games.""",
         "Fortnite has over 500 million players around the world",
         "Professional esports players can make millions of dollars playing video games",
         "Roblox has over 70 million daily active players - that's more than the population of most countries!",
+        "The highest-earning esports player has won over $7 million from tournaments!",
+        "A Minecraft world can be 8 times larger than the surface of Earth!",
+        "The Tetris theme song is actually a 19th-century Russian folk song",
+    ],
+    cultural_references=[
+        "'GG' (good game) - the universal sign of respect in gaming",
+        "The 'F to pay respects' meme from Call of Duty",
+        "'Victory Royale!' - Fortnite's iconic win screen",
+        "Speed running - players use math to find the fastest routes through games",
+        "Twitch streamers and YouTubers who make gaming their career",
+        "The Ender Dragon fight in Minecraft - the ultimate boss battle",
+        "'Clutch' plays - when a player wins against impossible odds",
+    ],
+    historical_trivia=[
+        "Pac-Man was released in 1980 and is still one of the most recognized games ever",
+        "Nintendo was founded in 1889 - they made playing cards before video games!",
+        "The first gaming console was the Magnavox Odyssey in 1972",
+        "Mario's original name was 'Jumpman' and he was a carpenter, not a plumber!",
+        "The Game Boy was released in 1989 and sold over 118 million units",
+    ],
+    real_world_connections=[
+        "Game designers use algebra to balance weapon damage and player health",
+        "Probability determines loot drops and random encounters",
+        "Game physics engines use calculus to simulate realistic movement",
+        "Matchmaking systems use statistics to pair players of similar skill",
+        "Speedrunners use precise frame calculations (60 FPS = 60 calculations per second)",
+    ],
+    motivational_quotes=[
+        "The best games are those that teach you something without you realizing it. - Game Developers",
+        "Every expert was once a beginner. - Gaming Wisdom",
+        "Failure is just another step towards victory. - Dark Souls Philosophy",
+        "The only limit is your imagination. - Minecraft",
     ]
 )
 
@@ -643,40 +760,108 @@ MUSIC_PROFILE = InterestProfile(
     description="Music-themed content with rhythm, charts, streaming stats, and music theory",
     context_intro="""Engage music lovers with examples about streaming numbers, chart positions,
 concert ticket sales, tempo/BPM calculations, and music theory concepts. Reference
-popular artists and real industry statistics.""",
+popular artists and real industry statistics that resonate with middle school students.""",
+    basic_knowledge="""
+**How Music Charts Work:**
+- The Billboard Hot 100 ranks the most popular songs each week
+- Rankings are based on streaming, radio play, and sales combined
+- Going #1 means being the most popular song that week
+- Artists can spend weeks or even months on the chart
+
+**Streaming & Money:**
+- Spotify, Apple Music, and YouTube are the biggest streaming platforms
+- Artists earn about $0.003-0.005 per stream on Spotify
+- 1 million streams = roughly $3,000-$5,000 for the artist
+- "Going platinum" means 1 million units sold (or equivalent streams)
+
+**Music Math - Tempo & Time:**
+- BPM = Beats Per Minute (how fast a song is)
+- Most pop songs are between 100-130 BPM
+- Time signatures like 4/4 mean 4 beats per measure
+- A typical song is 3-4 minutes long (180-240 seconds)
+
+**Concert & Tour Economics:**
+- Concerts sell tickets in sections (floor, lower bowl, upper deck)
+- Tour revenue = ticket price × number of seats × number of shows
+- Stadium concerts can hold 50,000-80,000 fans
+- Arena concerts typically hold 15,000-20,000 fans
+""",
     famous_figures=[
-        "Taylor Swift", "Drake", "Bad Bunny", "The Weeknd", "Beyoncé",
-        "Billie Eilish", "Ed Sheeran", "BTS", "Kendrick Lamar", "Olivia Rodrigo",
-        "SZA", "Doja Cat", "Travis Scott", "Post Malone"
+        # Pop/Mainstream that kids follow
+        "Taylor Swift", "Olivia Rodrigo", "Billie Eilish", "Dua Lipa",
+        # Hip-Hop/Rap
+        "Drake", "Kendrick Lamar", "Travis Scott", "Doja Cat", "Ice Spice",
+        # Global/K-Pop
+        "BTS", "Bad Bunny", "Shakira", "NewJeans",
+        # Classic references
+        "The Weeknd", "Ed Sheeran", "Post Malone", "SZA",
     ],
     terminology={
         "variable": "unknown (streams, sales, BPM)",
         "equation": "calculation of totals or rates",
         "ratio": "streams per day, beats per minute",
         "inequality": "chart position comparisons",
+        "coefficient": "multiplier (like royalty rate per stream)",
+        "constant": "fixed values (like ticket price, song length)",
     },
     example_scenarios=[
-        "Calculating total streams from daily streams over weeks",
-        "Finding albums sold to go platinum (1 million units)",
-        "Computing revenue from streaming (fractions of cents per stream)",
-        "Determining BPM from beats counted over time",
-        "Calculating concert capacity from ticket sections",
-        "Finding weeks at #1 needed to break a record",
+        "Taylor Swift's Eras Tour sold out 52 shows. If each show has 70,000 fans, how many total fans attended?",
+        "A song gets 5 million streams per day. How many streams in a week? In a month?",
+        "An artist earns $0.004 per stream. How many streams to earn $10,000?",
+        "A song is 3 minutes and 24 seconds long. How many seconds total?",
+        "If a song has 120 BPM, how many beats in a 3-minute song?",
+        "Tickets cost $150 for floor seats and $75 for upper seats. If you buy 2 floor and 3 upper tickets, how much do you spend?",
+        "An album has 13 songs. If the average song is 3.5 minutes, how long is the whole album?",
+        "A song spent 8 weeks at #1 but needs 16 weeks to break the record. How many more weeks?",
     ],
     visual_themes={
-        "primary_colors": "PURPLE, PINK, GOLD (musical, vibrant)",
-        "imagery": "Sound waves, music notes, charts, streaming icons",
+        "primary_colors": "PURPLE, PINK, GOLD, NEON_BLUE (vibrant, concert-like)",
+        "imagery": "Sound waves, music notes, charts, streaming icons, concert lights, microphones",
+        "animations": "Equalizer bars moving, notes floating, chart positions changing",
     },
     analogies={
-        "fractions": "time signatures (4/4, 3/4, 6/8)",
-        "ratios": "BPM, streams per listener",
-        "multiplication": "calculating total streams from rate × time",
-        "inequalities": "comparing chart positions, platinum thresholds",
+        "fractions": "time signatures (4/4 means 4 beats per measure)",
+        "ratios": "BPM (beats per minute), streams per day",
+        "multiplication": "total streams = daily streams × number of days",
+        "division": "finding average song length on an album",
+        "inequalities": "comparing chart positions (lower number = better rank)",
+        "solving equations": "finding how many streams needed to go platinum",
     },
     fun_facts=[
-        "Taylor Swift's Eras Tour grossed over $1 billion",
-        "'Blinding Lights' spent 90 weeks in the Billboard Hot 100",
+        "Taylor Swift's Eras Tour grossed over $2 billion - the highest-grossing tour ever!",
+        "'Blinding Lights' by The Weeknd spent 90 weeks on the Billboard Hot 100",
         "Artists earn about $0.003-0.005 per Spotify stream",
+        "Bad Bunny was the most-streamed artist on Spotify for 3 years in a row!",
+        "BTS has over 75 million followers on Spotify - more than any other artist!",
+        "The most-streamed song ever has over 4 billion streams",
+        "A platinum album requires 1 million equivalent sales",
+    ],
+    cultural_references=[
+        "Taylor Swift's surprise album drops and Easter eggs for fans",
+        "Fan 'streaming parties' to help artists reach chart milestones",
+        "TikTok making songs go viral overnight",
+        "The 'Swifties' and 'BTS Army' fandoms being super dedicated",
+        "Artists releasing 'deluxe' editions with bonus tracks",
+        "The Spotify Wrapped yearly summary everyone shares",
+    ],
+    historical_trivia=[
+        "The Billboard Hot 100 started in 1958 - over 65 years of tracking hits!",
+        "The Beatles hold the record for most #1 hits ever with 20",
+        "Music went from vinyl to CDs to MP3s to streaming in just 50 years",
+        "MTV launched in 1981 - before that, you couldn't watch music videos at home",
+    ],
+    real_world_connections=[
+        "Record labels use statistics to predict which songs will be hits",
+        "Concert promoters use algebra to price tickets for maximum revenue",
+        "Music producers use math to mix tracks at the right volume levels",
+        "Streaming algorithms use probability to recommend songs you'll like",
+        "Sound engineers use frequency equations to create perfect audio",
+    ],
+    motivational_quotes=[
+        "Music can change the world because it can change people. - Bono",
+        "I'm not a businessman. I'm a business, man. - Jay-Z",
+        "Just be yourself, there is no one better. - Taylor Swift",
+        "Music is the universal language of mankind. - Henry Wadsworth Longfellow",
     ]
 )
 
@@ -729,34 +914,103 @@ SPACE_PROFILE = InterestProfile(
     description="Space and astronomy-themed content with rockets, planets, and NASA missions",
     context_intro="""Engage space enthusiasts with examples about rocket launches,
 orbital mechanics, distances in space, and NASA/SpaceX missions. Use real data
-about planets, satellites, and space exploration.""",
+about planets, satellites, and space exploration that sparks wonder and curiosity.""",
+    basic_knowledge="""
+**Our Solar System:**
+- The Sun is at the center, with 8 planets orbiting around it
+- Mercury, Venus, Earth, Mars (rocky planets) - then Jupiter, Saturn, Uranus, Neptune (gas giants)
+- Earth is about 93 million miles from the Sun (called 1 AU - Astronomical Unit)
+- Light travels at 186,000 miles per second (the fastest thing in the universe!)
+
+**Rockets & Space Travel:**
+- To leave Earth, rockets need to reach 'escape velocity' - about 25,000 mph!
+- The International Space Station orbits Earth at 17,500 mph
+- It takes about 3 days to reach the Moon, 7 months to reach Mars
+- SpaceX rockets can land and be reused to save money
+
+**Famous Space Distances:**
+- Moon: 238,900 miles from Earth (about 1.3 light-seconds)
+- Mars: 140 million miles on average (but it changes as planets orbit!)
+- The nearest star (Proxima Centauri) is 4.24 light-years away
+- Our Milky Way galaxy is 100,000 light-years across!
+
+**Space Measurements:**
+- Light-second: distance light travels in 1 second (186,000 miles)
+- Light-year: distance light travels in 1 year (5.88 trillion miles!)
+- AU (Astronomical Unit): Earth's distance from the Sun
+""",
     famous_figures=[
-        "Elon Musk (SpaceX)", "NASA", "Neil Armstrong", "Chris Hadfield",
-        "Neil deGrasse Tyson", "Buzz Aldrin", "Mae Jemison"
+        # Modern figures kids know
+        "Elon Musk (SpaceX)", "NASA Artemis astronauts",
+        # Historic legends
+        "Neil Armstrong", "Buzz Aldrin", "Sally Ride", "Mae Jemison",
+        # Science communicators
+        "Neil deGrasse Tyson", "Chris Hadfield", "Bill Nye",
     ],
     terminology={
         "variable": "unknown (distance, speed, time)",
         "equation": "orbital calculation, trajectory formula",
+        "coefficient": "multiplier for unit conversion",
+        "ratio": "comparing distances (like Earth to Moon vs. Earth to Mars)",
+        "exponents": "scientific notation for huge numbers",
     },
     example_scenarios=[
-        "Calculating distance to Mars in kilometers",
-        "Finding time for light to travel from the Sun to Earth",
-        "Computing rocket speed needed for escape velocity",
-        "Determining satellite orbital period",
-        "Calculating fuel needed for a mission",
+        "Light travels at 186,000 miles per second. How far does it travel in 8 minutes?",
+        "The Moon is 238,900 miles away. At 25,000 mph, how long to get there?",
+        "Mars is 140 million miles away. If a rocket travels at 20,000 mph, how many days to Mars?",
+        "A satellite orbits Earth every 90 minutes. How many orbits in one day?",
+        "The ISS travels at 17,500 mph. How far does it travel in one hour?",
+        "A rocket uses 10,000 gallons of fuel per minute. How much for a 12-minute launch?",
+        "Jupiter is 5 times farther from the Sun than Earth. If Earth is 93 million miles away, how far is Jupiter?",
+        "An astronaut weighs 150 pounds on Earth but only 25 pounds on the Moon. What's the ratio?",
     ],
     visual_themes={
-        "primary_colors": "DARK_BLUE (space), WHITE (stars), ORANGE (rockets)",
-        "imagery": "Planets, rockets, orbits, stars, astronauts",
+        "primary_colors": "DARK_BLUE (space), WHITE (stars), ORANGE (rockets), SILVER (spacecraft)",
+        "imagery": "Planets, rockets, orbits, stars, astronauts, galaxies, satellites",
+        "animations": "Rockets launching, planets orbiting, light beams traveling",
     },
     analogies={
-        "solving equations": "calculating trajectory parameters",
-        "large numbers": "astronomical distances",
-        "scientific notation": "expressing distances in space",
+        "solving equations": "calculating rocket trajectory or travel time",
+        "large numbers": "astronomical distances require scientific notation",
+        "scientific notation": "the only way to write trillion-mile distances",
+        "ratios": "comparing planetary sizes or distances",
+        "multiplication": "light-years to miles conversion",
+        "division": "finding how long a journey takes",
     },
     fun_facts=[
         "Light takes 8 minutes to travel from the Sun to Earth",
-        "SpaceX Falcon 9 rockets can land and be reused",
+        "SpaceX Falcon 9 rockets can land and be reused - saving millions of dollars!",
+        "The footprints on the Moon will last for millions of years (no wind to blow them away!)",
+        "One day on Venus is longer than one year on Venus (it spins that slowly!)",
+        "You could fit 1.3 million Earths inside the Sun",
+        "Neutron stars are so dense that a teaspoon would weigh 6 billion tons!",
+        "There are more stars in the universe than grains of sand on all of Earth's beaches",
+    ],
+    cultural_references=[
+        "SpaceX rocket landings that look like science fiction becoming real",
+        "The Mars Perseverance rover and Ingenuity helicopter making history",
+        "NASA's Artemis program planning to put the first woman on the Moon",
+        "Star Wars and Star Trek inspiring real scientists and astronauts",
+        "Astronauts becoming TikTok and YouTube stars from space",
+    ],
+    historical_trivia=[
+        "The first satellite, Sputnik, was launched in 1957 - starting the Space Race",
+        "Neil Armstrong walked on the Moon on July 20, 1969",
+        "The Hubble Space Telescope has been in orbit since 1990",
+        "The International Space Station has been continuously occupied since 2000",
+    ],
+    real_world_connections=[
+        "Orbital mechanics uses algebra and physics to plot spacecraft trajectories",
+        "NASA uses probability to calculate mission success rates",
+        "Rocket scientists use calculus to optimize fuel usage",
+        "GPS satellites use precise geometry to locate you on Earth",
+        "Astronomers use exponential notation for cosmic distances",
+    ],
+    motivational_quotes=[
+        "That's one small step for man, one giant leap for mankind. - Neil Armstrong",
+        "The universe is under no obligation to make sense to you. - Neil deGrasse Tyson",
+        "I didn't feel like a giant. I felt very, very small. - Neil Armstrong on seeing Earth from space",
+        "Earth is the cradle of humanity, but one cannot live in a cradle forever. - Konstantin Tsiolkovsky",
     ]
 )
 
@@ -882,6 +1136,335 @@ Show how math underlies beautiful artwork.""",
 
 
 # =============================================================================
+# ANIME & MANGA PROFILE
+# =============================================================================
+
+ANIME_PROFILE = InterestProfile(
+    name="anime",
+    display_name="Anime & Manga",
+    description="Anime and manga-themed content with references to popular series, characters, and Japanese culture",
+    context_intro="""Engage anime and manga fans with examples from popular series,
+character power levels, episode counts, and manga volume sales. Reference beloved
+shows that middle school students watch and discuss with friends.""",
+    basic_knowledge="""
+**What is Anime & Manga?**
+- Anime: Japanese animated shows and movies
+- Manga: Japanese comic books (read right to left!)
+- Episodes air weekly in "seasons" or "cours" (about 12-24 episodes)
+- Popular series can run for hundreds of episodes
+
+**Streaming & Watching:**
+- Crunchyroll and Netflix are popular anime streaming services
+- New episodes often release on specific days of the week
+- "Simulcast" means episodes air in Japan and internationally at the same time
+
+**Power Levels & Stats:**
+- Many anime feature characters with measurable power levels
+- Characters often have stats for strength, speed, intelligence, etc.
+- Training "arcs" show characters getting stronger over time
+
+**Manga Sales:**
+- Best-selling manga sell millions of copies worldwide
+- Manga is released in weekly magazines, then collected into "volumes"
+- One Piece has sold over 500 million copies - more than any other manga!
+
+**Common Terms:**
+- Shonen: action anime aimed at young boys (Naruto, Dragon Ball, My Hero Academia)
+- Shojo: anime aimed at young girls (Sailor Moon, Fruits Basket)
+- OVA: Original Video Animation (special episodes)
+- Filler: episodes not from the original manga story
+""",
+    famous_figures=[
+        # Series/Characters everyone knows
+        "Naruto", "Goku (Dragon Ball)", "Luffy (One Piece)", "Deku (My Hero Academia)",
+        "Tanjiro (Demon Slayer)", "Gojo (Jujutsu Kaisen)", "Eren (Attack on Titan)",
+        # More recent hits
+        "Anya (Spy x Family)", "Denji (Chainsaw Man)", "Frieren",
+        # Classic references
+        "Pikachu (Pokemon)", "Sailor Moon", "Totoro",
+    ],
+    terminology={
+        "variable": "unknown value (like a character's hidden power level)",
+        "equation": "calculating total power or episode count",
+        "inequality": "comparing power levels between characters",
+        "exponents": "power-ups that multiply strength",
+        "ratio": "win-loss ratios in battles",
+    },
+    example_scenarios=[
+        "Naruto has 720 episodes total. If you watch 5 episodes per day, how many days to finish?",
+        "Goku's power level is 9,000. After training, it multiplies by 50. What's his new power level?",
+        "One Piece has 1,100 chapters. If each chapter takes 10 minutes to read, how many hours total?",
+        "A manga sells 2 million copies per volume. With 25 volumes, how many total copies?",
+        "Demon Slayer Season 1 has 26 episodes at 24 minutes each. How many hours total?",
+        "If a character's speed stat is 85 and strength is 92, what's their average stat?",
+        "A weekly manga releases 52 chapters per year. How many chapters in 5 years?",
+        "Two characters have power levels of 8,500 and 12,000. What's the difference?",
+    ],
+    visual_themes={
+        "primary_colors": "VIBRANT colors - RED, BLUE, GOLD, BLACK (action style)",
+        "imagery": "Speed lines, power auras, manga panels, character silhouettes",
+        "animations": "Power-up effects, dramatic reveals, action sequences",
+    },
+    analogies={
+        "solving equations": "calculating how many episodes to reach a goal",
+        "variables": "unknown power levels to discover",
+        "multiplication": "power multipliers when characters transform",
+        "division": "splitting training time across skills",
+        "inequalities": "comparing power levels between heroes and villains",
+        "exponents": "power levels going from 9,000 to 9 million through transformations",
+    },
+    fun_facts=[
+        "One Piece has sold over 500 million manga copies - it's the best-selling manga ever!",
+        "Demon Slayer became the highest-grossing anime film ever in 2020",
+        "Dragon Ball Z's 'Over 9000!' line is one of the most famous anime memes",
+        "Pokemon is the highest-grossing media franchise in the world - worth $100+ billion!",
+        "Naruto's creator drew over 700 chapters by hand over 15 years",
+        "Attack on Titan's finale was watched by millions worldwide simultaneously",
+        "Studio Ghibli films (like Spirited Away) have won Academy Awards",
+    ],
+    cultural_references=[
+        "The 'Plus Ultra!' motto from My Hero Academia (means 'Go Beyond!')",
+        "Goku's iconic Kamehameha attack and transformation screams",
+        "Naruto running pose that fans imitate (running with arms back)",
+        "The 'Talk no Jutsu' joke about Naruto convincing villains to be good",
+        "'Believe it!' - Naruto's famous catchphrase",
+        "Jujutsu Kaisen's 'Domain Expansion' being everyone's favorite move",
+    ],
+    historical_trivia=[
+        "Astro Boy (1963) was one of the first anime TV series ever made",
+        "Dragon Ball started in 1984 and is still making new content!",
+        "Pokemon released in 1996 and became a worldwide phenomenon",
+        "Anime became globally popular through VHS tapes shared by fans in the 1990s",
+    ],
+    real_world_connections=[
+        "Animators use geometry to create perspective and movement",
+        "Manga artists calculate panel layouts using ratios and proportions",
+        "Streaming platforms use algorithms to recommend shows you'll like",
+        "Game developers balance character stats using algebra",
+        "Voice actors record at specific frame rates (24 frames per second)",
+    ],
+    motivational_quotes=[
+        "Believe it! - Naruto Uzumaki",
+        "Plus Ultra! - My Hero Academia",
+        "Power comes in response to a need, not a desire. - Goku",
+        "If you don't like the hand fate dealt you, fight for a new one. - Naruto",
+        "I'll take a potato chip... and eat it! - Light Yagami (Death Note)",
+    ]
+)
+
+
+# =============================================================================
+# ANIMALS & NATURE PROFILE
+# =============================================================================
+
+ANIMALS_PROFILE = InterestProfile(
+    name="animals",
+    display_name="Animals & Wildlife",
+    description="Animal and nature-themed content with fascinating creatures, conservation, and biology",
+    context_intro="""Engage animal lovers with examples about wildlife populations,
+animal speeds, habitats, and conservation. Use real data about favorite animals
+that sparks curiosity about the natural world.""",
+    basic_knowledge="""
+**Animal Speeds:**
+- Cheetah: 70 mph (fastest land animal)
+- Peregrine falcon: 240 mph diving (fastest animal ever!)
+- Sailfish: 68 mph (fastest fish)
+- Human: ~28 mph (Usain Bolt's top speed)
+
+**Animal Sizes:**
+- Blue whale: 100 feet long, 200 tons (largest animal ever!)
+- Elephant: 13 feet tall, 6 tons (largest land animal)
+- Giraffe: 18 feet tall (tallest animal)
+- Hummingbird: 2-3 inches (one of the smallest birds)
+
+**Animal Lifespans:**
+- Mayfly: 24 hours
+- Dog: 10-13 years
+- Elephant: 70 years
+- Tortoise: 100+ years
+- Some jellyfish: potentially immortal!
+
+**Conservation Numbers:**
+- Endangered means fewer than 2,500 adults remain
+- Many species have recovered from near extinction
+- Zoos and sanctuaries help protect rare animals
+- Wildlife populations have declined 69% since 1970
+
+**Population & Groups:**
+- A group of wolves is called a "pack" (5-10 wolves)
+- A group of fish is called a "school" (can be millions!)
+- A group of birds is called a "flock"
+""",
+    famous_figures=[
+        # Animals kids love
+        "Lions", "Tigers", "Elephants", "Dolphins", "Wolves",
+        "Pandas", "Penguins", "Sharks", "Whales", "Dogs", "Cats",
+        # Famous individual animals or mascots
+        "David Attenborough (nature documentaries)",
+        "Steve Irwin (Crocodile Hunter)",
+        "Jane Goodall (chimpanzee researcher)",
+    ],
+    terminology={
+        "variable": "unknown (population count, speed, distance)",
+        "equation": "calculating animal populations or distances",
+        "ratio": "comparing sizes or speeds of different animals",
+        "inequality": "comparing populations (endangered vs. thriving)",
+        "average": "typical lifespan or speed",
+    },
+    example_scenarios=[
+        "A cheetah runs at 70 mph. How far can it run in 30 seconds?",
+        "A blue whale is 100 feet long. A human is 6 feet. How many humans equal one whale?",
+        "A wolf pack has 8 wolves. If 3 packs live in the forest, how many wolves total?",
+        "Elephants drink 50 gallons of water per day. How much in a week?",
+        "A penguin colony has 5,000 penguins. If 200 new chicks are born each month, how many after 6 months?",
+        "A sea turtle swims 35 miles per day. How far in 2 weeks?",
+        "If a species has 2,000 animals and the population grows by 5% per year, how many next year?",
+        "A hummingbird beats its wings 80 times per second. How many beats in one minute?",
+    ],
+    visual_themes={
+        "primary_colors": "GREEN (nature), BROWN (earth), BLUE (ocean), ORANGE (wildlife)",
+        "imagery": "Animals, habitats, nature scenes, paw prints, wildlife photography",
+        "animations": "Animals running, birds flying, fish swimming, population graphs",
+    },
+    analogies={
+        "solving equations": "calculating how many animals in a population",
+        "variables": "unknown population counts to discover",
+        "multiplication": "growth rates for animal populations",
+        "division": "sharing territory or resources among animals",
+        "ratios": "comparing sizes of different species",
+        "inequalities": "endangered vs. stable populations",
+    },
+    fun_facts=[
+        "A blue whale's heart is the size of a small car!",
+        "Octopuses have three hearts and blue blood",
+        "A group of flamingos is called a 'flamboyance'",
+        "Crows can remember human faces and hold grudges!",
+        "A shrimp's heart is in its head",
+        "Elephants are the only animals that can't jump",
+        "A cheetah can accelerate faster than most sports cars",
+        "Dolphins sleep with one eye open (half their brain stays awake!)",
+    ],
+    cultural_references=[
+        "Planet Earth and nature documentaries everyone watches",
+        "Viral animal videos on social media",
+        "Zoo and aquarium visits as popular family activities",
+        "Animal crossing (the game!) and virtual pet games",
+        "Wildlife conservation efforts and 'adopt an animal' programs",
+    ],
+    historical_trivia=[
+        "Dinosaurs went extinct 65 million years ago",
+        "The dodo bird went extinct in the 1600s due to hunting",
+        "Bald eagles were nearly extinct but have recovered thanks to conservation",
+        "The first zoo opened in Vienna in 1752",
+    ],
+    real_world_connections=[
+        "Wildlife biologists use statistics to track animal populations",
+        "Conservation efforts use math to predict species survival",
+        "Veterinarians calculate medicine doses based on animal weight",
+        "Ecologists use ratios to measure biodiversity",
+        "Migration patterns are tracked using GPS and math",
+    ],
+    motivational_quotes=[
+        "The greatness of a nation can be judged by the way its animals are treated. - Mahatma Gandhi",
+        "Look deep into nature, and you will understand everything better. - Albert Einstein",
+        "In the end, we will conserve only what we love. - Baba Dioum",
+        "The wildlife and its habitat cannot speak, so we must. - Theodore Roosevelt",
+    ]
+)
+
+
+# =============================================================================
+# FASHION & BEAUTY PROFILE
+# =============================================================================
+
+FASHION_PROFILE = InterestProfile(
+    name="fashion",
+    display_name="Fashion & Style",
+    description="Fashion and style-themed content with design, measurements, and industry math",
+    context_intro="""Engage fashion enthusiasts with examples about clothing measurements,
+fabric calculations, pricing, and runway show statistics. Connect math to the
+creative world of design and personal style.""",
+    basic_knowledge="""
+**Clothing Sizes & Measurements:**
+- Sizes vary by brand and country (US, EU, UK all different!)
+- Common measurements: bust, waist, hips, inseam
+- Tailoring uses precise measurements in inches or centimeters
+
+**Fabric & Materials:**
+- Fabric is sold by the yard or meter
+- Pattern pieces show how to cut fabric efficiently
+- Fabric width is typically 45 or 60 inches
+
+**Fashion Industry Numbers:**
+- Fashion Week happens 4 times per year (2 main + 2 resort/pre-fall)
+- A typical runway show features 30-50 looks
+- The fashion industry is worth $1.7 trillion globally
+
+**Discounts & Pricing:**
+- Sales often offer 20%, 30%, 50% off
+- Original price × (1 - discount rate) = sale price
+- Designer items have high markups over production cost
+""",
+    famous_figures=[
+        "Coco Chanel", "Virgil Abloh", "Rihanna (Fenty)", "Zendaya",
+        "Pharrell Williams", "Nike", "Adidas", "Shein", "Fashion Nova",
+    ],
+    terminology={
+        "variable": "unknown (price, measurements, quantity)",
+        "equation": "calculating sale prices or fabric needed",
+        "ratio": "proportions for patterns and sizing",
+        "percentage": "discounts and markups",
+    },
+    example_scenarios=[
+        "A dress costs $80 and is 25% off. What's the sale price?",
+        "You need 3 yards of fabric at $12 per yard. What's the total cost?",
+        "A designer sells 500 shirts at $45 each. What's the total revenue?",
+        "Your waist measures 28 inches. What size are you in a brand where size 6 = 27-29 inches?",
+        "A runway show has 40 looks. If each model wears 5 looks, how many models are needed?",
+        "You're budgeting $200 for clothes. If jeans cost $65 and tops average $35, how many of each can you buy?",
+    ],
+    visual_themes={
+        "primary_colors": "BLACK, WHITE, PINK, GOLD (elegant, stylish)",
+        "imagery": "Clothing racks, runway, measuring tape, fabric swatches",
+    },
+    analogies={
+        "percentages": "calculating discounts and sale prices",
+        "ratios": "proportions for body measurements",
+        "multiplication": "fabric needed × price per yard",
+        "budgeting": "planning outfits within a spending limit",
+    },
+    fun_facts=[
+        "Coco Chanel popularized the 'little black dress' in the 1920s",
+        "Sneakers are now considered fashion - the resale market is worth billions!",
+        "The average American buys 68 pieces of clothing per year",
+        "Fashion Week shows in New York, London, Milan, and Paris attract thousands",
+    ],
+    cultural_references=[
+        "TikTok fashion hauls and outfit of the day (OOTD) videos",
+        "Thrift flipping - buying cheap clothes and restyling them",
+        "Sneaker culture and limited-edition drops",
+        "Sustainable fashion and upcycling trends",
+    ],
+    historical_trivia=[
+        "Blue jeans were invented in 1873 for miners and workers",
+        "The first Fashion Week was held in New York in 1943",
+        "Sneakers were originally called 'plimsolls' in the 1800s",
+    ],
+    real_world_connections=[
+        "Fashion designers use geometry for pattern making",
+        "Retailers use statistics to predict trending styles",
+        "Fabric cutting optimizes material usage (minimal waste)",
+        "Inventory management uses algebra for stock levels",
+    ],
+    motivational_quotes=[
+        "Fashion is about dressing according to what's fashionable. Style is more about being yourself. - Oscar de la Renta",
+        "Give a girl the right shoes, and she can conquer the world. - Marilyn Monroe",
+        "Style is a way to say who you are without having to speak. - Rachel Zoe",
+    ]
+)
+
+
+# =============================================================================
 # REGISTRY
 # =============================================================================
 
@@ -915,6 +1498,22 @@ INTEREST_PROFILES: Dict[str, InterestProfile] = {
     "baking": COOKING_PROFILE,  # alias
     "art": ART_PROFILE,
     "design": ART_PROFILE,  # alias
+
+    # Pop Culture
+    "anime": ANIME_PROFILE,
+    "manga": ANIME_PROFILE,  # alias
+    "otaku": ANIME_PROFILE,  # alias
+
+    # Nature
+    "animals": ANIMALS_PROFILE,
+    "wildlife": ANIMALS_PROFILE,  # alias
+    "nature": ANIMALS_PROFILE,  # alias
+    "pets": ANIMALS_PROFILE,  # alias
+
+    # Fashion
+    "fashion": FASHION_PROFILE,
+    "style": FASHION_PROFILE,  # alias
+    "clothes": FASHION_PROFILE,  # alias
 }
 
 

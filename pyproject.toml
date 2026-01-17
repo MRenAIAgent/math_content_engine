@@ -36,6 +36,10 @@ dependencies = [
 tts = [
     "edge-tts>=6.0.0",
 ]
+lab = [
+    "rich>=13.0.0",
+    "prompt-toolkit>=3.0.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -45,11 +49,12 @@ dev = [
     "mypy>=1.0.0",
 ]
 all = [
-    "math-content-engine[tts,dev]",
+    "math-content-engine[tts,lab,dev]",
 ]
 
 [project.scripts]
 math-engine = "math_content_engine.cli:main"
+math-lab = "math_content_engine.lab.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/example/math-content-engine"

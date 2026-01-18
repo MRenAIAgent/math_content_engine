@@ -3,9 +3,10 @@ Main Math Content Engine - orchestrates LLM generation and Manim rendering.
 """
 
 import logging
+import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from .config import Config, AnimationStyle
 from .generator.code_generator import ManimCodeGenerator, GenerationResult
@@ -13,6 +14,9 @@ from .generator.prompts import AnimationStyle as PromptAnimationStyle
 from .llm.factory import create_llm_client
 from .renderer.manim_renderer import ManimRenderer, RenderResult
 from .personalization import ContentPersonalizer, list_available_interests
+
+if TYPE_CHECKING:
+    from .api.storage import VideoStorage
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +33,7 @@ class AnimationResult:
     total_attempts: int
     error_message: Optional[str] = None
     render_time: float = 0.0
+    video_id: Optional[str] = None  # ID assigned when stored in database
 
 
 class MathContentEngine:
@@ -50,16 +55,23 @@ class MathContentEngine:
         ...     print(f"Video saved to: {result.video_path}")
     """
 
-    def __init__(self, config: Optional[Config] = None, interest: Optional[str] = None):
+    def __init__(
+        self,
+        config: Optional[Config] = None,
+        interest: Optional[str] = None,
+        storage: Optional["VideoStorage"] = None,
+    ):
         """
         Initialize the Math Content Engine.
 
         Args:
             config: Configuration object. If None, loads from environment.
             interest: Student interest for content personalization (e.g., "basketball", "gaming")
+            storage: Optional VideoStorage instance for persisting video metadata
         """
         self.config = config or Config.from_env()
         self.interest = interest
+        self.storage = storage
 
         # Initialize components
         self.llm_client = create_llm_client(self.config)
@@ -115,6 +127,7 @@ class MathContentEngine:
         audience_level: str = "high school",
         output_filename: Optional[str] = None,
         interest: Optional[str] = None,
+        save_to_storage: bool = True,
     ) -> AnimationResult:
         """
         Generate a math animation from a topic description.
@@ -125,10 +138,12 @@ class MathContentEngine:
             audience_level: Target audience (elementary, middle school, high school, college)
             output_filename: Optional custom filename for output
             interest: Optional interest override for personalization (e.g., "basketball")
+            save_to_storage: Whether to save video metadata to storage (if storage is configured)
 
         Returns:
             AnimationResult with success status, video path, and metadata
         """
+        start_time = time.time()
         interest_info = f" (personalized for {interest})" if interest else ""
         logger.info(f"Generating animation for topic: {topic}{interest_info}")
 
@@ -136,6 +151,9 @@ class MathContentEngine:
         render_attempts = 0
         last_generation: Optional[GenerationResult] = None
         last_render: Optional[RenderResult] = None
+
+        # Track generation timing
+        gen_start = time.time()
 
         # Generate initial code
         generation_result = self.code_generator.generate(
@@ -146,9 +164,10 @@ class MathContentEngine:
         )
         total_attempts = generation_result.attempts
         last_generation = generation_result
+        generation_time_ms = int((time.time() - gen_start) * 1000)
 
         if not generation_result.validation.is_valid:
-            return AnimationResult(
+            result = AnimationResult(
                 success=False,
                 video_path=None,
                 code=generation_result.code,
@@ -158,10 +177,18 @@ class MathContentEngine:
                 total_attempts=total_attempts,
                 error_message=f"Code generation failed: {generation_result.validation.errors}",
             )
+            # Save failed generation to storage if configured
+            if save_to_storage and self.storage:
+                result = self._save_to_storage(
+                    result, topic, requirements, audience_level, interest,
+                    generation_time_ms, None
+                )
+            return result
 
         # Try to render with error feedback loop
         code = generation_result.code
         scene_name = generation_result.scene_name
+        render_start = time.time()
 
         while render_attempts < self.config.max_retries:
             render_attempts += 1
@@ -177,8 +204,9 @@ class MathContentEngine:
             last_render = render_result
 
             if render_result.success:
+                render_time_ms = int((time.time() - render_start) * 1000)
                 logger.info(f"Animation rendered successfully: {render_result.output_path}")
-                return AnimationResult(
+                result = AnimationResult(
                     success=True,
                     video_path=render_result.output_path,
                     code=code,
@@ -188,6 +216,13 @@ class MathContentEngine:
                     total_attempts=total_attempts,
                     render_time=render_result.render_time,
                 )
+                # Save successful generation to storage if configured
+                if save_to_storage and self.storage:
+                    result = self._save_to_storage(
+                        result, topic, requirements, audience_level, interest,
+                        generation_time_ms, render_time_ms
+                    )
+                return result
 
             # Render failed - try to fix the code
             logger.warning(f"Render failed: {render_result.error_message}")
@@ -209,8 +244,9 @@ class MathContentEngine:
                 logger.warning("LLM code fix did not produce valid code")
 
         # All attempts failed
+        render_time_ms = int((time.time() - render_start) * 1000)
         error_msg = last_render.error_message if last_render else "Unknown error"
-        return AnimationResult(
+        result = AnimationResult(
             success=False,
             video_path=None,
             code=code,
@@ -220,6 +256,65 @@ class MathContentEngine:
             total_attempts=total_attempts,
             error_message=f"Rendering failed after {render_attempts} attempts: {error_msg}",
         )
+        # Save failed generation to storage if configured
+        if save_to_storage and self.storage:
+            result = self._save_to_storage(
+                result, topic, requirements, audience_level, interest,
+                generation_time_ms, render_time_ms
+            )
+        return result
+
+    def _save_to_storage(
+        self,
+        result: AnimationResult,
+        topic: str,
+        requirements: str,
+        audience_level: str,
+        interest: Optional[str],
+        generation_time_ms: int,
+        render_time_ms: Optional[int],
+    ) -> AnimationResult:
+        """Save video metadata to storage and return updated result with video_id."""
+        if not self.storage:
+            return result
+
+        try:
+            from .api.models import VideoCreate, AnimationStyle as ApiAnimationStyle, VideoQuality
+
+            # Get file size if video exists
+            file_size_bytes = None
+            if result.video_path and result.video_path.exists():
+                file_size_bytes = result.video_path.stat().st_size
+
+            video_create = VideoCreate(
+                topic=topic,
+                scene_name=result.scene_name,
+                video_path=str(result.video_path) if result.video_path else "",
+                code=result.code,
+                requirements=requirements if requirements else None,
+                audience_level=audience_level,
+                interest=interest or self.interest,
+                style=ApiAnimationStyle(self.config.animation_style.value),
+                quality=VideoQuality(self.config.video_quality.value),
+                llm_provider=self.config.llm_provider.value,
+                llm_model=self.config.get_model(),
+                generation_attempts=result.generation_attempts,
+                render_attempts=result.render_attempts,
+                total_attempts=result.total_attempts,
+                generation_time_ms=generation_time_ms,
+                render_time_ms=render_time_ms,
+                file_size_bytes=file_size_bytes,
+                success=result.success,
+                error_message=result.error_message,
+            )
+
+            metadata = self.storage.save(video_create)
+            result.video_id = metadata.id
+            logger.info(f"Saved video metadata with ID: {metadata.id}")
+        except Exception as e:
+            logger.warning(f"Failed to save video metadata: {e}")
+
+        return result
 
     def generate_from_code(
         self,

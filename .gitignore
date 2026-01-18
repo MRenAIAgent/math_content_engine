@@ -82,3 +82,6 @@ output/
 
 # Project specific
 *.log
+
+# API database
+data/

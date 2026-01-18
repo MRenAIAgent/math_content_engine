@@ -30,6 +30,12 @@ class AnimationStyle(Enum):
     LIGHT = "light"  # Light/white background
 
 
+class TTSProvider(Enum):
+    """Supported TTS providers."""
+    EDGE = "edge"              # Microsoft Edge TTS (free, no API key)
+    ELEVENLABS = "elevenlabs"  # ElevenLabs (requires API key)
+
+
 @dataclass
 class Config:
     """
@@ -96,6 +102,17 @@ class Config:
         os.getenv("MATH_ENGINE_ANIMATION_STYLE", "dark")
     ))
 
+    # TTS Settings
+    tts_provider: TTSProvider = field(default_factory=lambda: TTSProvider(
+        os.getenv("MATH_ENGINE_TTS_PROVIDER", "edge")
+    ))
+    elevenlabs_api_key: Optional[str] = field(default_factory=lambda:
+        os.getenv("ELEVENLABS_API_KEY")
+    )
+    tts_voice: Optional[str] = field(default_factory=lambda:
+        os.getenv("MATH_ENGINE_TTS_VOICE")  # Provider-specific voice ID/name
+    )
+
     def __post_init__(self):
         """Validate configuration after initialization."""
         # Ensure output directories exist
@@ -110,6 +127,12 @@ class Config:
         if self.llm_provider == LLMProvider.OPENAI and not self.openai_api_key:
             raise ValueError(
                 "OPENAI_API_KEY environment variable is required when using OpenAI"
+            )
+
+        # Validate TTS API key for ElevenLabs
+        if self.tts_provider == TTSProvider.ELEVENLABS and not self.elevenlabs_api_key:
+            raise ValueError(
+                "ELEVENLABS_API_KEY environment variable is required when using ElevenLabs TTS"
             )
 
     @classmethod

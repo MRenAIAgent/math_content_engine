@@ -40,6 +40,11 @@ lab = [
     "rich>=13.0.0",
     "prompt-toolkit>=3.0.0",
 ]
+api = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "pydantic>=2.0.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -47,14 +52,16 @@ dev = [
     "black>=23.0.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
+    "httpx>=0.25.0",
 ]
 all = [
-    "math-content-engine[tts,lab,dev]",
+    "math-content-engine[tts,lab,api,dev]",
 ]
 
 [project.scripts]
 math-engine = "math_content_engine.cli:main"
 math-lab = "math_content_engine.lab.cli:main"
+math-api = "math_content_engine.api.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/example/math-content-engine"

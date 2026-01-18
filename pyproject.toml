@@ -35,6 +35,8 @@ dependencies = [
 [project.optional-dependencies]
 tts = [
     "edge-tts>=6.0.0",
+    "elevenlabs>=1.0.0",
+    "mutagen>=1.47.0",  # For audio duration detection
 ]
 lab = [
     "rich>=13.0.0",

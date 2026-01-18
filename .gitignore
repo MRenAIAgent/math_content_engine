@@ -69,6 +69,7 @@ venv.bak/
 # Manim output
 media/
 output/
+test_output/
 .manim_cache/
 *.gif
 *.png

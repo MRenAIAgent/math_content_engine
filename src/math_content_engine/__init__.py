@@ -10,7 +10,7 @@ Features:
 """
 
 from .engine import MathContentEngine
-from .config import Config
+from .config import Config, AnimationStyle, TTSVoice, VideoStyle, TTSProvider
 
 # Personalization components
 from .personalization import (
@@ -40,6 +40,10 @@ __version__ = "0.1.0"
 __all__ = [
     "MathContentEngine",
     "Config",
+    "AnimationStyle",
+    "TTSVoice",
+    "VideoStyle",
+    "TTSProvider",
     # Personalization
     "ContentPersonalizer",
     "InterestProfile",

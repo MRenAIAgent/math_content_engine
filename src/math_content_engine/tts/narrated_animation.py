@@ -90,20 +90,33 @@ class NarratedAnimationGenerator:
 
     def __init__(
         self,
-        voice: VoiceStyle = VoiceStyle.TEACHER_FEMALE,
-        tts_config: Optional[TTSConfig] = None
+        voice: Optional[VoiceStyle] = None,
+        tts_config: Optional[TTSConfig] = None,
+        config: Optional["Config"] = None
     ):
         """
         Initialize the narrated animation generator.
 
         Args:
-            voice: Voice style for narration
-            tts_config: Optional custom TTS configuration
+            voice: Voice style for narration (deprecated, use config instead)
+            tts_config: Optional custom TTS configuration (overrides config)
+            config: Optional Config object with TTS settings from environment
         """
         if tts_config:
+            # Explicit TTS config takes highest priority
             self.tts_config = tts_config
-        else:
+        elif config:
+            # Use config from environment variables
+            self.tts_config = config.get_tts_config()
+            self.config = config
+        elif voice:
+            # Legacy: voice parameter (for backward compatibility)
             self.tts_config = TTSConfig(voice=voice)
+        else:
+            # Default: use environment config
+            from math_content_engine.config import Config
+            self.config = Config.from_env()
+            self.tts_config = self.config.get_tts_config()
 
         self.tts_engine = TTSEngine(self.tts_config)
         self.combiner = AudioVideoCombiner()

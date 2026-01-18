@@ -10,7 +10,7 @@ Features:
 """
 
 from .engine import MathContentEngine
-from .config import Config, AnimationStyle, TTSVoice, VideoStyle
+from .config import Config, AnimationStyle, TTSVoice, VideoStyle, TTSProvider
 
 # Personalization components
 from .personalization import (
@@ -43,6 +43,7 @@ __all__ = [
     "AnimationStyle",
     "TTSVoice",
     "VideoStyle",
+    "TTSProvider",
     # Personalization
     "ContentPersonalizer",
     "InterestProfile",

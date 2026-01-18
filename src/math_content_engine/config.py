@@ -30,6 +30,27 @@ class AnimationStyle(Enum):
     LIGHT = "light"  # Light/white background
 
 
+class TTSVoice(Enum):
+    """TTS voice options (maps to edge-tts voices)."""
+    TEACHER_MALE = "teacher_male"
+    TEACHER_FEMALE = "teacher_female"
+    FRIENDLY_MALE = "friendly_male"
+    FRIENDLY_FEMALE = "friendly_female"
+    PROFESSIONAL_MALE = "professional_male"
+    PROFESSIONAL_FEMALE = "professional_female"
+    CARING_MALE = "caring_male"
+    CARING_FEMALE = "caring_female"
+    YOUNG_FEMALE = "young_female"
+
+
+class VideoStyle(Enum):
+    """Video presentation style for educational content."""
+    STANDARD = "standard"          # Standard animation flow
+    STEP_BY_STEP = "step_by_step"  # Clear step-by-step with pauses
+    FAST_PACED = "fast_paced"      # Quick transitions
+    DETAILED = "detailed"          # Detailed explanations with extra visuals
+
+
 @dataclass
 class Config:
     """
@@ -96,6 +117,34 @@ class Config:
         os.getenv("MATH_ENGINE_ANIMATION_STYLE", "dark")
     ))
 
+    # TTS Settings
+    tts_voice: TTSVoice = field(default_factory=lambda: TTSVoice(
+        os.getenv("MATH_ENGINE_TTS_VOICE", "teacher_female")
+    ))
+    tts_rate: str = field(default_factory=lambda:
+        os.getenv("MATH_ENGINE_TTS_RATE", "+0%")
+    )
+    tts_volume: str = field(default_factory=lambda:
+        os.getenv("MATH_ENGINE_TTS_VOLUME", "+0%")
+    )
+    tts_pitch: str = field(default_factory=lambda:
+        os.getenv("MATH_ENGINE_TTS_PITCH", "+0Hz")
+    )
+    tts_custom_voice: Optional[str] = field(default_factory=lambda:
+        os.getenv("MATH_ENGINE_TTS_CUSTOM_VOICE")
+    )
+
+    # Video Style Settings
+    video_style: VideoStyle = field(default_factory=lambda: VideoStyle(
+        os.getenv("MATH_ENGINE_VIDEO_STYLE", "standard")
+    ))
+    step_duration: float = field(default_factory=lambda:
+        float(os.getenv("MATH_ENGINE_STEP_DURATION", "4.0"))
+    )
+    pause_between_steps: float = field(default_factory=lambda:
+        float(os.getenv("MATH_ENGINE_PAUSE_BETWEEN_STEPS", "0.5"))
+    )
+
     def __post_init__(self):
         """Validate configuration after initialization."""
         # Ensure output directories exist
@@ -128,3 +177,34 @@ class Config:
         if self.llm_provider == LLMProvider.CLAUDE:
             return self.claude_model
         return self.openai_model
+
+    def get_tts_config(self):
+        """
+        Get TTSConfig from environment settings.
+
+        Returns:
+            TTSConfig object configured from environment variables
+        """
+        # Import here to avoid circular dependency
+        from math_content_engine.tts import TTSConfig, VoiceStyle
+
+        # Map config enum to VoiceStyle enum
+        voice_map = {
+            TTSVoice.TEACHER_MALE: VoiceStyle.TEACHER_MALE,
+            TTSVoice.TEACHER_FEMALE: VoiceStyle.TEACHER_FEMALE,
+            TTSVoice.FRIENDLY_MALE: VoiceStyle.FRIENDLY_MALE,
+            TTSVoice.FRIENDLY_FEMALE: VoiceStyle.FRIENDLY_FEMALE,
+            TTSVoice.PROFESSIONAL_MALE: VoiceStyle.PROFESSIONAL_MALE,
+            TTSVoice.PROFESSIONAL_FEMALE: VoiceStyle.PROFESSIONAL_FEMALE,
+            TTSVoice.CARING_MALE: VoiceStyle.CARING_MALE,
+            TTSVoice.CARING_FEMALE: VoiceStyle.CARING_FEMALE,
+            TTSVoice.YOUNG_FEMALE: VoiceStyle.YOUNG_FEMALE,
+        }
+
+        return TTSConfig(
+            voice=voice_map[self.tts_voice],
+            rate=self.tts_rate,
+            volume=self.tts_volume,
+            pitch=self.tts_pitch,
+            custom_voice=self.tts_custom_voice
+        )

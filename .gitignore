@@ -83,4 +83,6 @@ test_output/
 
 # Project specific
 *.log
-test_elevenlabs_integration.py
+
+# API database
+data/

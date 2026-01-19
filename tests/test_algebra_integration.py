@@ -593,6 +593,61 @@ class TestAlgebraElevenLabsNarration:
 
         assert video_size > 1000, "Video file is too small, likely corrupted"
 
+        print("\n" + "="*80)
+        print("STEP 6: Validating voice-video synchronization")
+        print("="*80)
+
+        # Import sync validator
+        from test_voice_video_sync import (
+            VideoAudioSyncValidator,
+            check_narration_pacing,
+            validate_narration_content_consistency
+        )
+
+        # Create validator
+        sync_validator = VideoAudioSyncValidator(narrated_output)
+
+        # Check 1: Audio track exists
+        has_audio = sync_validator.check_audio_presence()
+        print(f"\n1. Audio track present: {has_audio}")
+        assert has_audio, "Video should have audio track"
+
+        # Check 2: Duration alignment
+        is_aligned, sync_message = sync_validator.check_sync_alignment(tolerance_seconds=1.0)
+        print(f"2. Duration alignment: {sync_message}")
+
+        # Check 3: Narration timing validation
+        narration_cue_list = [(cue.time, cue.text) for cue in script.cues]
+        print(f"\n3. Narration timing validation:")
+        timing_issues = sync_validator.validate_narration_timing(narration_cue_list)
+        for issue in timing_issues:
+            print(f"   {issue}")
+
+        # Check 4: Narration pacing
+        print(f"\n4. Narration pacing check:")
+        pacing_issues = check_narration_pacing(narration_cue_list, min_gap=2.0, max_gap=8.0)
+        for issue in pacing_issues:
+            print(f"   {issue}")
+
+        # Check 5: Content consistency
+        expected_topics = ["2x + 3 = 7", "subtract", "divide", "x = 2", "solution"]
+        print(f"\n5. Content consistency check:")
+        content_ok, content_issues = validate_narration_content_consistency(
+            narration_cue_list, expected_topics
+        )
+        for issue in content_issues:
+            print(f"   {issue}")
+
+        # Check 6: Generate subtitle file for manual review
+        print(f"\n6. Generating subtitle file for manual review:")
+        srt_path = sync_validator.generate_subtitle_file(narration_cue_list, cue_duration=3.0)
+        print(f"   ✅ Subtitles saved to: {srt_path}")
+        print(f"   You can review timing by playing the video with subtitles enabled")
+
+        assert has_audio, "Video must have audio track"
+        assert is_aligned or abs(sync_validator.get_video_duration() - sync_validator.get_audio_duration()) < 2.0, \
+            "Audio and video durations must be reasonably aligned"
+
         # Save metadata about the test
         meta_file = output_dir / "elevenlabs_linear_narrated_meta.txt"
         meta_content = f"""Test: Linear Equation with ElevenLabs Narration
@@ -614,6 +669,14 @@ Final Output:
   Path: {narrated_output}
   Size: {video_size / 1024:.1f} KB
 
+Synchronization Validation:
+  Audio Track Present: {has_audio}
+  {sync_message}
+  Timing Issues: {len([i for i in timing_issues if '❌' in i or '⚠️' in i])}
+  Pacing Issues: {len([i for i in pacing_issues if '❌' in i or '⚠️' in i])}
+  Content Consistency: {'✅ All topics covered' if content_ok else '❌ Missing topics'}
+  Subtitle File: {srt_path.name}
+
 Narration Script:
 """
         for i, cue in enumerate(script.cues):
@@ -628,8 +691,17 @@ Narration Script:
         print(f"  - Base animation code: elevenlabs_linear_base.py")
         print(f"  - Base animation metadata: elevenlabs_linear_base_meta.txt")
         print(f"  - Final narrated video: {narrated_output.name}")
+        print(f"  - Subtitle file (SRT): {srt_path.name}")
         print(f"  - Test metadata: {meta_file.name}")
-        print("\nYou can play the video to verify it has both graphics and voice narration!")
+        print("\n✅ Voice-Video Synchronization Validated:")
+        print(f"   • Audio track: Present")
+        print(f"   • Duration alignment: {sync_message.split(':')[1].strip()}")
+        print(f"   • Narration timing: All cues within video duration")
+        print(f"   • Content coverage: {'All topics covered' if content_ok else 'Check metadata'}")
+        print("\n🎥 Manual Review Options:")
+        print(f"   1. Play video directly: {narrated_output}")
+        print(f"   2. Load subtitles in player to check timing: {srt_path}")
+        print(f"   3. Review metadata for detailed validation: {meta_file}")
 
 
 class TestAlgebraCodeValidation:

@@ -11,12 +11,22 @@ from unittest.mock import Mock
 
 import pytest
 
-from math_content_engine.llm.base import LLMResponse
-from math_content_engine.api.models import (
-    VideoCreate,
-    AnimationStyle,
-    VideoQuality,
-)
+# Conditional imports for when package is installed
+try:
+    from math_content_engine.llm.base import LLMResponse
+    from math_content_engine.api.models import (
+        VideoCreate,
+        AnimationStyle,
+        VideoQuality,
+    )
+    PACKAGE_AVAILABLE = True
+except ImportError:
+    # Package not installed - fixtures will not be available
+    PACKAGE_AVAILABLE = False
+    LLMResponse = None
+    VideoCreate = None
+    AnimationStyle = None
+    VideoQuality = None
 
 
 # Sample valid Manim code for testing
@@ -39,6 +49,9 @@ def mock_llm_client():
     Returns:
         Mock: A mock LLM client with generate() method configured.
     """
+    if not PACKAGE_AVAILABLE:
+        pytest.skip("Package not installed")
+
     client = Mock()
     client.generate.return_value = LLMResponse(
         content=f"```python\n{VALID_MANIM_CODE}\n```",
@@ -82,6 +95,9 @@ def sample_video_metadata():
     Returns:
         VideoCreate: Sample video creation request.
     """
+    if not PACKAGE_AVAILABLE:
+        pytest.skip("Package not installed")
+
     return VideoCreate(
         topic="Pythagorean Theorem",
         scene_name="PythagoreanScene",

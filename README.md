@@ -208,9 +208,11 @@ math-engine generate --help
 
 ### Using Pre-built Examples
 
+Examples are organized by category in subdirectories. See [`examples/README.md`](examples/README.md) for full details.
+
 ```python
 # Middle School Algebra (18 examples)
-from examples.algebra_middle_school import (
+from examples.algebra.algebra_middle_school import (
     variables_introduction,
     two_step_equations,
     solving_proportions,
@@ -224,7 +226,7 @@ result = two_step_equations()
 results = run_all_examples()
 
 # High School Algebra (29 examples)
-from examples.algebra_high_school import (
+from examples.algebra.algebra_high_school import (
     quadratic_formula,
     systems_elimination,
     logarithm_properties,
@@ -232,6 +234,13 @@ from examples.algebra_high_school import (
 )
 
 result = quadratic_formula()
+
+# Run basic examples
+python examples/basic/basic_usage.py
+
+# Run narration examples (requires TTS)
+pip install -e ".[tts]"
+python examples/narration/llm_narrated_animation.py
 ```
 
 ## Configuration
@@ -253,6 +262,8 @@ All settings can be configured via environment variables:
 
 ## Running Tests
 
+For comprehensive testing documentation, see [`tests/README.md`](tests/README.md).
+
 ### Quick Start
 
 ```bash
@@ -273,37 +284,35 @@ pytest
 
 **1. Unit Tests (No dependencies required)**
 ```bash
-# Code validation tests
-pytest tests/test_validators.py -v
+# Fast tests with no external dependencies
+pytest -m unit -v
 
-# Code extraction tests
-pytest tests/test_code_extractor.py -v
-
-# Configuration tests
-pytest tests/test_config.py -v
+# Or run specific unit test files
+pytest tests/test_validators.py tests/test_code_extractor.py tests/test_config.py -v
 ```
 
-**2. Render Tests (Requires Manim installed)**
+**2. Integration Tests (Requires Manim)**
 ```bash
 # Test Manim rendering with pre-written code (no API key needed)
 pytest tests/test_render_only.py -v
 
-# These tests create actual video files to verify the rendering pipeline works
+# API tests (no API key needed)
+pytest tests/test_api.py -v
 ```
 
-**3. Integration Tests (Requires API key)**
+**3. End-to-End Tests (Requires API key)**
 ```bash
 # Set your API key first
 export ANTHROPIC_API_KEY=your-key-here
+
+# Run E2E tests
+pytest -m e2e -v
 
 # Run algebra animation tests
 pytest tests/test_algebra_integration.py -v
 
 # Run only code generation tests (faster, no rendering)
 pytest tests/test_algebra_integration.py -v -k "code_generation"
-
-# Run full render tests (slower, creates actual videos)
-pytest tests/test_algebra_integration.py -v -m slow
 ```
 
 ### Test Options
@@ -313,10 +322,12 @@ pytest tests/test_algebra_integration.py -v -m slow
 pytest --cov=math_content_engine --cov-report=html
 
 # Skip slow tests (rendering)
-pytest -m "not slow"
+pytest -m "not slow" -v
 
-# Run end-to-end tests only
-pytest -m e2e
+# Run specific markers
+pytest -m unit -v          # Unit tests only
+pytest -m api -v           # API tests only
+pytest -m tts -v           # TTS tests only
 
 # Verbose output with print statements
 pytest -v -s
@@ -329,47 +340,119 @@ pytest tests/test_algebra_integration.py::TestAlgebraAnimations::test_linear_equ
 
 ```
 tests/
-├── test_validators.py          # Code validation unit tests
-├── test_code_extractor.py      # LLM response parsing tests
-├── test_config.py              # Configuration tests
-├── test_render_only.py         # Manim rendering tests (no API key)
-├── test_algebra_integration.py # Algebra animation integration tests
-└── test_integration.py         # General integration & E2E tests
+├── conftest.py                    # Shared fixtures and pytest configuration
+├── test_validators.py             # Code validation unit tests
+├── test_code_extractor.py         # LLM response parsing tests
+├── test_config.py                 # Configuration tests
+├── test_render_only.py            # Manim rendering tests
+├── test_integration.py            # General integration tests
+├── test_algebra_integration.py    # Algebra animation integration tests
+├── test_api.py                    # Video retrieval API tests
+├── test_elevenlabs_tts.py         # ElevenLabs TTS integration tests
+├── test_elevenlabs_unit.py        # ElevenLabs TTS unit tests
+└── test_voice_video_sync.py       # Audio-video synchronization tests
 ```
+
+**See also:**
+- [`tests/README.md`](tests/README.md) - Comprehensive testing guide
+- [`docs/testing/README_ELEVENLABS_TESTS.md`](docs/testing/README_ELEVENLABS_TESTS.md) - ElevenLabs TTS testing
+- [`docs/testing/VOICE_VIDEO_SYNC_GUIDE.md`](docs/testing/VOICE_VIDEO_SYNC_GUIDE.md) - Voice-video sync testing
 
 ## Project Structure
 
 ```
 math_content_engine/
-├── src/math_content_engine/
-│   ├── __init__.py          # Package exports
-│   ├── config.py            # Configuration management
-│   ├── engine.py            # Main orchestrator
-│   ├── cli.py               # Command-line interface
-│   ├── llm/
-│   │   ├── base.py          # Abstract LLM client
-│   │   ├── claude.py        # Anthropic Claude client
-│   │   ├── openai.py        # OpenAI client
-│   │   └── factory.py       # Client factory
-│   ├── generator/
-│   │   ├── code_generator.py # LLM code generation
-│   │   └── prompts.py       # Prompt templates
-│   ├── renderer/
-│   │   └── manim_renderer.py # Manim rendering
-│   └── utils/
-│       ├── code_extractor.py # Extract code from responses
-│       └── validators.py     # Code validation
-├── examples/
-│   ├── basic_usage.py       # Basic usage examples
-│   ├── advanced_usage.py    # Advanced features
-│   ├── topic_examples.py    # Various math topics
-│   ├── algebra_middle_school.py  # 18 middle school examples
-│   └── algebra_high_school.py    # 29 high school examples
-├── tests/                   # Test suite
-├── .env.example             # Environment template
-├── pyproject.toml           # Package configuration
-└── requirements.txt         # Dependencies
+├── src/math_content_engine/       # Main source code
+│   ├── __init__.py                # Package exports
+│   ├── config.py                  # Configuration management
+│   ├── engine.py                  # Main orchestrator
+│   ├── cli.py                     # Command-line interface
+│   ├── llm/                       # LLM client abstraction
+│   │   ├── base.py                # Abstract LLM client
+│   │   ├── claude.py              # Anthropic Claude client
+│   │   ├── openai.py              # OpenAI client
+│   │   └── factory.py             # Client factory
+│   ├── generator/                 # Code generation
+│   │   ├── code_generator.py      # LLM code generation
+│   │   └── prompts.py             # Prompt templates
+│   ├── renderer/                  # Video rendering
+│   │   └── manim_renderer.py      # Manim rendering
+│   ├── utils/                     # Utilities
+│   │   ├── code_extractor.py      # Extract code from LLM responses
+│   │   └── validators.py          # Code validation
+│   ├── api/                       # Video retrieval API (FastAPI)
+│   │   ├── server.py              # API server
+│   │   ├── routes.py              # API endpoints
+│   │   ├── models.py              # Data models
+│   │   ├── storage.py             # Video storage/database
+│   │   └── cli.py                 # API CLI (math-api command)
+│   ├── tts/                       # Text-to-speech (optional)
+│   │   ├── narration_generator.py # Narration generation
+│   │   ├── audio_video_combiner.py # Audio-video sync
+│   │   └── providers/             # TTS provider implementations
+│   ├── lab/                       # Prompt engineering tool
+│   │   ├── interactive/           # REPL interface
+│   │   ├── prompt/                # Prompt data models
+│   │   ├── session/               # Session management
+│   │   └── suggest/               # AI suggestions
+│   └── personalization/           # Content personalization
+│       ├── interests.py           # Interest profiles
+│       ├── personalizer.py        # Content adaptation
+│       └── textbook_parser.py     # Textbook parsing
+├── examples/                      # Usage examples (see examples/README.md)
+│   ├── README.md                  # Examples documentation
+│   ├── basic/                     # Basic examples
+│   │   ├── basic_usage.py         # Simple usage
+│   │   ├── advanced_usage.py      # Advanced features
+│   │   ├── config_demo.py         # Configuration examples
+│   │   ├── generate_all_styles.py # Style comparison
+│   │   └── topic_examples.py      # Various topics
+│   ├── algebra/                   # Algebra examples
+│   │   ├── algebra_middle_school.py  # 18 middle school examples
+│   │   ├── algebra_high_school.py    # 29 high school examples
+│   │   └── graphical_algebra.py      # Graph-focused examples
+│   └── narration/                 # TTS narration examples
+│       ├── llm_narrated_animation.py
+│       ├── narrated_graphical_equation.py
+│       └── narrated_linear_equation.py
+├── tests/                         # Test suite (see tests/README.md)
+│   ├── conftest.py                # Shared fixtures
+│   ├── test_*.py                  # Test files
+│   └── README.md                  # Testing guide
+├── scripts/                       # Utility scripts (see scripts/README.md)
+│   ├── README.md                  # Scripts documentation
+│   ├── generate_personalized_textbook.py
+│   ├── personalized_content_pipeline.py
+│   └── curriculum/                # Curriculum-specific scripts
+│       ├── generate_personalized_chapter.py
+│       └── regenerate_chapter2_opus.py
+├── curriculum/                    # Educational content
+│   ├── algebra1/                  # Algebra 1 curriculum
+│   │   ├── common_core_standards.md
+│   │   ├── curriculum_map.md
+│   │   └── animation_topics.md
+│   └── textbooks/                 # Reference textbooks
+├── docs/                          # Documentation
+│   ├── CONFIGURATION.md           # Configuration guide
+│   ├── ELEVENLABS_TTS.md          # TTS documentation
+│   ├── testing/                   # Test documentation
+│   │   ├── README_ELEVENLABS_TESTS.md
+│   │   └── VOICE_VIDEO_SYNC_GUIDE.md
+│   └── archive/                   # Archived documentation
+├── .env.example                   # Environment template
+├── pyproject.toml                 # Package configuration
+├── README.md                      # This file
+├── CLAUDE.md                      # AI assistant instructions
+└── requirements.txt               # Dependencies
 ```
+
+**Key directories:**
+- `src/math_content_engine/` - Main source code
+- `examples/` - Usage examples organized by category
+- `tests/` - Test suite with shared fixtures
+- `scripts/` - Utility and automation scripts
+- `curriculum/` - Educational content and standards
+- `docs/` - Documentation and guides
 
 ## Examples Catalog
 

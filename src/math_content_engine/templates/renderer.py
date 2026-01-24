@@ -103,6 +103,7 @@ class TemplateRenderer:
 
         Handles:
         - Simple placeholders: {param}
+        - Escaped braces: {{ becomes { and }} becomes }
         - Nested placeholders in f-strings
         - None values (converts to 'None')
         """
@@ -133,6 +134,10 @@ class TemplateRenderer:
                 formatted = str(value)
 
             code = code.replace(placeholder, formatted)
+
+        # After all parameters are substituted, convert escaped braces
+        # {{ -> { and }} -> } (for Python dict literals in templates)
+        code = code.replace("{{", "{").replace("}}", "}")
 
         return code
 

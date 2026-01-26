@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0",
+  "knowledge_graph": {
+    "path": "curriculum/algebra1/algebra_knowledge_graph.json",
+    "notes": "Copied from agentic_math_tutor/data/algebra_knowledge_graph.json (canonical concept IDs + prerequisites)."
+  },
+  "content_templates": [
+    {
+      "template_id": "linear_equation_graph",
+      "concept_ids": ["linear_equations", "AT-24", "AT-25"],
+      "textbook_refs": ["curriculum/algebra1/textbooks/chapter_02_linear_equations.md"]
+    },
+    {
+      "template_id": "linear_equation_balance",
+      "concept_ids": ["linear_equations", "AT-24"],
+      "textbook_refs": ["curriculum/algebra1/textbooks/chapter_02_linear_equations.md"]
+    },
+    {
+      "template_id": "two_step_equation",
+      "concept_ids": ["linear_equations", "AT-24"],
+      "textbook_refs": ["curriculum/algebra1/textbooks/chapter_02_linear_equations.md"]
+    },
+    {
+      "template_id": "slope_visualization",
+      "concept_ids": ["LF-30", "AT-27"],
+      "textbook_refs": ["curriculum/algebra1/textbooks/chapter_04_graphing.md"]
+    },
+    {
+      "template_id": "slope_intercept_form",
+      "concept_ids": ["LF-31", "LF-30"],
+      "textbook_refs": ["curriculum/algebra1/textbooks/chapter_04_graphing.md"]
+    },
+    {
+      "template_id": "system_intersection",
+      "concept_ids": ["LF-37"],
+      "textbook_refs": ["curriculum/algebra1/textbooks/chapter_05_systems.md"]
+    },
+    {
+      "template_id": "quadratic_graph",
+      "concept_ids": ["quadratic_equations"],
+      "textbook_refs": ["curriculum/algebra1/textbooks/chapter_10_quadratics.md"]
+    },
+    {
+      "template_id": "quadratic_formula",
+      "concept_ids": ["quadratic_equations", "Q-59", "Q-60"],
+      "textbook_refs": ["curriculum/algebra1/textbooks/chapter_10_quadratics.md"]
+    },
+    {
+      "template_id": "inequality_numberline",
+      "concept_ids": ["LF-35"],
+      "textbook_refs": ["curriculum/algebra1/textbooks/chapter_02_linear_equations.md"]
+    },
+    {
+      "template_id": "compound_inequality",
+      "concept_ids": ["LF-35"],
+      "textbook_refs": ["curriculum/algebra1/textbooks/chapter_02_linear_equations.md"]
+    }
+  ],
+  "exercise_sources": [
+    {
+      "path": "curriculum/algebra1/textbooks/exercises_by_topic.md",
+      "notes": "This is currently the human-readable exercise index. Next step: add stable exercise IDs and concept_id tags."
+    }
+  ]
+}
+

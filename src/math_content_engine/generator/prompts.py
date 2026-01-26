@@ -2,14 +2,10 @@
 Prompt templates for Manim code generation.
 """
 
-from enum import Enum
 from typing import Optional
 
-
-class AnimationStyle(Enum):
-    """Animation visual style presets."""
-    DARK = "dark"
-    LIGHT = "light"
+# Import centralized enums
+from ..constants import AnimationStyle
 
 
 # =============================================================================

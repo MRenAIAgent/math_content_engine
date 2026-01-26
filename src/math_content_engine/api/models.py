@@ -10,9 +10,14 @@ from enum import Enum
 
 from pydantic import BaseModel, Field, ConfigDict
 
+# Import centralized enums
+from ..constants import VideoQuality as _VideoQuality
+from ..constants import AnimationStyle as _AnimationStyle
 
+
+# Pydantic-compatible versions (str, Enum)
 class VideoQuality(str, Enum):
-    """Video quality levels."""
+    """Video quality levels (Pydantic-compatible)."""
     LOW = "l"
     MEDIUM = "m"
     HIGH = "h"
@@ -21,7 +26,7 @@ class VideoQuality(str, Enum):
 
 
 class AnimationStyle(str, Enum):
-    """Animation visual style."""
+    """Animation visual style (Pydantic-compatible)."""
     DARK = "dark"
     LIGHT = "light"
 

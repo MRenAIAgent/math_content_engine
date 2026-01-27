@@ -15,10 +15,12 @@ pip install -e ".[all]"       # Everything
 # macOS: brew install cairo pkg-config pango ffmpeg
 # Ubuntu: sudo apt install libcairo2-dev libpango1.0-dev pkg-config ffmpeg
 
-# Run tests
-pytest tests/test_validators.py tests/test_code_extractor.py tests/test_config.py -v  # Unit tests (no deps)
-pytest tests/test_render_only.py -v                                                    # Render tests (needs Manim)
-pytest tests/test_algebra_integration.py -v                                            # Integration (needs API key)
+# Run tests (see tests/README.md for comprehensive guide)
+pytest -m unit -v                                  # Unit tests (no deps)
+pytest tests/test_render_only.py -v               # Render tests (needs Manim)
+pytest -m e2e -v                                   # E2E tests (needs API key)
+pytest -m "not slow" -v                            # Skip video rendering tests
+pytest tests/test_api.py -v                        # API tests
 pytest tests/test_algebra_integration.py::TestAlgebraAnimations::test_linear_equation_code_generation -v  # Single test
 
 # Linting & formatting
@@ -54,9 +56,25 @@ src/math_content_engine/
 ├── utils/
 │   ├── code_extractor.py  # Extract Python code blocks and class names from LLM responses
 │   └── validators.py      # validate_manim_code() - syntax and Manim-specific validation
-└── tts/                   # Optional text-to-speech (edge-tts)
-    ├── narration_generator.py
-    └── audio_video_combiner.py
+├── api/                   # Video retrieval API (FastAPI)
+│   ├── server.py          # API server
+│   ├── routes.py          # API routes
+│   ├── models.py          # Data models
+│   ├── storage.py         # Video storage
+│   └── cli.py             # math-api CLI command
+├── tts/                   # Optional text-to-speech
+│   ├── narration_generator.py
+│   ├── audio_video_combiner.py
+│   └── providers/         # TTS provider implementations (Edge TTS, ElevenLabs)
+├── lab/                   # Prompt engineering tool (math-lab CLI command)
+│   ├── interactive/       # REPL interface
+│   ├── prompt/            # Prompt data models
+│   ├── session/           # Session management
+│   └── suggest/           # AI suggestions
+└── personalization/       # Content personalization
+    ├── interests.py       # Interest profiles
+    ├── personalizer.py    # Content adapter
+    └── textbook_parser.py # Textbook parser
 ```
 
 Key flow in `MathContentEngine.generate()`:
@@ -66,10 +84,44 @@ Key flow in `MathContentEngine.generate()`:
 4. On render failure, `ManimCodeGenerator.fix_code()` sends error back to LLM
 5. Retry up to `config.max_retries` times
 
-## Test Markers
+## Testing
 
-- `@pytest.mark.slow` - Tests that render actual videos
+See `tests/README.md` for comprehensive testing guide.
+
+### Test Organization
+
+```
+tests/
+├── conftest.py                    # Shared fixtures (mock_llm_client, temp_dir, etc.)
+├── test_validators.py             # Unit tests
+├── test_code_extractor.py         # Unit tests
+├── test_config.py                 # Unit tests
+├── test_render_only.py            # Render tests (requires Manim)
+├── test_integration.py            # Integration tests
+├── test_algebra_integration.py    # Algebra E2E tests (requires API key)
+├── test_api.py                    # API tests
+├── test_elevenlabs_tts.py         # TTS integration tests
+├── test_elevenlabs_unit.py        # TTS unit tests
+└── test_voice_video_sync.py       # A/V sync tests
+```
+
+### Test Markers
+
+- `@pytest.mark.unit` - Fast unit tests, no external dependencies
+- `@pytest.mark.integration` - Integration tests with dependencies
 - `@pytest.mark.e2e` - End-to-end tests requiring API keys
+- `@pytest.mark.slow` - Tests that render actual videos (takes minutes)
+- `@pytest.mark.api` - Video retrieval API tests
+- `@pytest.mark.tts` - Text-to-speech functionality tests
+
+### Shared Fixtures (conftest.py)
+
+- `mock_llm_client` - Mock LLM client returning valid Manim code
+- `temp_dir` - Temporary directory for test outputs
+- `temp_db` - Temporary database path for API tests
+- `sample_video_metadata` - Sample video creation request
+- `api_key_available` - Boolean indicating if API keys are set
+- `elevenlabs_key_available` - Boolean for ElevenLabs key
 
 ## Environment Variables
 
@@ -87,7 +139,34 @@ Two visual styles are available in `prompts.py`:
 
 Style-specific prompts instruct the LLM on color palettes, avoiding LaTeX issues (e.g., use `Text()` instead of `axes.get_axis_labels()`).
 
-## Curriculum Resources
+## Project Organization
+
+### Examples (examples/)
+
+Examples are organized by category:
+- `basic/` - Basic usage, configuration, and topic demos
+- `algebra/` - Middle school and high school algebra examples
+- `narration/` - TTS narrated animations (requires TTS dependencies)
+
+See `examples/README.md` for full documentation.
+
+### Scripts (scripts/)
+
+Utility scripts for automation:
+- `generate_personalized_textbook.py` - Generate personalized textbooks
+- `personalized_content_pipeline.py` - End-to-end personalization pipeline
+- `curriculum/` - Curriculum-specific scripts
+
+See `scripts/README.md` for usage.
+
+### Documentation (docs/)
+
+- `CONFIGURATION.md` - Configuration guide
+- `ELEVENLABS_TTS.md` - TTS setup and usage
+- `testing/` - Test-specific documentation
+- `archive/` - Archived/historical documentation
+
+### Curriculum Resources (curriculum/)
 
 `curriculum/algebra1/` contains Common Core-aligned Algebra 1 content:
 - `common_core_standards.md` - CCSS standards (A-SSE, A-REI, F-IF, etc.)

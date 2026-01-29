@@ -1,0 +1,3 @@
+[submodule "external/Math-To-Manim"]
+	path = external/Math-To-Manim
+	url = https://github.com/HarleyCoops/Math-To-Manim.git

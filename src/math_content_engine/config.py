@@ -55,6 +55,14 @@ class Config:
         os.getenv("OPENAI_API_KEY")
     )
 
+    # Mathpix API Keys (for PDF parsing)
+    mathpix_app_id: Optional[str] = field(default_factory=lambda:
+        os.getenv("MATHPIX_APP_ID")
+    )
+    mathpix_app_key: Optional[str] = field(default_factory=lambda:
+        os.getenv("MATHPIX_APP_KEY")
+    )
+
     # Model Settings
     claude_model: str = field(default_factory=lambda:
         os.getenv("MATH_ENGINE_CLAUDE_MODEL", "claude-sonnet-4-20250514")

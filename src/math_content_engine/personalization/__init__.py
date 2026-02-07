@@ -20,6 +20,11 @@ from .textbook_parser import (
     parse_textbook,
     get_animation_specs_from_textbook,
 )
+from .pdf_parser import (
+    MathpixPDFParser,
+    MathpixConfig,
+    parse_textbook_pdf,
+)
 
 __all__ = [
     "InterestProfile",
@@ -34,4 +39,8 @@ __all__ = [
     "MathExample",
     "parse_textbook",
     "get_animation_specs_from_textbook",
+    # PDF parsing
+    "MathpixPDFParser",
+    "MathpixConfig",
+    "parse_textbook_pdf",
 ]

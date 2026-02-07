@@ -33,6 +33,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+pdf = [
+    "mathpix>=0.1.0",
+    "requests>=2.31.0",
+]
 tts = [
     "edge-tts>=6.0.0",
     "elevenlabs>=1.0.0",
@@ -57,7 +61,7 @@ dev = [
     "httpx>=0.25.0",
 ]
 all = [
-    "math-content-engine[tts,lab,api,dev]",
+    "math-content-engine[pdf,tts,lab,api,dev]",
 ]
 
 [project.scripts]

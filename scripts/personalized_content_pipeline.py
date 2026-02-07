@@ -3,13 +3,21 @@
 Personalized Content Pipeline.
 
 This script implements the full pipeline for creating personalized math content:
-1. Take a base textbook chapter and student interest
-2. Generate a personalized textbook chapter
-3. Parse the personalized textbook to extract examples
-4. Generate Manim animations for each example
+1. [Optional] Parse PDF textbook to markdown (using Mathpix)
+2. Take a base textbook chapter and student interest
+3. Generate a personalized textbook chapter
+4. Parse the personalized textbook to extract examples
+5. Generate Manim animations for each example
 
 Usage:
-    # Full pipeline: textbook -> personalized textbook -> animations
+    # Full pipeline from PDF: PDF -> markdown -> personalized textbook -> animations
+    python personalized_content_pipeline.py \
+        --pdf curriculum/textbooks/us/openstax_elementary_algebra_2e.pdf \
+        --interest basketball \
+        --output-dir output/basketball_algebra \
+        --page-range "1-50"
+
+    # From markdown: textbook -> personalized textbook -> animations
     python personalized_content_pipeline.py \
         --textbook curriculum/algebra1/textbooks/chapter_02_linear_equations.md \
         --interest basketball \
@@ -33,6 +41,12 @@ Usage:
         --interest basketball gaming music \
         --output-dir output/personalized
 
+    # PDF to markdown only (no personalization/animation)
+    python personalized_content_pipeline.py \
+        --pdf textbook.pdf \
+        --output-markdown textbook.md \
+        --page-range "1-100"
+
     # List available interests
     python personalized_content_pipeline.py --list-interests
 """
@@ -55,6 +69,7 @@ from math_content_engine.personalization import (
     TextbookParser,
     get_interest_profile,
     list_available_interests,
+    parse_textbook_pdf,
 )
 from math_content_engine.llm import create_llm_client
 
@@ -76,6 +91,8 @@ logger = logging.getLogger(__name__)
 class PipelineResult:
     """Result from the pipeline execution."""
     interest: str
+    pdf_path: Optional[Path]
+    markdown_path: Optional[Path]
     personalized_textbook_path: Optional[Path]
     animations_generated: int
     animations_successful: int
@@ -83,7 +100,45 @@ class PipelineResult:
     errors: List[str]
 
 
+def parse_pdf_to_markdown_step(
+    pdf_path: Path,
+    output_markdown_path: Path,
+    page_range: Optional[str] = None,
+) -> bool:
+    """
+    Parse PDF textbook to markdown using Mathpix.
+
+    Args:
+        pdf_path: Path to PDF file
+        output_markdown_path: Where to save markdown
+        page_range: Optional page range (e.g., "1-50")
+
+    Returns:
+        True if successful
+    """
+    logger.info(f"\n{'='*70}")
+    logger.info("STEP 0: PDF to Markdown Conversion (Mathpix)")
+    logger.info("=" * 70)
+    logger.info(f"PDF: {pdf_path}")
+    logger.info(f"Output: {output_markdown_path}")
+    if page_range:
+        logger.info(f"Page range: {page_range}")
+
+    try:
+        parse_textbook_pdf(
+            pdf_path=str(pdf_path),
+            output_markdown_path=str(output_markdown_path),
+            page_range=page_range
+        )
+        logger.info(f"✓ PDF successfully converted to markdown")
+        return True
+    except Exception as e:
+        logger.exception(f"Failed to parse PDF: {e}")
+        return False
+
+
 def run_pipeline(
+    pdf_path: Optional[Path],
     textbook_path: Optional[Path],
     personalized_textbook_path: Optional[Path],
     interest: str,
@@ -91,13 +146,15 @@ def run_pipeline(
     config: Config,
     preview_only: bool = False,
     max_examples: Optional[int] = None,
+    page_range: Optional[str] = None,
 ) -> PipelineResult:
     """
     Run the full personalized content pipeline.
 
     Args:
-        textbook_path: Path to base textbook (will be personalized)
-        personalized_textbook_path: Path to already personalized textbook (skip step 1)
+        pdf_path: Path to PDF textbook (will be parsed to markdown first)
+        textbook_path: Path to base textbook markdown (will be personalized)
+        personalized_textbook_path: Path to already personalized textbook (skip personalization)
         interest: Interest to personalize for
         output_dir: Output directory for all generated content
         config: Configuration
@@ -109,12 +166,15 @@ def run_pipeline(
     """
     errors = []
     animation_results = []
+    parsed_markdown_path = None
 
     # Validate interest
     profile = get_interest_profile(interest)
     if not profile:
         return PipelineResult(
             interest=interest,
+            pdf_path=pdf_path,
+            markdown_path=None,
             personalized_textbook_path=None,
             animations_generated=0,
             animations_successful=0,
@@ -132,9 +192,41 @@ def run_pipeline(
     interest_output_dir.mkdir(parents=True, exist_ok=True)
 
     # =========================================================================
+    # STEP 0: Parse PDF to markdown (if PDF provided)
+    # =========================================================================
+    if pdf_path:
+        parsed_markdown_path = interest_output_dir / f"{pdf_path.stem}.md"
+        logger.info("=" * 60)
+        logger.info("STEP 0: PDF to Markdown (Mathpix)")
+        logger.info("=" * 60)
+
+        success = parse_pdf_to_markdown_step(
+            pdf_path=pdf_path,
+            output_markdown_path=parsed_markdown_path,
+            page_range=page_range
+        )
+
+        if not success:
+            errors.append("Failed to parse PDF to markdown")
+            return PipelineResult(
+                interest=interest,
+                pdf_path=pdf_path,
+                markdown_path=None,
+                personalized_textbook_path=None,
+                animations_generated=0,
+                animations_successful=0,
+                animation_results=[],
+                errors=errors
+            )
+
+        # Use parsed markdown as textbook_path
+        textbook_path = parsed_markdown_path
+        logger.info(f"Using parsed markdown: {textbook_path}")
+
+    # =========================================================================
     # STEP 1: Generate or use personalized textbook
     # =========================================================================
-    logger.info("=" * 60)
+    logger.info("\n" + "=" * 60)
     logger.info("STEP 1: Personalized Textbook")
     logger.info("=" * 60)
 
@@ -144,6 +236,8 @@ def run_pipeline(
             errors.append(f"Personalized textbook not found: {personalized_textbook_path}")
             return PipelineResult(
                 interest=interest,
+                pdf_path=pdf_path,
+                markdown_path=parsed_markdown_path,
                 personalized_textbook_path=None,
                 animations_generated=0,
                 animations_successful=0,
@@ -158,6 +252,8 @@ def run_pipeline(
             errors.append(f"Base textbook not found: {textbook_path}")
             return PipelineResult(
                 interest=interest,
+                pdf_path=pdf_path,
+                markdown_path=parsed_markdown_path,
                 personalized_textbook_path=None,
                 animations_generated=0,
                 animations_successful=0,
@@ -180,6 +276,8 @@ def run_pipeline(
                 errors.append("Failed to generate personalized textbook")
                 return PipelineResult(
                     interest=interest,
+                    pdf_path=pdf_path,
+                    markdown_path=parsed_markdown_path,
                     personalized_textbook_path=None,
                     animations_generated=0,
                     animations_successful=0,
@@ -191,6 +289,8 @@ def run_pipeline(
             logger.exception("Failed to generate personalized textbook")
             return PipelineResult(
                 interest=interest,
+                pdf_path=pdf_path,
+                markdown_path=parsed_markdown_path,
                 personalized_textbook_path=None,
                 animations_generated=0,
                 animations_successful=0,
@@ -216,6 +316,8 @@ def run_pipeline(
         logger.exception("Failed to parse textbook")
         return PipelineResult(
             interest=interest,
+            pdf_path=pdf_path,
+            markdown_path=parsed_markdown_path,
             personalized_textbook_path=final_textbook_path,
             animations_generated=0,
             animations_successful=0,
@@ -332,6 +434,8 @@ def run_pipeline(
 
     return PipelineResult(
         interest=interest,
+        pdf_path=pdf_path,
+        markdown_path=parsed_markdown_path,
         personalized_textbook_path=final_textbook_path,
         animations_generated=animations_generated,
         animations_successful=animations_successful,
@@ -371,17 +475,25 @@ def print_summary(results: List[PipelineResult]):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Full pipeline: textbook -> personalization -> animations",
+        description="Full pipeline: PDF/textbook -> personalization -> animations",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Full pipeline with base textbook
+  # Full pipeline from PDF
+  python personalized_content_pipeline.py \\
+      --pdf textbook.pdf --interest basketball --output-dir output/ --page-range "1-50"
+
+  # Full pipeline with base textbook markdown
   python personalized_content_pipeline.py \\
       --textbook chapter_02.md --interest basketball --output-dir output/
 
   # Use existing personalized textbook
   python personalized_content_pipeline.py \\
       --personalized-textbook chapter_02_basketball.md --output-dir output/
+
+  # PDF to markdown only (no personalization)
+  python personalized_content_pipeline.py \\
+      --pdf textbook.pdf --output-markdown textbook.md --page-range "1-100"
 
   # Preview mode (code only, no video rendering)
   python personalized_content_pipeline.py \\
@@ -393,6 +505,21 @@ Examples:
         """
     )
 
+    parser.add_argument(
+        "--pdf",
+        type=str,
+        help="Path to PDF textbook (will be parsed to markdown using Mathpix)"
+    )
+    parser.add_argument(
+        "--page-range",
+        type=str,
+        help="Page range to parse from PDF (e.g., '1-50', '10-', '-30')"
+    )
+    parser.add_argument(
+        "--output-markdown",
+        type=str,
+        help="Output path for parsed markdown (for PDF-only mode without personalization)"
+    )
     parser.add_argument(
         "--textbook", "-t",
         type=str,
@@ -411,8 +538,7 @@ Examples:
     parser.add_argument(
         "--output-dir", "-o",
         type=str,
-        required=True,
-        help="Output directory for all generated content"
+        help="Output directory for all generated content (required unless using --output-markdown)"
     )
     parser.add_argument(
         "--preview", "-p",
@@ -456,20 +582,50 @@ Examples:
         print()
         return
 
-    # Validate arguments
-    if not args.personalized_textbook and not args.textbook:
-        parser.error("Either --textbook or --personalized-textbook is required")
+    # Handle PDF-only mode: just convert to markdown
+    if args.pdf and args.output_markdown and not args.interest:
+        pdf_path = Path(args.pdf)
+        if not pdf_path.exists():
+            logger.error(f"PDF file not found: {pdf_path}")
+            sys.exit(1)
 
-    if args.personalized_textbook and args.textbook:
-        parser.error("Use either --textbook or --personalized-textbook, not both")
+        output_md = Path(args.output_markdown)
+        success = parse_pdf_to_markdown_step(pdf_path, output_md, args.page_range)
+        sys.exit(0 if success else 1)
 
-    if args.textbook and not args.interest:
-        parser.error("--interest is required when using --textbook")
+    # Validate arguments for full pipeline
+    if not args.pdf and not args.personalized_textbook and not args.textbook:
+        parser.error("Either --pdf, --textbook, or --personalized-textbook is required")
+
+    if sum([bool(args.pdf), bool(args.textbook), bool(args.personalized_textbook)]) > 1:
+        parser.error("Use only one of: --pdf, --textbook, or --personalized-textbook")
+
+    if (args.pdf or args.textbook) and not args.interest:
+        parser.error("--interest is required when using --pdf or --textbook")
+
+    if not args.output_dir:
+        parser.error("--output-dir is required for full pipeline")
+
+    # Determine inputs
+    pdf_path = Path(args.pdf) if args.pdf else None
+    textbook_path = Path(args.textbook) if args.textbook else None
+    personalized_textbook_path = Path(args.personalized_textbook) if args.personalized_textbook else None
+
+    # Validate file exists
+    if pdf_path and not pdf_path.exists():
+        logger.error(f"PDF file not found: {pdf_path}")
+        sys.exit(1)
+    if textbook_path and not textbook_path.exists():
+        logger.error(f"Textbook file not found: {textbook_path}")
+        sys.exit(1)
+    if personalized_textbook_path and not personalized_textbook_path.exists():
+        logger.error(f"Personalized textbook file not found: {personalized_textbook_path}")
+        sys.exit(1)
 
     # Determine interests to process
-    if args.personalized_textbook:
+    if personalized_textbook_path:
         # When using existing personalized textbook, detect interest from filename or use default
-        textbook_name = Path(args.personalized_textbook).stem
+        textbook_name = personalized_textbook_path.stem
         detected_interest = None
         for interest_name in list_available_interests():
             if interest_name in textbook_name.lower():
@@ -492,13 +648,15 @@ Examples:
         logger.info(f"{'#'*70}\n")
 
         result = run_pipeline(
-            textbook_path=Path(args.textbook) if args.textbook else None,
-            personalized_textbook_path=Path(args.personalized_textbook) if args.personalized_textbook else None,
+            pdf_path=pdf_path,
+            textbook_path=textbook_path,
+            personalized_textbook_path=personalized_textbook_path,
             interest=interest,
             output_dir=output_dir,
             config=config,
             preview_only=args.preview,
             max_examples=args.max_examples,
+            page_range=args.page_range,
         )
         results.append(result)
 

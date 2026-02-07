@@ -256,17 +256,23 @@ python scripts/personalized_content_pipeline.py \
 |------|---------|--------|
 | `scripts/personalized_content_pipeline.py` | Main pipeline (updated) | ✅ Updated |
 | `scripts/parse_pdf.py` | Simple PDF parser (new) | ✅ New |
-| `scripts/pdf_to_personalized_pipeline.py` | Redundant | ❌ Can delete |
 
-**Note:** The `pdf_to_personalized_pipeline.py` I created earlier is now redundant since the functionality is integrated into `personalized_content_pipeline.py`. You can safely delete it.
+**Note:** All functionality is consolidated into these two scripts:
+- `personalized_content_pipeline.py` - Full pipeline with PDF support
+- `parse_pdf.py` - Standalone parser for quality checks
 
 ---
 
-## What to Delete (Optional Cleanup)
+## Scripts Overview
 
-```bash
-# These files are redundant and can be deleted:
-rm scripts/pdf_to_personalized_pipeline.py
-```
+### Main Pipeline Script
+`scripts/personalized_content_pipeline.py` handles all workflows:
+- PDF → personalized textbook → animations
+- Markdown → personalized textbook → animations
+- Existing personalized textbook → animations
 
-The main `personalized_content_pipeline.py` now handles everything!
+### Simple Parser Script
+`scripts/parse_pdf.py` for quick PDF testing:
+- PDF → markdown only
+- Shows preview and statistics
+- Perfect for checking parser quality

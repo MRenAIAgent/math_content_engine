@@ -51,11 +51,11 @@ pdf = [
 
 Install with: `pip install -e ".[pdf]"` or `pip install -e ".[all]"`
 
-### 4. Integration Script
-**File:** `scripts/pdf_to_personalized_pipeline.py`
+### 4. Updated Integration Script
+**File:** `scripts/personalized_content_pipeline.py` (updated)
 
-Complete pipeline script that:
-1. Parses PDF to markdown (Mathpix)
+The existing pipeline script was enhanced to support PDF input:
+1. Auto-detects PDF input and parses to markdown (Mathpix)
 2. Generates personalized textbooks (LLM)
 3. Extracts animation examples (Parser)
 4. Creates themed animations (Manim)
@@ -63,17 +63,23 @@ Complete pipeline script that:
 **Usage Examples:**
 ```bash
 # PDF to markdown only
-python scripts/pdf_to_personalized_pipeline.py \
+python scripts/personalized_content_pipeline.py \
     --pdf textbook.pdf \
     --output-markdown textbook.md \
     --page-range "1-50"
 
 # Full pipeline with personalization
-python scripts/pdf_to_personalized_pipeline.py \
+python scripts/personalized_content_pipeline.py \
     --pdf textbook.pdf \
     --interest basketball gaming \
     --output-dir output/ \
     --page-range "1-100"
+
+# Original markdown workflow still works
+python scripts/personalized_content_pipeline.py \
+    --textbook textbook.md \
+    --interest basketball \
+    --output-dir output/
 ```
 
 ### 5. Comprehensive Tests
@@ -116,7 +122,17 @@ Quick reference for developers:
 - Code examples
 - Integration patterns
 
-### 7. Examples
+### 7. Standalone PDF Parser Script
+**File:** `scripts/parse_pdf.py` (new)
+
+Simple script for checking PDF parser quality:
+```bash
+python scripts/parse_pdf.py input.pdf output.md --page-range "1-50"
+```
+
+Perfect for validating parser output before running full pipeline.
+
+### 8. Examples
 **File:** `examples/pdf_parsing_example.py`
 
 Five practical examples:
@@ -126,7 +142,7 @@ Five practical examples:
 4. Batch processing multiple chapters
 5. Error handling patterns
 
-### 8. Environment Template
+### 9. Environment Template
 **File:** `.env.example`
 
 Updated with Mathpix credentials section:
@@ -136,7 +152,7 @@ MATHPIX_APP_ID=your_mathpix_app_id_here
 MATHPIX_APP_KEY=your_mathpix_app_key_here
 ```
 
-### 9. Module Exports
+### 10. Module Exports
 **File:** `src/math_content_engine/personalization/__init__.py`
 
 Added exports:
@@ -194,18 +210,21 @@ markdown = parse_textbook_pdf(
 ### Quick Start (CLI)
 
 ```bash
-# Parse PDF
-python scripts/pdf_to_personalized_pipeline.py \
+# Parse PDF to markdown only
+python scripts/personalized_content_pipeline.py \
     --pdf textbook.pdf \
     --output-markdown textbook.md \
     --page-range "1-50"
 
 # Full pipeline with personalization
-python scripts/pdf_to_personalized_pipeline.py \
+python scripts/personalized_content_pipeline.py \
     --pdf textbook.pdf \
     --interest basketball \
     --output-dir output/ \
     --page-range "1-100"
+
+# Or use the simple standalone parser
+python scripts/parse_pdf.py textbook.pdf output.md --page-range "1-50"
 ```
 
 ---
@@ -321,21 +340,22 @@ markdown = parser.get_markdown_from_result(result)
 ```
 math_content_engine/
 ├── src/math_content_engine/
-│   ├── config.py                        # Added Mathpix config
+│   ├── config.py                           # Added Mathpix config
 │   └── personalization/
-│       ├── __init__.py                  # Added PDF exports
-│       ├── pdf_parser.py               # ✨ NEW: Main parser
-│       └── README_PDF_PARSING.md       # ✨ NEW: Module docs
+│       ├── __init__.py                     # Added PDF exports
+│       ├── pdf_parser.py                  # ✨ NEW: Main parser
+│       └── README_PDF_PARSING.md          # ✨ NEW: Module docs
 ├── scripts/
-│   └── pdf_to_personalized_pipeline.py # ✨ NEW: Integration script
+│   ├── personalized_content_pipeline.py   # ✨ UPDATED: Added PDF support
+│   └── parse_pdf.py                       # ✨ NEW: Standalone parser
 ├── tests/
-│   └── test_pdf_parser.py              # ✨ NEW: Parser tests
+│   └── test_pdf_parser.py                 # ✨ NEW: Parser tests
 ├── examples/
-│   └── pdf_parsing_example.py          # ✨ NEW: Usage examples
+│   └── pdf_parsing_example.py             # ✨ NEW: Usage examples
 ├── docs/
-│   └── PDF_PARSING_GUIDE.md            # ✨ NEW: User guide
-├── pyproject.toml                       # Added [pdf] dependency
-└── .env.example                         # Added Mathpix config
+│   └── PDF_PARSING_GUIDE.md               # ✨ NEW: User guide
+├── pyproject.toml                          # Added [pdf] dependency
+└── .env.example                            # Added Mathpix config
 ```
 
 ---

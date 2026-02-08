@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 
 import requests
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,9 @@ class MathpixConfig:
     @classmethod
     def from_env(cls) -> "MathpixConfig":
         """Load Mathpix configuration from environment variables."""
+        # Load environment variables from .env file
+        load_dotenv()
+        
         app_id = os.getenv("MATHPIX_APP_ID")
         app_key = os.getenv("MATHPIX_APP_KEY")
 
@@ -229,9 +233,16 @@ class MathpixPDFParser:
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
-        # Save markdown
-        if "md" in result:
+        # Save markdown (check both old and new API formats)
+        md_url = None
+        if "md" in result and isinstance(result["md"], str):
             md_url = result["md"]
+        elif "pdf_id" in result:
+            conversion_status = result.get("conversion_status", {})
+            if conversion_status.get("md", {}).get("status") == "completed":
+                md_url = f"{self.config.api_url}/{result['pdf_id']}.md"
+        
+        if md_url:
             md_content = self._download_url(md_url)
             md_file = output_path / f"{base_name}.md"
             md_file.write_text(md_content, encoding="utf-8")
@@ -270,10 +281,25 @@ class MathpixPDFParser:
         Returns:
             Markdown content as string
         """
-        if "md" not in result:
-            raise ValueError("No markdown URL in conversion result")
+        # Check if we have a direct markdown URL (old API format)
+        if "md" in result and isinstance(result["md"], str):
+            md_url = result["md"]
+        # Otherwise, construct the URL from pdf_id (new API format)
+        elif "pdf_id" in result:
+            pdf_id = result["pdf_id"]
+            # Verify the markdown conversion is complete
+            conversion_status = result.get("conversion_status", {})
+            md_status = conversion_status.get("md", {})
+            if md_status.get("status") != "completed":
+                raise ValueError(f"Markdown conversion not completed. Status: {md_status}")
+            
+            # Construct download URL: https://api.mathpix.com/v3/pdf/{pdf_id}.md
+            md_url = f"{self.config.api_url}/{pdf_id}.md"
+            logger.info(f"Constructed markdown URL: {md_url}")
+        else:
+            available_keys = list(result.keys())
+            raise ValueError(f"Cannot find markdown URL or pdf_id in result. Available keys: {available_keys}")
 
-        md_url = result["md"]
         return self._download_url(md_url)
 
     def parse_pdf_to_markdown(

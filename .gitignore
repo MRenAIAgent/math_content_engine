@@ -86,3 +86,6 @@ test_output/
 
 # API database
 data/
+# Large PDF files - use external storage or Git LFS
+curriculum/textbooks/**/*.pdf
+*.pdf

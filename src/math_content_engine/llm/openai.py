@@ -17,8 +17,16 @@ class OpenAIClient(BaseLLMClient):
         super().__init__(api_key, model, temperature, max_tokens)
         self.client = openai.OpenAI(api_key=api_key)
 
-    def generate(self, prompt: str, system_prompt: Optional[str] = None) -> LLMResponse:
-        """Generate a response using OpenAI."""
+    def generate(self, prompt: str, system_prompt: Optional[str] = None,
+                 max_tokens: Optional[int] = None, temperature: Optional[float] = None) -> LLMResponse:
+        """Generate a response using OpenAI.
+        
+        Args:
+            prompt: The user prompt
+            system_prompt: Optional system prompt
+            max_tokens: Override the default max_tokens if provided
+            temperature: Override the default temperature if provided
+        """
         messages = []
 
         if system_prompt:
@@ -29,8 +37,8 @@ class OpenAIClient(BaseLLMClient):
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
-            max_tokens=self.max_tokens,
-            temperature=self.temperature,
+            max_tokens=max_tokens if max_tokens is not None else self.max_tokens,
+            temperature=temperature if temperature is not None else self.temperature,
         )
 
         choice = response.choices[0]

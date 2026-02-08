@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
+from dotenv import load_dotenv
+
 # Import centralized enums
 from .constants import (
     LLMProvider,
@@ -164,6 +166,9 @@ class Config:
     @classmethod
     def from_env(cls) -> "Config":
         """Create configuration from environment variables."""
+        # Load environment variables from .env file
+        load_dotenv()
+        
         return cls()
 
     def get_api_key(self) -> str:

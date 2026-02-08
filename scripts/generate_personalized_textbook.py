@@ -192,7 +192,7 @@ def personalize_textbook(
         max_tokens=8000,
     )
 
-    return response
+    return response.content
 
 
 def generate_personalized_textbook(

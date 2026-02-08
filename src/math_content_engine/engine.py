@@ -13,7 +13,7 @@ from .generator.code_generator import ManimCodeGenerator, GenerationResult
 from .generator.prompts import AnimationStyle as PromptAnimationStyle
 from .llm.factory import create_llm_client
 from .renderer.manim_renderer import ManimRenderer, RenderResult
-from .personalization import ContentPersonalizer, list_available_interests
+from .personalization import ContentPersonalizer, StudentProfile, list_available_interests
 
 if TYPE_CHECKING:
     from .api.storage import VideoStorage
@@ -127,6 +127,7 @@ class MathContentEngine:
         audience_level: str = "high school",
         output_filename: Optional[str] = None,
         interest: Optional[str] = None,
+        student_profile: Optional[StudentProfile] = None,
         save_to_storage: bool = True,
     ) -> AnimationResult:
         """
@@ -138,6 +139,7 @@ class MathContentEngine:
             audience_level: Target audience (elementary, middle school, high school, college)
             output_filename: Optional custom filename for output
             interest: Optional interest override for personalization (e.g., "basketball")
+            student_profile: Optional student profile for individual personalization
             save_to_storage: Whether to save video metadata to storage (if storage is configured)
 
         Returns:
@@ -145,6 +147,8 @@ class MathContentEngine:
         """
         start_time = time.time()
         interest_info = f" (personalized for {interest})" if interest else ""
+        if student_profile and student_profile.name:
+            interest_info += f", student={student_profile.name}"
         logger.info(f"Generating animation for topic: {topic}{interest_info}")
 
         total_attempts = 0
@@ -161,6 +165,7 @@ class MathContentEngine:
             requirements=requirements,
             audience_level=audience_level,
             interest=interest,
+            student_profile=student_profile,
         )
         total_attempts = generation_result.attempts
         last_generation = generation_result
@@ -379,6 +384,7 @@ class MathContentEngine:
         requirements: str = "",
         audience_level: str = "high school",
         interest: Optional[str] = None,
+        student_profile: Optional[StudentProfile] = None,
     ) -> GenerationResult:
         """
         Generate code without rendering - useful for previewing/editing.
@@ -388,6 +394,7 @@ class MathContentEngine:
             requirements: Additional requirements
             audience_level: Target audience
             interest: Optional interest for personalization
+            student_profile: Optional student profile for individual personalization
 
         Returns:
             GenerationResult with code and validation status
@@ -397,6 +404,7 @@ class MathContentEngine:
             requirements=requirements,
             audience_level=audience_level,
             interest=interest,
+            student_profile=student_profile,
         )
 
     def cleanup(self):

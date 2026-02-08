@@ -53,6 +53,7 @@ class PromptPreviewRequest(BaseModel):
     )
     animation_style: str = Field("dark", description="dark or light")
     audience_level: str = Field("high school", description="Audience level")
+    student_name: Optional[str] = Field(None, description="Student name for direct address")
 
 
 # ---------------------------------------------------------------------------
@@ -81,6 +82,7 @@ class StageExecuteRequest(BaseModel):
     video_quality: str = "l"
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
+    student_name: Optional[str] = None
 
     # For render stage
     code: Optional[str] = None

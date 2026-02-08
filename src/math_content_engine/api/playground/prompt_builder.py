@@ -199,25 +199,37 @@ def preview_animation_prompts(
     audience_level: str = "high school",
     interest: Optional[str] = None,
     animation_style: str = "dark",
+    student_name: Optional[str] = None,
 ) -> PromptPreview:
-    """Build animation generation prompts without executing them."""
+    """Build animation generation prompts without executing them.
+
+    Uses the same ``get_animation_personalization()`` path as the main
+    engine so the playground preview matches actual generation.
+    """
     from ...constants import AnimationStyle
+    from ...personalization import StudentProfile
 
     style = AnimationStyle(animation_style) if animation_style else AnimationStyle.DARK
     system_prompt = get_system_prompt(style)
 
+    # Build student profile if name provided
+    student = StudentProfile(name=student_name) if student_name else None
+
+    # Use the same personalization path as the main engine
     personalization_context = ""
     if interest:
         personalizer = ContentPersonalizer(interest)
         if personalizer.profile:
-            result = personalizer.personalize_prompt(topic, requirements)
-            personalization_context = result.personalization_prompt
+            personalization_context = personalizer.get_animation_personalization(
+                topic, student=student
+            )
 
     user_prompt = build_generation_prompt(
         topic=topic,
         requirements=requirements,
         audience_level=audience_level,
         personalization_context=personalization_context,
+        student_name=student_name,
     )
 
     return PromptPreview(

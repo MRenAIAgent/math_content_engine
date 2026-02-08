@@ -10,6 +10,7 @@ from pathlib import Path
 
 from .config import Config, VideoQuality, LLMProvider
 from .engine import MathContentEngine
+from .personalization import StudentProfile
 
 
 def setup_logging(verbose: bool):
@@ -89,6 +90,18 @@ Examples:
         choices=["claude", "openai"],
         help="LLM provider (defaults to env setting)"
     )
+    gen_parser.add_argument(
+        "-i", "--interest",
+        help="Student interest for personalization (e.g., basketball, gaming, music)"
+    )
+    gen_parser.add_argument(
+        "--student-name",
+        help="Student name for direct address in animations"
+    )
+    gen_parser.add_argument(
+        "--preferred-address",
+        help="How the student prefers to be called (e.g., nickname, 'champ'). Falls back to --student-name"
+    )
 
     # Preview command
     preview_parser = subparsers.add_parser("preview", help="Preview generated code without rendering")
@@ -106,6 +119,18 @@ Examples:
     preview_parser.add_argument(
         "--save",
         help="Save code to file"
+    )
+    preview_parser.add_argument(
+        "-i", "--interest",
+        help="Student interest for personalization (e.g., basketball, gaming, music)"
+    )
+    preview_parser.add_argument(
+        "--student-name",
+        help="Student name for direct address in animations"
+    )
+    preview_parser.add_argument(
+        "--preferred-address",
+        help="How the student prefers to be called (e.g., nickname, 'champ'). Falls back to --student-name"
     )
 
     # Render command
@@ -163,13 +188,26 @@ def cmd_generate(args) -> int:
     if args.provider:
         config.llm_provider = LLMProvider(args.provider)
 
-    engine = MathContentEngine(config)
+    interest = getattr(args, "interest", None)
+    engine = MathContentEngine(config, interest=interest)
+
+    # Build student profile if name or preferred address provided
+    student_profile = None
+    student_name = getattr(args, "student_name", None)
+    preferred_address = getattr(args, "preferred_address", None)
+    if student_name or preferred_address:
+        student_profile = StudentProfile(
+            name=student_name,
+            preferred_address=preferred_address,
+        )
 
     result = engine.generate(
         topic=args.topic,
         requirements=args.requirements,
         audience_level=args.audience,
         output_filename=args.output,
+        interest=interest,
+        student_profile=student_profile,
     )
 
     if result.success:
@@ -191,12 +229,25 @@ def cmd_preview(args) -> int:
     print(f"Generating code for: {args.topic}")
     print("-" * 50)
 
-    engine = MathContentEngine()
+    interest = getattr(args, "interest", None)
+    engine = MathContentEngine(interest=interest)
+
+    # Build student profile if name or preferred address provided
+    student_profile = None
+    student_name = getattr(args, "student_name", None)
+    preferred_address = getattr(args, "preferred_address", None)
+    if student_name or preferred_address:
+        student_profile = StudentProfile(
+            name=student_name,
+            preferred_address=preferred_address,
+        )
 
     result = engine.preview_code(
         topic=args.topic,
         requirements=args.requirements,
         audience_level=args.audience,
+        interest=interest,
+        student_profile=student_profile,
     )
 
     print(f"\nScene name: {result.scene_name}")

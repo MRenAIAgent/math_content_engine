@@ -10,9 +10,24 @@ from ..llm.base import BaseLLMClient
 from ..utils.code_extractor import extract_python_code
 from ..utils.validators import validate_manim_code, ValidationResult
 from .prompts import AnimationStyle, get_system_prompt, build_generation_prompt
-from ..personalization import ContentPersonalizer, get_interest_profile
+from ..personalization import ContentPersonalizer, StudentProfile, get_interest_profile
 
 logger = logging.getLogger(__name__)
+
+
+# Common Manim pitfalls included in error-recovery prompts so the LLM
+# can diagnose the root cause faster instead of rewriting from scratch.
+_COMMON_MANIM_PITFALLS = """
+Common Manim pitfalls (check if any apply):
+- `ShowCreation` is deprecated → use `Create`
+- `axes.get_axis_labels()` uses LaTeX and can fail → create labels manually with `Text()`
+- Animating the same Mobject in two parallel animations causes conflicts
+- Using `NumberPlane` when `NumberLine` was intended (or vice versa)
+- Forgetting `self.wait()` at the end so the last frame disappears
+- Using `r"\\\\frac{a}{b}"` (double-escaped) in a raw string — should be `r"\\frac{a}{b}"`
+- Referencing a Mobject that was already removed via `FadeOut`
+- Passing a Python list where a VGroup is expected
+"""
 
 
 @dataclass
@@ -82,7 +97,8 @@ class ManimCodeGenerator:
         topic: str,
         requirements: str = "",
         audience_level: str = "high school",
-        interest: Optional[str] = None
+        interest: Optional[str] = None,
+        student_profile: Optional[StudentProfile] = None,
     ) -> GenerationResult:
         """
         Generate Manim code for a given topic.
@@ -92,31 +108,39 @@ class ManimCodeGenerator:
             requirements: Additional requirements
             audience_level: Target audience level
             interest: Optional interest override for personalization
+            student_profile: Optional student profile for individual personalization
 
         Returns:
             GenerationResult with generated code and metadata
         """
-        # Apply personalization if available
+        # Build animation personalization context with engagement data
         personalization_context = ""
         if interest:
-            # Use one-time interest override
             temp_personalizer = ContentPersonalizer(interest)
             if temp_personalizer.profile:
-                personalized = temp_personalizer.personalize_prompt(topic, requirements)
-                personalization_context = personalized.personalization_prompt
+                personalization_context = temp_personalizer.get_animation_personalization(
+                    topic, student=student_profile
+                )
                 logger.info(f"Using personalization: {temp_personalizer.profile.display_name}")
         elif self.personalizer and self.personalizer.profile:
-            # Use default personalizer
-            personalized = self.personalizer.personalize_prompt(topic, requirements)
-            personalization_context = personalized.personalization_prompt
+            personalization_context = self.personalizer.get_animation_personalization(
+                topic, student=student_profile
+            )
 
+        student_name = student_profile.name if student_profile else None
+        student_address = student_profile.get_display_address() if student_profile else None
+        # Don't pass "you" as an explicit address — only pass actual names/nicknames
+        if student_address == "you":
+            student_address = None
         prompt = build_generation_prompt(
-            topic, requirements, audience_level, personalization_context
+            topic, requirements, audience_level, personalization_context,
+            student_name=student_name,
+            student_address=student_address,
         )
 
         interest_info = ""
         if personalization_context:
-            interest_info = f", personalized"
+            interest_info = ", personalized"
         logger.info(f"Generating Manim code for topic: {topic} (style: {self.animation_style.value}{interest_info})")
 
         # Initial generation
@@ -156,6 +180,10 @@ class ManimCodeGenerator:
         """
         Fix existing code that failed during rendering.
 
+        Uses a structured diagnosis approach so the LLM identifies the root
+        cause before attempting a minimal fix (rather than rewriting the
+        whole scene from scratch).
+
         Args:
             code: The code that failed
             error_message: Error message from Manim
@@ -163,16 +191,25 @@ class ManimCodeGenerator:
         Returns:
             GenerationResult with fixed code
         """
-        fix_prompt = f"""The following Manim code failed with an error. Please fix it:
+        fix_prompt = f"""The following Manim code failed with an error. Fix it using a MINIMAL change.
 
+## FAILED CODE
 ```python
 {code}
 ```
 
-ERROR:
+## ERROR MESSAGE
 {error_message}
 
-Return ONLY the corrected Python code."""
+## DIAGNOSIS INSTRUCTIONS
+1. Identify the exact line(s) causing the error
+2. Determine the root cause (wrong API, missing import, type error, etc.)
+3. Apply the smallest possible fix — do NOT rewrite the entire scene
+4. Preserve all working animations and visual structure
+
+{_COMMON_MANIM_PITFALLS}
+
+Return ONLY the corrected Python code. Keep everything that was already working."""
 
         response = self.llm_client.generate(fix_prompt, self.system_prompt)
         fixed_code = extract_python_code(response.content)
@@ -196,11 +233,13 @@ Return ONLY the corrected Python code."""
         return "GeneratedScene"
 
     def _build_error_context(self, code: str, validation: ValidationResult) -> str:
-        """Build error context for retry prompt."""
+        """Build error context for retry prompt with structured diagnosis."""
         errors = "\n".join(f"- {e}" for e in validation.errors)
         warnings = "\n".join(f"- {w}" for w in validation.warnings) if validation.warnings else "None"
 
-        return f"""CODE:
+        return f"""The previous code had validation errors. Fix them with MINIMAL changes.
+
+CODE:
 ```python
 {code}
 ```
@@ -209,4 +248,8 @@ ERRORS:
 {errors}
 
 WARNINGS:
-{warnings}"""
+{warnings}
+
+{_COMMON_MANIM_PITFALLS}
+
+Apply the smallest fix that resolves each error. Do NOT rewrite unrelated parts."""

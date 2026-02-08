@@ -136,6 +136,8 @@ async def preview_prompts(req: PromptPreviewRequest) -> PromptPreview:
             audience_level=req.audience_level,
             interest=req.interest,
             animation_style=req.animation_style,
+            student_name=req.student_name,
+            preferred_address=req.preferred_address,
         )
 
     raise HTTPException(400, f"Unknown stage: {req.stage}")

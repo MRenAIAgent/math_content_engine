@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from typing import Optional, List
 
 from .interests import InterestProfile, get_interest_profile, list_available_interests
+from .student_profile import StudentProfile
+from .engagement_profile import EngagementProfile, build_engagement_profile, has_student
 
 logger = logging.getLogger(__name__)
 
@@ -221,6 +223,95 @@ class ContentPersonalizer:
         if interest:
             return get_interest_profile(interest)
         return self._profile
+
+    def get_animation_personalization(
+        self,
+        topic: str,
+        interest: Optional[str] = None,
+        student: Optional[StudentProfile] = None,
+    ) -> str:
+        """Get personalization context for Manim animation code generation.
+
+        Returns data AND instructions so the LLM knows both WHAT to
+        reference and HOW to make it engaging (2nd-person address,
+        engagement hooks, current references).
+
+        Internally builds an ``EngagementProfile`` by merging the
+        interest domain data with the individual student context.
+
+        Args:
+            topic: Math topic being animated
+            interest: Optional interest override
+            student: Optional student profile for individual personalization
+
+        Returns:
+            A concise personalization string, or empty string if no profile.
+        """
+        interest_profile = self._get_profile(interest)
+        if not interest_profile:
+            return ""
+
+        # Build the merged engagement profile
+        ep = build_engagement_profile(interest_profile, student)
+
+        parts: list[str] = []
+
+        # --- Header with current context ---
+        header = f"Theme: {interest_profile.display_name}"
+        if ep["current_season"]:
+            header += f" ({ep['current_season']})"
+        parts.append(header)
+
+        # --- Student address ---
+        if has_student(ep):
+            parts.append(
+                f"Address the viewer as: \"{ep['address']}\" "
+                f"(or \"you\" when paraphrasing)"
+            )
+        else:
+            parts.append("Address the viewer as: \"you\" (2nd person, not \"a player\")")
+
+        # --- Current/trending references ---
+        if ep["trending"]:
+            trending = ", ".join(ep["trending"][:2])
+            parts.append(f"Current references: {trending}")
+
+        # --- Figures (with favorite highlighted) ---
+        parts.append(f"Figures: {', '.join(ep['figures'])}")
+
+        # --- Color palette ---
+        parts.append(f"Color palette: {ep['color_palette']}")
+
+        # --- Scenarios (2nd person) ---
+        scenarios = "\n".join(f"  - {s}" for s in ep["scenarios"][:2])
+        parts.append(
+            f"Scenarios (use 2nd person — say \"you\", not \"a player\"):\n{scenarios}"
+        )
+
+        # --- Engagement hooks ---
+        if ep["hooks"]:
+            hooks = "\n".join(f"  - {h}" for h in ep["hooks"][:2])
+            parts.append(f"Engagement hooks (weave one into the animation):\n{hooks}")
+
+        # --- Verified stats ---
+        if ep["stats"]:
+            stats = ", ".join(
+                f"{k}: {v}" for k, v in list(ep["stats"].items())[:3]
+            )
+            parts.append(f"Real stats you can use: {stats}")
+
+        # --- Analogy (if topic-relevant) ---
+        topic_lower = topic.lower()
+        for key, analogy in interest_profile.analogies.items():
+            if key in topic_lower or topic_lower in key:
+                parts.append(f"Analogy: {key} is like {analogy}")
+                break
+
+        # NOTE: Engagement *rules* (say "you/your", use real numbers, etc.)
+        # are in the universal ## ENGAGEMENT STYLE section of the prompt
+        # template.  This method provides only per-student/per-interest DATA.
+
+        return "\n".join(parts)
 
     def _build_personalized_requirements(
         self,

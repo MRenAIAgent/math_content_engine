@@ -14,11 +14,22 @@ from .algebra import (
     build_concept_index,
     validate_concept_ids,
 )
+from .concept_extractor import (
+    ConceptExtractor,
+    ConceptExtractionResult,
+    MatchedConcept,
+    NewConcept,
+)
 
 __all__ = [
     "get_default_algebra_knowledge_graph_path",
     "load_algebra_knowledge_graph",
     "build_concept_index",
     "validate_concept_ids",
+    # Concept extraction
+    "ConceptExtractor",
+    "ConceptExtractionResult",
+    "MatchedConcept",
+    "NewConcept",
 ]
 

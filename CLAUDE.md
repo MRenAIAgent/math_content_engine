@@ -110,28 +110,70 @@ Style-specific prompts instruct the LLM on color palettes, avoiding LaTeX issues
 
 ## Playground (Prompt Tuning UI)
 
-A web-based developer tool for iterating on prompts. Start the server and open `http://localhost:8000/playground/`.
+A web-based developer tool for iterating on LLM prompts across the full pipeline.
+
+### Prerequisites
+
+1. Create a `.env` file in the project root with your API key:
+   ```
+   ANTHROPIC_API_KEY=sk-ant-...
+   ```
+   (Or `OPENAI_API_KEY` if using `MATH_ENGINE_LLM_PROVIDER=openai`)
+
+2. Install with API dependencies:
+   ```bash
+   pip install -e ".[api]"
+   ```
+
+### Starting the Backend
 
 ```bash
 source .env && python -m math_content_engine.api.server
 ```
 
-**Pipeline stages** (each with editable system + user prompts):
-1. **Upload Content** — Paste textbook markdown, select student interest
-2. **Extract Concepts** — Identify math concepts in content (returns JSON)
-3. **Personalize** — Transform textbook into interest-themed version
-4. **Generate Animation** — Produce Manim Python code for a topic
-5. **Render Video** — Compile Manim code into MP4
+The server starts on `http://localhost:8000`. You should see:
+```
+INFO:     Uvicorn running on http://0.0.0.0:8000
+```
 
-**Tuning workflow**: Preview Prompts → Edit in textarea → Execute → Compare in Run History
+Verify it's working:
+- Health check: `curl http://localhost:8000/health`
+- API docs: `http://localhost:8000/docs`
 
-**LLM Settings bar** exposes temperature, max tokens, model, and provider. Prompt overrides bypass default prompt construction and call the LLM directly.
+### Opening the Frontend
 
-**Key API endpoints** (`/api/v1/playground/`):
-- `GET /config` — LLM provider, model, available interests
-- `POST /prompts/preview` — Preview prompts without calling the LLM
-- `POST /execute` — Run a stage (returns task ID, streams progress via SSE)
-- `GET /tasks/{id}/stream` — SSE event stream for task progress
+Open `http://localhost:8000/playground/` in your browser.
+
+The frontend is served as static files by the same FastAPI server — no separate frontend build or process is needed. There is no npm, no webpack, no build step. It's vanilla HTML/JS/CSS served directly.
+
+### Using the Playground
+
+1. **Upload Content** — Paste textbook markdown into the textarea, select a student interest (e.g. Basketball, Music, Gaming)
+2. **Navigate to a stage** — Click a pipeline stage in the left sidebar (Personalize, Extract Concepts, Gen. Animation)
+3. **Preview Prompts** — Click "Preview Prompts" to load the system and user prompts that would be sent to the LLM
+4. **Edit prompts** — Modify the prompt text directly in the textareas
+5. **Execute** — Click "Execute ▶" to run the stage with your edited prompts
+6. **Compare** — Check Run History in the sidebar to see previous runs and compare outputs
+
+**LLM Settings bar** (collapsible, top of main panel):
+- Temperature slider (0–1) — controls creativity of LLM output
+- Max tokens dropdown — caps response length (2K / 4K / 8K / 16K)
+- Model and Provider — read-only, set via environment variables
+
+### Key API endpoints
+
+All prefixed with `/api/v1/playground/`:
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/config` | LLM provider, model, available interests |
+| `POST` | `/prompts/preview` | Preview prompts without calling the LLM |
+| `POST` | `/execute` | Run a stage (returns task_id, streams via SSE) |
+| `GET` | `/tasks/{id}` | Poll task status |
+| `GET` | `/tasks/{id}/stream` | SSE event stream for real-time progress |
+| `GET` | `/interests` | List all available interest profiles |
+| `POST` | `/upload/textbook` | Upload textbook content |
+| `GET` | `/files/video/{name}` | Serve rendered video files |
 
 ## Curriculum Resources
 

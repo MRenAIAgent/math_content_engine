@@ -138,6 +138,8 @@ async def preview_prompts(req: PromptPreviewRequest) -> PromptPreview:
             animation_style=req.animation_style,
             student_name=req.student_name,
             preferred_address=req.preferred_address,
+            favorite_figure=req.favorite_figure,
+            favorite_team=req.favorite_team,
         )
 
     raise HTTPException(400, f"Unknown stage: {req.stage}")
@@ -208,6 +210,10 @@ async def execute_stage(req: StageExecuteRequest) -> dict:
                 config=config,
                 system_prompt_override=sys_override,
                 user_prompt_override=usr_override,
+                student_name=req.student_name,
+                preferred_address=req.preferred_address,
+                favorite_figure=req.favorite_figure,
+                favorite_team=req.favorite_team,
             )
         )
 

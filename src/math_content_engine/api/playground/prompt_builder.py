@@ -201,6 +201,8 @@ def preview_animation_prompts(
     animation_style: str = "dark",
     student_name: Optional[str] = None,
     preferred_address: Optional[str] = None,
+    favorite_figure: Optional[str] = None,
+    favorite_team: Optional[str] = None,
 ) -> PromptPreview:
     """Build animation generation prompts without executing them.
 
@@ -213,12 +215,14 @@ def preview_animation_prompts(
     style = AnimationStyle(animation_style) if animation_style else AnimationStyle.DARK
     system_prompt = get_system_prompt(style)
 
-    # Build student profile if name or preferred address provided
+    # Build student profile if any student fields provided
     student = None
-    if student_name or preferred_address:
+    if student_name or preferred_address or favorite_figure or favorite_team:
         student = StudentProfile(
             name=student_name,
             preferred_address=preferred_address,
+            favorite_figure=favorite_figure,
+            favorite_team=favorite_team,
         )
 
     # Resolve display address for the prompt

@@ -154,6 +154,10 @@ def run_animation_generation(
     config: Config,
     system_prompt_override: Optional[str] = None,
     user_prompt_override: Optional[str] = None,
+    student_name: Optional[str] = None,
+    preferred_address: Optional[str] = None,
+    favorite_figure: Optional[str] = None,
+    favorite_team: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Generate Manim animation code via LLM (no rendering).
 
@@ -165,6 +169,10 @@ def run_animation_generation(
         audience_level=audience_level,
         interest=interest,
         animation_style=animation_style,
+        student_name=student_name,
+        preferred_address=preferred_address,
+        favorite_figure=favorite_figure,
+        favorite_team=favorite_team,
     )
 
     system_prompt = system_prompt_override or preview.system_prompt

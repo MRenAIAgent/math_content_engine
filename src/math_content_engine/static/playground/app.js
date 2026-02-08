@@ -262,6 +262,15 @@ function buildPreviewRequest(stage) {
         req.animation_style = document.getElementById("anim-style").value;
         req.audience_level = document.getElementById("anim-audience").value;
         if (state.interest) req.interest = state.interest;
+        // Student profile fields
+        const studentName = document.getElementById("anim-student-name").value || "";
+        const preferredAddress = document.getElementById("anim-preferred-address").value || "";
+        const favoriteFigure = document.getElementById("anim-favorite-figure").value || "";
+        const favoriteTeam = document.getElementById("anim-favorite-team").value || "";
+        if (studentName) req.student_name = studentName;
+        if (preferredAddress) req.preferred_address = preferredAddress;
+        if (favoriteFigure) req.favorite_figure = favoriteFigure;
+        if (favoriteTeam) req.favorite_team = favoriteTeam;
     }
     return req;
 }
@@ -357,6 +366,15 @@ function buildExecuteRequest(stage) {
         req.animation_style = document.getElementById("anim-style").value;
         req.audience_level = document.getElementById("anim-audience").value;
         if (state.interest) req.interest = state.interest;
+        // Student profile fields
+        const studentName = document.getElementById("anim-student-name").value || "";
+        const preferredAddress = document.getElementById("anim-preferred-address").value || "";
+        const favoriteFigure = document.getElementById("anim-favorite-figure").value || "";
+        const favoriteTeam = document.getElementById("anim-favorite-team").value || "";
+        if (studentName) req.student_name = studentName;
+        if (preferredAddress) req.preferred_address = preferredAddress;
+        if (favoriteFigure) req.favorite_figure = favoriteFigure;
+        if (favoriteTeam) req.favorite_team = favoriteTeam;
     }
     return req;
 }

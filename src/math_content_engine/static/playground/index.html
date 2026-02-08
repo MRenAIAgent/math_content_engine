@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Content Playground</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <!-- highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/python.min.js"></script>
+</head>
+<body>
+    <!-- ============================================================ -->
+    <!-- HEADER                                                        -->
+    <!-- ============================================================ -->
+    <header class="header">
+        <div class="header-title">
+            <span>&#x1F9EA;</span> Math Content Playground
+        </div>
+        <div class="header-config">
+            <span class="badge" id="config-provider">loading...</span>
+            <span class="badge" id="config-model"></span>
+        </div>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- APP LAYOUT                                                    -->
+    <!-- ============================================================ -->
+    <div class="app-layout">
+        <!-- ======================================================== -->
+        <!-- SIDEBAR                                                    -->
+        <!-- ======================================================== -->
+        <nav class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Pipeline Stages</div>
+                <div class="sidebar-item active" data-stage="upload" onclick="switchStage('upload')">
+                    <span class="step-num">1</span> Upload Content
+                </div>
+                <div class="sidebar-item" data-stage="extract_concepts" onclick="switchStage('extract_concepts')">
+                    <span class="step-num">2</span> Extract Concepts
+                </div>
+                <div class="sidebar-item" data-stage="personalize" onclick="switchStage('personalize')">
+                    <span class="step-num">3</span> Personalize
+                </div>
+                <div class="sidebar-item" data-stage="generate_animation" onclick="switchStage('generate_animation')">
+                    <span class="step-num">4</span> Gen. Animation
+                </div>
+                <div class="sidebar-item" data-stage="render" onclick="switchStage('render')">
+                    <span class="step-num">5</span> Render Video
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Run History</div>
+                <div id="history-list">
+                    <div style="padding: 8px 16px; font-size: 13px; color: var(--text-muted);">
+                        No runs yet
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- ======================================================== -->
+        <!-- MAIN CONTENT                                               -->
+        <!-- ======================================================== -->
+        <main class="main-content">
+
+            <!-- ---- LLM Settings Bar ---- -->
+            <div class="llm-settings-bar">
+                <div class="llm-settings-toggle" onclick="toggleLLMSettings()">
+                    <span class="settings-icon">&#x2699;</span>
+                    <span>LLM Settings</span>
+                    <span class="llm-settings-summary" id="llm-settings-summary"></span>
+                    <span class="chevron" id="llm-settings-chevron">&#x25B6;</span>
+                </div>
+                <div class="llm-settings-panel" id="llm-settings-panel">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Temperature</label>
+                            <div class="range-with-value">
+                                <input type="range" id="llm-temperature" min="0" max="1" step="0.05" value="0.7"
+                                       oninput="onTemperatureChange()" />
+                                <span id="llm-temperature-value" class="range-value">0.70</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Max Tokens</label>
+                            <select id="llm-max-tokens" onchange="onMaxTokensChange()">
+                                <option value="2048">2,048</option>
+                                <option value="4096" selected>4,096</option>
+                                <option value="8192">8,192</option>
+                                <option value="16384">16,384</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Model</label>
+                            <span class="badge readonly-badge" id="llm-model-display">loading...</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Provider</label>
+                            <span class="badge readonly-badge" id="llm-provider-display">loading...</span>
+                        </div>
+                    </div>
+                    <div class="settings-hint">
+                        Temperature controls creativity (0 = deterministic, 1 = creative).
+                        Max tokens caps the response length. Model/provider set via env vars.
+                    </div>
+                </div>
+            </div>
+
+            <!-- ---- Stage 1: Upload Content ---- -->
+            <div class="stage-panel active" id="stage-upload">
+                <h2 class="stage-title">Upload Textbook Content</h2>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1">
+                        <label>Interest</label>
+                        <select id="interest-select" onchange="onInterestChange()">
+                            <option value="">Select interest...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Load sample</label>
+                        <button class="btn btn-sm" onclick="loadSampleContent()">Load Sample</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="label">Textbook Markdown</span>
+                        <span id="upload-stats" class="text-muted" style="font-weight:normal"></span>
+                    </div>
+                    <div class="card-body">
+                        <textarea
+                            class="prompt-textarea"
+                            id="textbook-input"
+                            placeholder="Paste your textbook markdown content here, or click 'Load Sample' for an example..."
+                            style="min-height: 300px"
+                            oninput="onTextbookInput()"
+                        ></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ---- Stage 2: Extract Concepts ---- -->
+            <div class="stage-panel" id="stage-extract_concepts">
+                <h2 class="stage-title">Extract Concepts from Knowledge Graph</h2>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="label">System Prompt</span>
+                        <button class="btn btn-sm" onclick="resetPrompt('extract_concepts', 'system')">Reset</button>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="prompt-textarea" id="prompt-extract_concepts-system" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="label">User Prompt</span>
+                        <button class="btn btn-sm" onclick="resetPrompt('extract_concepts', 'user')">Reset</button>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="prompt-textarea" id="prompt-extract_concepts-user" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn" onclick="previewPrompts('extract_concepts')">Preview Prompts</button>
+                    <button class="btn btn-primary" onclick="executeStage('extract_concepts')" id="btn-exec-extract_concepts">
+                        Execute &#x25B6;
+                    </button>
+                </div>
+
+                <div class="progress-bar" id="progress-extract_concepts">
+                    <div class="spinner"></div>
+                    <span id="progress-text-extract_concepts">Running...</span>
+                </div>
+
+                <div class="card" id="output-card-extract_concepts" style="display:none">
+                    <div class="card-header">
+                        <span class="label">Output</span>
+                        <span class="stats-bar" id="stats-extract_concepts"></span>
+                    </div>
+                    <div class="card-body">
+                        <div class="output-panel json-output" id="output-extract_concepts"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ---- Stage 3: Personalize ---- -->
+            <div class="stage-panel" id="stage-personalize">
+                <h2 class="stage-title">Personalize Textbook</h2>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1">
+                        <label>Interest</label>
+                        <select id="personalize-interest" onchange="onPersonalizeInterestChange()">
+                            <option value="">Select interest...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="label">System Prompt</span>
+                        <button class="btn btn-sm" onclick="resetPrompt('personalize', 'system')">Reset</button>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="prompt-textarea small" id="prompt-personalize-system" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="label">User Prompt</span>
+                        <button class="btn btn-sm" onclick="resetPrompt('personalize', 'user')">Reset</button>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="prompt-textarea" id="prompt-personalize-user" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn" onclick="previewPrompts('personalize')">Preview Prompts</button>
+                    <button class="btn btn-primary" onclick="executeStage('personalize')" id="btn-exec-personalize">
+                        Execute &#x25B6;
+                    </button>
+                </div>
+
+                <div class="progress-bar" id="progress-personalize">
+                    <div class="spinner"></div>
+                    <span id="progress-text-personalize">Running...</span>
+                </div>
+
+                <div class="card" id="output-card-personalize" style="display:none">
+                    <div class="card-header">
+                        <span class="label">Personalized Content</span>
+                        <span class="stats-bar" id="stats-personalize"></span>
+                    </div>
+                    <div class="card-body">
+                        <div class="output-panel markdown-output" id="output-personalize"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ---- Stage 4: Generate Animation ---- -->
+            <div class="stage-panel" id="stage-generate_animation">
+                <h2 class="stage-title">Generate Animation Code</h2>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2">
+                        <label>Topic</label>
+                        <input type="text" id="anim-topic" placeholder="e.g. Solving Two-Step Linear Equations" />
+                    </div>
+                    <div class="form-group">
+                        <label>Style</label>
+                        <select id="anim-style">
+                            <option value="dark">Dark</option>
+                            <option value="light">Light</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Audience</label>
+                        <select id="anim-audience">
+                            <option value="high school">High School</option>
+                            <option value="middle school">Middle School</option>
+                            <option value="college">College</option>
+                            <option value="elementary">Elementary</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1">
+                        <label>Requirements</label>
+                        <input type="text" id="anim-requirements" placeholder="Additional requirements (optional)" />
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="label">System Prompt</span>
+                        <button class="btn btn-sm" onclick="resetPrompt('generate_animation', 'system')">Reset</button>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="prompt-textarea" id="prompt-generate_animation-system" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="label">User Prompt</span>
+                        <button class="btn btn-sm" onclick="resetPrompt('generate_animation', 'user')">Reset</button>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="prompt-textarea" id="prompt-generate_animation-user" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn" onclick="previewPrompts('generate_animation')">Preview Prompts</button>
+                    <button class="btn btn-primary" onclick="executeStage('generate_animation')" id="btn-exec-generate_animation">
+                        Execute &#x25B6;
+                    </button>
+                </div>
+
+                <div class="progress-bar" id="progress-generate_animation">
+                    <div class="spinner"></div>
+                    <span id="progress-text-generate_animation">Running...</span>
+                </div>
+
+                <div class="card" id="output-card-generate_animation" style="display:none">
+                    <div class="card-header">
+                        <span class="label">Generated Manim Code</span>
+                        <div>
+                            <span class="stats-bar" id="stats-generate_animation" style="display:inline-flex"></span>
+                            <button class="btn btn-sm" onclick="copyCode()">Copy</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="output-panel code-output" id="output-generate_animation"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ---- Stage 5: Render Video ---- -->
+            <div class="stage-panel" id="stage-render">
+                <h2 class="stage-title">Render Video</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Quality</label>
+                        <select id="render-quality">
+                            <option value="l">Low (480p) - fast</option>
+                            <option value="m">Medium (720p)</option>
+                            <option value="h">High (1080p)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="label">Manim Code (editable)</span>
+                        <span id="render-scene-name" style="font-weight: normal; color: var(--text-muted)"></span>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="prompt-textarea" id="render-code" style="min-height: 300px" placeholder="Generate animation code first (step 4), or paste code here..."></textarea>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="executeRender()" id="btn-exec-render">
+                        Render Video &#x25B6;
+                    </button>
+                </div>
+
+                <div class="progress-bar" id="progress-render">
+                    <div class="spinner"></div>
+                    <span id="progress-text-render">Rendering...</span>
+                </div>
+
+                <div id="video-output" style="display:none">
+                    <div class="video-container">
+                        <video id="rendered-video" controls></video>
+                    </div>
+                    <div class="stats-bar" id="stats-render"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -11,12 +11,21 @@ const API = "/api/v1/playground";
 const state = {
     textbookContent: "",
     currentStage: "upload",
-    interest: null,
     config: {},
     // LLM settings (user-tunable)
     llmSettings: {
         temperature: 0.7,
         maxTokens: 4096,
+    },
+    // Global student & engagement settings
+    studentSettings: {
+        interest: "",
+        studentName: "",
+        preferredAddress: "",
+        gradeLevel: "",
+        personalContext: "",
+        favoriteFigure: "",
+        favoriteTeam: "",
     },
     // Default prompts (from preview endpoint)
     defaultPrompts: {
@@ -72,16 +81,11 @@ async function loadConfig() {
         state.llmSettings.maxTokens = state.config.max_tokens || 4096;
         initLLMSettingsUI();
 
-        // Populate interest dropdowns
-        populateInterests(state.config.available_interests || []);
+        // Store available interests for reference
+        state.availableInterests = state.config.available_interests || [];
     } catch (err) {
         showToast(`Failed to load config: ${err.message}`, "error");
     }
-}
-
-function populateInterests(interests) {
-    // Store available interests for reference (shown in placeholder)
-    state.availableInterests = interests;
 }
 
 // ---------------------------------------------------------------------------
@@ -118,32 +122,60 @@ function onTextbookInput() {
     }
 }
 
-function onInterestChange() {
-    const input = document.getElementById("interest-input");
-    state.interest = input.value.trim() || null;
-    // Sync other interest text inputs
-    const personalizeInput = document.getElementById("personalize-interest-input");
-    if (personalizeInput) personalizeInput.value = input.value;
-    const animInput = document.getElementById("anim-interest-input");
-    if (animInput) animInput.value = input.value;
+// ---------------------------------------------------------------------------
+// Global Student & Engagement Settings
+// ---------------------------------------------------------------------------
+
+function toggleStudentSettings() {
+    const panel = document.getElementById("student-settings-panel");
+    const chevron = document.getElementById("student-settings-chevron");
+    const isVisible = panel.classList.contains("visible");
+    panel.classList.toggle("visible", !isVisible);
+    chevron.classList.toggle("expanded", !isVisible);
 }
 
-function onPersonalizeInterestChange() {
-    const input = document.getElementById("personalize-interest-input");
-    state.interest = input.value.trim() || null;
-    const uploadInput = document.getElementById("interest-input");
-    if (uploadInput) uploadInput.value = input.value;
-    const animInput = document.getElementById("anim-interest-input");
-    if (animInput) animInput.value = input.value;
+function onGlobalInterestChange() {
+    const input = document.getElementById("global-interest");
+    state.studentSettings.interest = (input.value || "").trim();
+    updateStudentSettingsSummary();
 }
 
-function onAnimInterestChange() {
-    const input = document.getElementById("anim-interest-input");
-    state.interest = input.value.trim() || null;
-    const uploadInput = document.getElementById("interest-input");
-    if (uploadInput) uploadInput.value = input.value;
-    const personalizeInput = document.getElementById("personalize-interest-input");
-    if (personalizeInput) personalizeInput.value = input.value;
+function onGlobalSettingChange() {
+    state.studentSettings.studentName = (document.getElementById("global-student-name").value || "").trim();
+    state.studentSettings.preferredAddress = (document.getElementById("global-preferred-address").value || "").trim();
+    state.studentSettings.gradeLevel = (document.getElementById("global-grade-level").value || "").trim();
+    state.studentSettings.personalContext = (document.getElementById("global-personal-context").value || "").trim();
+    state.studentSettings.favoriteFigure = (document.getElementById("global-favorite-figure").value || "").trim();
+    state.studentSettings.favoriteTeam = (document.getElementById("global-favorite-team").value || "").trim();
+    updateStudentSettingsSummary();
+}
+
+function updateStudentSettingsSummary() {
+    const el = document.getElementById("student-settings-summary");
+    if (!el) return;
+
+    const parts = [];
+    const s = state.studentSettings;
+    if (s.interest) parts.push(s.interest);
+    if (s.studentName) parts.push(s.studentName);
+    if (s.favoriteFigure) parts.push(s.favoriteFigure);
+    if (s.favoriteTeam) parts.push(s.favoriteTeam);
+
+    el.textContent = parts.length > 0 ? parts.join(", ") : "";
+}
+
+/** Read all global student/engagement fields into a flat object for API requests. */
+function getGlobalStudentFields() {
+    const s = state.studentSettings;
+    const fields = {};
+    if (s.interest) fields.interest = s.interest;
+    if (s.studentName) fields.student_name = s.studentName;
+    if (s.preferredAddress) fields.preferred_address = s.preferredAddress;
+    if (s.gradeLevel) fields.grade_level = s.gradeLevel;
+    if (s.personalContext) fields.personal_context = s.personalContext;
+    if (s.favoriteFigure) fields.favorite_figure = s.favoriteFigure;
+    if (s.favoriteTeam) fields.favorite_team = s.favoriteTeam;
+    return fields;
 }
 
 function loadSampleContent() {
@@ -236,18 +268,19 @@ async function previewPrompts(stage) {
 
 function buildPreviewRequest(stage) {
     const req = { stage };
+    const globals = getGlobalStudentFields();
 
     if (stage === "personalize") {
         if (!state.textbookContent) {
             showToast("Upload textbook content first (step 1)", "error");
             return null;
         }
-        if (!state.interest) {
-            showToast("Select an interest first", "error");
+        if (!globals.interest) {
+            showToast("Set an interest in Student & Engagement settings", "error");
             return null;
         }
         req.textbook_content = state.textbookContent;
-        req.interest = state.interest;
+        req.interest = globals.interest;
     } else if (stage === "extract_concepts") {
         if (!state.textbookContent) {
             showToast("Upload textbook content first (step 1)", "error");
@@ -264,23 +297,8 @@ function buildPreviewRequest(stage) {
         req.requirements = document.getElementById("anim-requirements").value || "";
         req.animation_style = document.getElementById("anim-style").value;
         req.audience_level = document.getElementById("anim-audience").value;
-        // Interest from text input
-        const interest = (document.getElementById("anim-interest-input").value || "").trim();
-        if (interest) req.interest = interest;
-        // Student profile fields
-        const studentName = (document.getElementById("anim-student-name").value || "").trim();
-        const preferredAddress = (document.getElementById("anim-preferred-address").value || "").trim();
-        const gradeLevel = (document.getElementById("anim-grade-level").value || "").trim();
-        const personalContext = (document.getElementById("anim-personal-context").value || "").trim();
-        if (studentName) req.student_name = studentName;
-        if (preferredAddress) req.preferred_address = preferredAddress;
-        if (gradeLevel) req.grade_level = gradeLevel;
-        if (personalContext) req.personal_context = personalContext;
-        // Engagement profile fields
-        const favoriteFigure = (document.getElementById("anim-favorite-figure").value || "").trim();
-        const favoriteTeam = (document.getElementById("anim-favorite-team").value || "").trim();
-        if (favoriteFigure) req.favorite_figure = favoriteFigure;
-        if (favoriteTeam) req.favorite_team = favoriteTeam;
+        // Apply global student & engagement settings
+        Object.assign(req, globals);
     }
     return req;
 }
@@ -348,17 +366,19 @@ function buildExecuteRequest(stage) {
         }
     }
 
+    const globals = getGlobalStudentFields();
+
     if (stage === "personalize") {
         if (!state.textbookContent) {
             showToast("Upload textbook content first", "error");
             return null;
         }
-        if (!state.interest) {
-            showToast("Select an interest first", "error");
+        if (!globals.interest) {
+            showToast("Set an interest in Student & Engagement settings", "error");
             return null;
         }
         req.textbook_content = state.textbookContent;
-        req.interest = state.interest;
+        req.interest = globals.interest;
     } else if (stage === "extract_concepts") {
         if (!state.textbookContent) {
             showToast("Upload textbook content first", "error");
@@ -375,23 +395,8 @@ function buildExecuteRequest(stage) {
         req.requirements = document.getElementById("anim-requirements").value || "";
         req.animation_style = document.getElementById("anim-style").value;
         req.audience_level = document.getElementById("anim-audience").value;
-        // Interest from text input
-        const interest = (document.getElementById("anim-interest-input").value || "").trim();
-        if (interest) req.interest = interest;
-        // Student profile fields
-        const studentName = (document.getElementById("anim-student-name").value || "").trim();
-        const preferredAddress = (document.getElementById("anim-preferred-address").value || "").trim();
-        const gradeLevel = (document.getElementById("anim-grade-level").value || "").trim();
-        const personalContext = (document.getElementById("anim-personal-context").value || "").trim();
-        if (studentName) req.student_name = studentName;
-        if (preferredAddress) req.preferred_address = preferredAddress;
-        if (gradeLevel) req.grade_level = gradeLevel;
-        if (personalContext) req.personal_context = personalContext;
-        // Engagement profile fields
-        const favoriteFigure = (document.getElementById("anim-favorite-figure").value || "").trim();
-        const favoriteTeam = (document.getElementById("anim-favorite-team").value || "").trim();
-        if (favoriteFigure) req.favorite_figure = favoriteFigure;
-        if (favoriteTeam) req.favorite_team = favoriteTeam;
+        // Apply global student & engagement settings
+        Object.assign(req, globals);
     }
     return req;
 }

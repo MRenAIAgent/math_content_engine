@@ -111,15 +111,67 @@
                 </div>
             </div>
 
+            <!-- ---- Student & Engagement Settings Bar (global) ---- -->
+            <div class="llm-settings-bar">
+                <div class="llm-settings-toggle" onclick="toggleStudentSettings()">
+                    <span class="settings-icon">&#x1F393;</span>
+                    <span>Student &amp; Engagement</span>
+                    <span class="llm-settings-summary" id="student-settings-summary"></span>
+                    <span class="chevron" id="student-settings-chevron">&#x25B6;</span>
+                </div>
+                <div class="llm-settings-panel" id="student-settings-panel">
+                    <!-- Interests -->
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1">
+                            <label>Interests</label>
+                            <input type="text" id="global-interest" placeholder="e.g. basketball, music, gaming" oninput="onGlobalInterestChange()" />
+                        </div>
+                    </div>
+                    <!-- Student Profile -->
+                    <div class="settings-section-label">Student Profile</div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1">
+                            <label>Student Name</label>
+                            <input type="text" id="global-student-name" placeholder="e.g. Jordan" oninput="onGlobalSettingChange()" />
+                        </div>
+                        <div class="form-group" style="flex: 1">
+                            <label>Preferred Address</label>
+                            <input type="text" id="global-preferred-address" placeholder="e.g. J, champ, bro" oninput="onGlobalSettingChange()" />
+                        </div>
+                        <div class="form-group" style="flex: 1">
+                            <label>Grade Level</label>
+                            <input type="text" id="global-grade-level" placeholder="e.g. 8th grade" oninput="onGlobalSettingChange()" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1">
+                            <label>Personal Context</label>
+                            <input type="text" id="global-personal-context" placeholder="e.g. visual learner, loves puzzles" oninput="onGlobalSettingChange()" />
+                        </div>
+                    </div>
+                    <!-- Engagement Profile -->
+                    <div class="settings-section-label">Engagement Profile</div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1">
+                            <label>Favorite Figure</label>
+                            <input type="text" id="global-favorite-figure" placeholder="e.g. Stephen Curry, Taylor Swift" oninput="onGlobalSettingChange()" />
+                        </div>
+                        <div class="form-group" style="flex: 1">
+                            <label>Favorite Team</label>
+                            <input type="text" id="global-favorite-team" placeholder="e.g. Warriors, Lakers" oninput="onGlobalSettingChange()" />
+                        </div>
+                    </div>
+                    <div class="settings-hint">
+                        These settings apply to all pipeline stages. Interest must match a known profile (e.g. basketball, gaming, music) for personalization to activate.
+                    </div>
+                </div>
+            </div>
+
             <!-- ---- Stage 1: Upload Content ---- -->
             <div class="stage-panel active" id="stage-upload">
                 <h2 class="stage-title">Upload Textbook Content</h2>
 
                 <div class="form-row">
-                    <div class="form-group" style="flex: 1">
-                        <label>Interest</label>
-                        <input type="text" id="interest-input" placeholder="e.g. basketball, music, gaming" oninput="onInterestChange()" />
-                    </div>
                     <div class="form-group">
                         <label>Load sample</label>
                         <button class="btn btn-sm" onclick="loadSampleContent()">Load Sample</button>
@@ -192,13 +244,6 @@
             <!-- ---- Stage 3: Personalize ---- -->
             <div class="stage-panel" id="stage-personalize">
                 <h2 class="stage-title">Personalize Textbook</h2>
-
-                <div class="form-row">
-                    <div class="form-group" style="flex: 1">
-                        <label>Interest</label>
-                        <input type="text" id="personalize-interest-input" placeholder="e.g. basketball, music, gaming" oninput="onPersonalizeInterestChange()" />
-                    </div>
-                </div>
 
                 <div class="card">
                     <div class="card-header">
@@ -273,53 +318,6 @@
                     <div class="form-group" style="flex: 1">
                         <label>Requirements</label>
                         <input type="text" id="anim-requirements" placeholder="Additional requirements (optional)" />
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group" style="flex: 1">
-                        <label>Interests</label>
-                        <input type="text" id="anim-interest-input" placeholder="e.g. basketball, music, gaming" oninput="onAnimInterestChange()" />
-                    </div>
-                </div>
-
-                <!-- Student Profile -->
-                <div class="profile-card">
-                    <div class="profile-card-header">Student Profile</div>
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 1">
-                            <label>Student Name</label>
-                            <input type="text" id="anim-student-name" placeholder="e.g. Jordan" />
-                        </div>
-                        <div class="form-group" style="flex: 1">
-                            <label>Preferred Address</label>
-                            <input type="text" id="anim-preferred-address" placeholder="e.g. J, champ, bro" />
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 1">
-                            <label>Grade Level</label>
-                            <input type="text" id="anim-grade-level" placeholder="e.g. 8th grade, high school" />
-                        </div>
-                        <div class="form-group" style="flex: 1">
-                            <label>Personal Context</label>
-                            <input type="text" id="anim-personal-context" placeholder="e.g. visual learner, loves puzzles" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Engagement Profile -->
-                <div class="profile-card">
-                    <div class="profile-card-header">Engagement Profile</div>
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 1">
-                            <label>Favorite Figure</label>
-                            <input type="text" id="anim-favorite-figure" placeholder="e.g. Stephen Curry, Taylor Swift" />
-                        </div>
-                        <div class="form-group" style="flex: 1">
-                            <label>Favorite Team</label>
-                            <input type="text" id="anim-favorite-team" placeholder="e.g. Warriors, Lakers" />
-                        </div>
                     </div>
                 </div>
 

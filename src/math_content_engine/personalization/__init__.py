@@ -13,6 +13,7 @@ from .interests import (
 )
 from .personalizer import ContentPersonalizer
 from .student_profile import StudentProfile
+from .engagement_profile import EngagementProfile, build_engagement_profile
 from .textbook_parser import (
     TextbookParser,
     TextbookChapter,
@@ -33,6 +34,8 @@ __all__ = [
     "list_available_interests",
     "ContentPersonalizer",
     "StudentProfile",
+    "EngagementProfile",
+    "build_engagement_profile",
     "INTEREST_PROFILES",
     # Textbook parsing
     "TextbookParser",

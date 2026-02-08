@@ -12,6 +12,7 @@ from typing import Optional, List
 
 from .interests import InterestProfile, get_interest_profile, list_available_interests
 from .student_profile import StudentProfile
+from .engagement_profile import EngagementProfile, build_engagement_profile
 
 logger = logging.getLogger(__name__)
 
@@ -235,6 +236,9 @@ class ContentPersonalizer:
         reference and HOW to make it engaging (2nd-person address,
         engagement hooks, current references).
 
+        Internally builds an ``EngagementProfile`` by merging the
+        interest domain data with the individual student context.
+
         Args:
             topic: Math topic being animated
             interest: Optional interest override
@@ -243,72 +247,62 @@ class ContentPersonalizer:
         Returns:
             A concise personalization string, or empty string if no profile.
         """
-        profile = self._get_profile(interest)
-        if not profile:
+        interest_profile = self._get_profile(interest)
+        if not interest_profile:
             return ""
+
+        # Build the merged engagement profile
+        ep = build_engagement_profile(interest_profile, student)
 
         parts: list[str] = []
 
         # --- Header with current context ---
-        header = f"Theme: {profile.display_name}"
-        if profile.current_season:
-            header += f" ({profile.current_season})"
+        header = f"Theme: {interest_profile.display_name}"
+        if ep.current_season:
+            header += f" ({ep.current_season})"
         parts.append(header)
 
         # --- Student address ---
-        if student and student.name:
+        if ep.has_student:
             parts.append(
-                f"Address the viewer as: \"{student.name}\" "
+                f"Address the viewer as: \"{ep.address}\" "
                 f"(or \"you\" when paraphrasing)"
             )
         else:
             parts.append("Address the viewer as: \"you\" (2nd person, not \"a player\")")
 
         # --- Current/trending references ---
-        if profile.trending_now:
-            trending = ", ".join(profile.trending_now[:2])
+        if ep.trending:
+            trending = ", ".join(ep.trending[:2])
             parts.append(f"Current references: {trending}")
 
-        # --- Figures (prefer student's favorite) ---
-        figures_list = list(profile.famous_figures[:3])
-        if student and student.favorite_figure:
-            fav = student.favorite_figure
-            if fav not in figures_list:
-                figures_list = [fav] + figures_list[:2]
-            label = f"{fav} ({student.name}'s favorite)" if student.name else fav
-            figures_list[figures_list.index(fav)] = label
-        parts.append(f"Figures: {', '.join(figures_list)}")
+        # --- Figures (with favorite highlighted) ---
+        parts.append(f"Figures: {', '.join(ep.figures)}")
 
         # --- Color palette ---
-        colors = profile.visual_themes.get("primary_colors", "thematic colors")
-        parts.append(f"Color palette: {colors}")
+        parts.append(f"Color palette: {ep.color_palette}")
 
-        # --- Scenarios (prefer 2nd person) ---
-        scenarios_source = (
-            profile.second_person_scenarios
-            if profile.second_person_scenarios
-            else profile.example_scenarios
-        )
-        scenarios = "\n".join(f"  - {s}" for s in scenarios_source[:2])
+        # --- Scenarios (2nd person) ---
+        scenarios = "\n".join(f"  - {s}" for s in ep.scenarios[:2])
         parts.append(
             f"Scenarios (use 2nd person — say \"you\", not \"a player\"):\n{scenarios}"
         )
 
         # --- Engagement hooks ---
-        if profile.engagement_hooks:
-            hooks = "\n".join(f"  - {h}" for h in profile.engagement_hooks[:2])
+        if ep.hooks:
+            hooks = "\n".join(f"  - {h}" for h in ep.hooks[:2])
             parts.append(f"Engagement hooks (weave one into the animation):\n{hooks}")
 
         # --- Verified stats ---
-        if profile.verified_stats:
+        if ep.stats:
             stats = ", ".join(
-                f"{k}: {v}" for k, v in list(profile.verified_stats.items())[:3]
+                f"{k}: {v}" for k, v in list(ep.stats.items())[:3]
             )
             parts.append(f"Real stats you can use: {stats}")
 
         # --- Analogy (if topic-relevant) ---
         topic_lower = topic.lower()
-        for key, analogy in profile.analogies.items():
+        for key, analogy in interest_profile.analogies.items():
             if key in topic_lower or topic_lower in key:
                 parts.append(f"Analogy: {key} is like {analogy}")
                 break

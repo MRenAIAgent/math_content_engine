@@ -197,7 +197,7 @@ class TestNarrationStudentName:
             student_name="Jordan",
         )
         assert "Jordan" in result
-        assert "STUDENT NAME" in result
+        assert "STUDENT ADDRESS" in result
 
     def test_build_narration_prompt_without_name(self):
         from math_content_engine.tts.narration_generator import build_narration_prompt
@@ -207,7 +207,7 @@ class TestNarrationStudentName:
             animation_description="Solving x + 3 = 7",
             animation_duration=30.0,
         )
-        assert "STUDENT NAME" not in result
+        assert "STUDENT ADDRESS" not in result
         # But should still have "you" address guidance
         assert "you" in result.lower()
 

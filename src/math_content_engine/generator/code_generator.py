@@ -128,9 +128,14 @@ class ManimCodeGenerator:
             )
 
         student_name = student_profile.name if student_profile else None
+        student_address = student_profile.get_display_address() if student_profile else None
+        # Don't pass "you" as an explicit address — only pass actual names/nicknames
+        if student_address == "you":
+            student_address = None
         prompt = build_generation_prompt(
             topic, requirements, audience_level, personalization_context,
             student_name=student_name,
+            student_address=student_address,
         )
 
         interest_info = ""

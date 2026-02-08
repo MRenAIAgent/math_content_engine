@@ -200,6 +200,7 @@ def preview_animation_prompts(
     interest: Optional[str] = None,
     animation_style: str = "dark",
     student_name: Optional[str] = None,
+    preferred_address: Optional[str] = None,
 ) -> PromptPreview:
     """Build animation generation prompts without executing them.
 
@@ -212,8 +213,20 @@ def preview_animation_prompts(
     style = AnimationStyle(animation_style) if animation_style else AnimationStyle.DARK
     system_prompt = get_system_prompt(style)
 
-    # Build student profile if name provided
-    student = StudentProfile(name=student_name) if student_name else None
+    # Build student profile if name or preferred address provided
+    student = None
+    if student_name or preferred_address:
+        student = StudentProfile(
+            name=student_name,
+            preferred_address=preferred_address,
+        )
+
+    # Resolve display address for the prompt
+    display_address = None
+    if student:
+        addr = student.get_display_address()
+        if addr != "you":
+            display_address = addr
 
     # Use the same personalization path as the main engine
     personalization_context = ""
@@ -230,6 +243,7 @@ def preview_animation_prompts(
         audience_level=audience_level,
         personalization_context=personalization_context,
         student_name=student_name,
+        student_address=display_address,
     )
 
     return PromptPreview(

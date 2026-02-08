@@ -57,13 +57,14 @@ CRITICAL TIMING RULES:
 - Speaking rate is approximately 2.5 words per second
 - Total script should match the animation duration
 
-Student name handling:
-- If a student name is provided, use it naturally 2-3 times total
-  - Once in the intro: "Hey Jordan, let's figure this out!"
+Student address handling:
+- Students may have a preferred way to be addressed (name, nickname, etc.)
+- If a student address is provided, use it naturally 2-3 times total
+  - Once in the intro: "Hey Jordan, let's figure this out!" (or "Hey champ,...")
   - Once mid-lesson: "Great thinking, Jordan!"
   - Once at the conclusion: "You nailed it, Jordan!"
-- If no student name, use "you": "Hey, let's figure this out!"
-- Don't overuse the name — it should feel natural, not robotic
+- If no student address, use "you": "Hey, let's figure this out!"
+- Don't overuse the address — it should feel natural, not robotic
 
 ## EXAMPLE OUTPUT (for a 25-second animation about solving x + 3 = 7)
 
@@ -88,6 +89,7 @@ def build_narration_prompt(
     visual_cues: Optional[List[str]] = None,
     personalization_context: str = "",
     student_name: Optional[str] = None,
+    student_address: Optional[str] = None,
 ) -> str:
     """Build the prompt for generating narration.
 
@@ -99,6 +101,8 @@ def build_narration_prompt(
         visual_cues: Optional list of visual elements with timing hints
         personalization_context: Optional interest-based context for themed narration
         student_name: Optional student name for direct address
+        student_address: Optional preferred way to address the student
+            (nickname, etc.). Falls back to student_name, then "you".
     """
 
     visual_cues_text = ""
@@ -115,13 +119,15 @@ PERSONALIZATION (weave naturally into narration, don't force it):
 {personalization_context}
 Use themed language where it fits naturally, but prioritize clear math explanation."""
 
+    # Resolve how to address the student: preferred_address → name → "you"
+    display_address = student_address or student_name
     student_text = ""
-    if student_name:
+    if display_address:
         student_text = f"""
 
-STUDENT NAME: {student_name}
-Use their name naturally 2-3 times (intro, mid-lesson encouragement, conclusion).
-Example: "Hey {student_name}, let's figure this out!" and "Great job, {student_name}!"
+STUDENT ADDRESS: {display_address}
+Use this naturally 2-3 times (intro, mid-lesson encouragement, conclusion).
+Example: "Hey {display_address}, let's figure this out!" and "Great job, {display_address}!"
 Don't overuse it — keep it warm and natural."""
 
     return f"""Generate a narration script for a math animation video.
@@ -199,6 +205,7 @@ class NarrationScriptGenerator:
         visual_cues: Optional[List[str]] = None,
         interest: Optional[str] = None,
         student_name: Optional[str] = None,
+        student_address: Optional[str] = None,
     ) -> GeneratedNarrationScript:
         """
         Generate a narration script for an animation.
@@ -211,6 +218,8 @@ class NarrationScriptGenerator:
             visual_cues: Optional list of visual elements with timing hints
             interest: Optional interest for personalized narration
             student_name: Optional student name for direct address
+            student_address: Optional preferred way to address the student.
+                Falls back to student_name, then "you".
 
         Returns:
             GeneratedNarrationScript with cues and timing
@@ -242,6 +251,7 @@ class NarrationScriptGenerator:
             visual_cues=visual_cues,
             personalization_context=personalization_context,
             student_name=student_name,
+            student_address=student_address,
         )
 
         logger.info(f"Generating narration for: {topic}")
@@ -302,6 +312,7 @@ class NarrationScriptGenerator:
         audience_level: str = "middle school",
         interest: Optional[str] = None,
         student_name: Optional[str] = None,
+        student_address: Optional[str] = None,
     ) -> GeneratedNarrationScript:
         """
         Generate narration specifically for equation-solving animations.
@@ -313,6 +324,7 @@ class NarrationScriptGenerator:
             audience_level: Target audience
             interest: Optional interest for personalized narration
             student_name: Optional student name for direct address
+            student_address: Optional preferred way to address the student
 
         Returns:
             GeneratedNarrationScript
@@ -343,6 +355,7 @@ The animation shows:
             visual_cues=visual_cues,
             interest=interest,
             student_name=student_name,
+            student_address=student_address,
         )
 
     def generate_for_concept(
@@ -353,6 +366,7 @@ The animation shows:
         audience_level: str = "middle school",
         interest: Optional[str] = None,
         student_name: Optional[str] = None,
+        student_address: Optional[str] = None,
     ) -> GeneratedNarrationScript:
         """
         Generate narration for concept explanation animations.
@@ -364,6 +378,7 @@ The animation shows:
             audience_level: Target audience
             interest: Optional interest for personalized narration
             student_name: Optional student name for direct address
+            student_address: Optional preferred way to address the student
 
         Returns:
             GeneratedNarrationScript
@@ -384,6 +399,7 @@ The animation uses visual representations to help students understand.
             audience_level=audience_level,
             interest=interest,
             student_name=student_name,
+            student_address=student_address,
         )
 
 

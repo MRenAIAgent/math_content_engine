@@ -345,6 +345,7 @@ def build_generation_prompt(
     audience_level: str = "high school",
     personalization_context: str = "",
     student_name: Optional[str] = None,
+    student_address: Optional[str] = None,
 ) -> str:
     """
     Build a complete generation prompt for the given topic.
@@ -359,19 +360,24 @@ def build_generation_prompt(
         audience_level: Target audience (elementary, middle school, high school, college)
         personalization_context: Optional personalization prompt from ContentPersonalizer
         student_name: Optional student name for direct address in animations
+        student_address: Optional preferred way to address the student.
+            Falls back to student_name, then omitted.
 
     Returns:
         Formatted prompt string
     """
     topic_guidance = get_topic_specific_guidance(topic)
 
+    # Resolve display address: preferred_address → name
+    display_address = student_address or student_name
+
     # Build personalization as a separate, optional section
     personalization_section = ""
     if personalization_context:
         student_line = ""
-        if student_name:
+        if display_address:
             student_line = (
-                f"\nStudent's name: {student_name} "
+                f"\nStudent's name: {display_address} "
                 "(address them directly in the title and key moments)\n"
             )
         personalization_section = (

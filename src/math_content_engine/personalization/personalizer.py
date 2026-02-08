@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Optional, List
 
 from .interests import InterestProfile, get_interest_profile, list_available_interests
+from .student_profile import StudentProfile
 
 logger = logging.getLogger(__name__)
 
@@ -221,6 +222,107 @@ class ContentPersonalizer:
         if interest:
             return get_interest_profile(interest)
         return self._profile
+
+    def get_animation_personalization(
+        self,
+        topic: str,
+        interest: Optional[str] = None,
+        student: Optional[StudentProfile] = None,
+    ) -> str:
+        """Get personalization context for Manim animation code generation.
+
+        Returns data AND instructions so the LLM knows both WHAT to
+        reference and HOW to make it engaging (2nd-person address,
+        engagement hooks, current references).
+
+        Args:
+            topic: Math topic being animated
+            interest: Optional interest override
+            student: Optional student profile for individual personalization
+
+        Returns:
+            A concise personalization string, or empty string if no profile.
+        """
+        profile = self._get_profile(interest)
+        if not profile:
+            return ""
+
+        parts: list[str] = []
+
+        # --- Header with current context ---
+        header = f"Theme: {profile.display_name}"
+        if profile.current_season:
+            header += f" ({profile.current_season})"
+        parts.append(header)
+
+        # --- Student address ---
+        if student and student.name:
+            parts.append(
+                f"Address the viewer as: \"{student.name}\" "
+                f"(or \"you\" when paraphrasing)"
+            )
+        else:
+            parts.append("Address the viewer as: \"you\" (2nd person, not \"a player\")")
+
+        # --- Current/trending references ---
+        if profile.trending_now:
+            trending = ", ".join(profile.trending_now[:2])
+            parts.append(f"Current references: {trending}")
+
+        # --- Figures (prefer student's favorite) ---
+        figures_list = list(profile.famous_figures[:3])
+        if student and student.favorite_figure:
+            fav = student.favorite_figure
+            if fav not in figures_list:
+                figures_list = [fav] + figures_list[:2]
+            label = f"{fav} ({student.name}'s favorite)" if student.name else fav
+            figures_list[figures_list.index(fav)] = label
+        parts.append(f"Figures: {', '.join(figures_list)}")
+
+        # --- Color palette ---
+        colors = profile.visual_themes.get("primary_colors", "thematic colors")
+        parts.append(f"Color palette: {colors}")
+
+        # --- Scenarios (prefer 2nd person) ---
+        scenarios_source = (
+            profile.second_person_scenarios
+            if profile.second_person_scenarios
+            else profile.example_scenarios
+        )
+        scenarios = "\n".join(f"  - {s}" for s in scenarios_source[:2])
+        parts.append(
+            f"Scenarios (use 2nd person — say \"you\", not \"a player\"):\n{scenarios}"
+        )
+
+        # --- Engagement hooks ---
+        if profile.engagement_hooks:
+            hooks = "\n".join(f"  - {h}" for h in profile.engagement_hooks[:2])
+            parts.append(f"Engagement hooks (weave one into the animation):\n{hooks}")
+
+        # --- Verified stats ---
+        if profile.verified_stats:
+            stats = ", ".join(
+                f"{k}: {v}" for k, v in list(profile.verified_stats.items())[:3]
+            )
+            parts.append(f"Real stats you can use: {stats}")
+
+        # --- Analogy (if topic-relevant) ---
+        topic_lower = topic.lower()
+        for key, analogy in profile.analogies.items():
+            if key in topic_lower or topic_lower in key:
+                parts.append(f"Analogy: {key} is like {analogy}")
+                break
+
+        # --- Engagement rules ---
+        parts.append(
+            "Rules:\n"
+            "1. Say \"you/your\" not \"a player\" — make it personal\n"
+            "2. Use REAL numbers from the stats above, not made-up ones\n"
+            "3. Start with a hook or question, not a dry definition\n"
+            f"4. Keep ALL math rigorous — engagement is secondary to correctness"
+        )
+
+        return "\n".join(parts)
 
     def _build_personalized_requirements(
         self,

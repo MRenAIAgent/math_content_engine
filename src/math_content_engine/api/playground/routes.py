@@ -138,6 +138,8 @@ async def preview_prompts(req: PromptPreviewRequest) -> PromptPreview:
             animation_style=req.animation_style,
             student_name=req.student_name,
             preferred_address=req.preferred_address,
+            grade_level=req.grade_level,
+            personal_context=req.personal_context,
             favorite_figure=req.favorite_figure,
             favorite_team=req.favorite_team,
         )
@@ -212,6 +214,8 @@ async def execute_stage(req: StageExecuteRequest) -> dict:
                 user_prompt_override=usr_override,
                 student_name=req.student_name,
                 preferred_address=req.preferred_address,
+                grade_level=req.grade_level,
+                personal_context=req.personal_context,
                 favorite_figure=req.favorite_figure,
                 favorite_team=req.favorite_team,
             )

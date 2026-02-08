@@ -80,20 +80,8 @@ async function loadConfig() {
 }
 
 function populateInterests(interests) {
-    const selects = [
-        document.getElementById("interest-select"),
-        document.getElementById("personalize-interest"),
-    ];
-    for (const sel of selects) {
-        // Keep the first option
-        while (sel.options.length > 1) sel.remove(1);
-        for (const name of interests) {
-            const opt = document.createElement("option");
-            opt.value = name;
-            opt.textContent = name.charAt(0).toUpperCase() + name.slice(1);
-            sel.appendChild(opt);
-        }
-    }
+    // Store available interests for reference (shown in placeholder)
+    state.availableInterests = interests;
 }
 
 // ---------------------------------------------------------------------------
@@ -131,16 +119,31 @@ function onTextbookInput() {
 }
 
 function onInterestChange() {
-    const sel = document.getElementById("interest-select");
-    state.interest = sel.value || null;
-    // Sync the personalize interest dropdown
-    document.getElementById("personalize-interest").value = state.interest || "";
+    const input = document.getElementById("interest-input");
+    state.interest = input.value.trim() || null;
+    // Sync other interest text inputs
+    const personalizeInput = document.getElementById("personalize-interest-input");
+    if (personalizeInput) personalizeInput.value = input.value;
+    const animInput = document.getElementById("anim-interest-input");
+    if (animInput) animInput.value = input.value;
 }
 
 function onPersonalizeInterestChange() {
-    const sel = document.getElementById("personalize-interest");
-    state.interest = sel.value || null;
-    document.getElementById("interest-select").value = state.interest || "";
+    const input = document.getElementById("personalize-interest-input");
+    state.interest = input.value.trim() || null;
+    const uploadInput = document.getElementById("interest-input");
+    if (uploadInput) uploadInput.value = input.value;
+    const animInput = document.getElementById("anim-interest-input");
+    if (animInput) animInput.value = input.value;
+}
+
+function onAnimInterestChange() {
+    const input = document.getElementById("anim-interest-input");
+    state.interest = input.value.trim() || null;
+    const uploadInput = document.getElementById("interest-input");
+    if (uploadInput) uploadInput.value = input.value;
+    const personalizeInput = document.getElementById("personalize-interest-input");
+    if (personalizeInput) personalizeInput.value = input.value;
 }
 
 function loadSampleContent() {
@@ -261,14 +264,21 @@ function buildPreviewRequest(stage) {
         req.requirements = document.getElementById("anim-requirements").value || "";
         req.animation_style = document.getElementById("anim-style").value;
         req.audience_level = document.getElementById("anim-audience").value;
-        if (state.interest) req.interest = state.interest;
+        // Interest from text input
+        const interest = (document.getElementById("anim-interest-input").value || "").trim();
+        if (interest) req.interest = interest;
         // Student profile fields
-        const studentName = document.getElementById("anim-student-name").value || "";
-        const preferredAddress = document.getElementById("anim-preferred-address").value || "";
-        const favoriteFigure = document.getElementById("anim-favorite-figure").value || "";
-        const favoriteTeam = document.getElementById("anim-favorite-team").value || "";
+        const studentName = (document.getElementById("anim-student-name").value || "").trim();
+        const preferredAddress = (document.getElementById("anim-preferred-address").value || "").trim();
+        const gradeLevel = (document.getElementById("anim-grade-level").value || "").trim();
+        const personalContext = (document.getElementById("anim-personal-context").value || "").trim();
         if (studentName) req.student_name = studentName;
         if (preferredAddress) req.preferred_address = preferredAddress;
+        if (gradeLevel) req.grade_level = gradeLevel;
+        if (personalContext) req.personal_context = personalContext;
+        // Engagement profile fields
+        const favoriteFigure = (document.getElementById("anim-favorite-figure").value || "").trim();
+        const favoriteTeam = (document.getElementById("anim-favorite-team").value || "").trim();
         if (favoriteFigure) req.favorite_figure = favoriteFigure;
         if (favoriteTeam) req.favorite_team = favoriteTeam;
     }
@@ -365,14 +375,21 @@ function buildExecuteRequest(stage) {
         req.requirements = document.getElementById("anim-requirements").value || "";
         req.animation_style = document.getElementById("anim-style").value;
         req.audience_level = document.getElementById("anim-audience").value;
-        if (state.interest) req.interest = state.interest;
+        // Interest from text input
+        const interest = (document.getElementById("anim-interest-input").value || "").trim();
+        if (interest) req.interest = interest;
         // Student profile fields
-        const studentName = document.getElementById("anim-student-name").value || "";
-        const preferredAddress = document.getElementById("anim-preferred-address").value || "";
-        const favoriteFigure = document.getElementById("anim-favorite-figure").value || "";
-        const favoriteTeam = document.getElementById("anim-favorite-team").value || "";
+        const studentName = (document.getElementById("anim-student-name").value || "").trim();
+        const preferredAddress = (document.getElementById("anim-preferred-address").value || "").trim();
+        const gradeLevel = (document.getElementById("anim-grade-level").value || "").trim();
+        const personalContext = (document.getElementById("anim-personal-context").value || "").trim();
         if (studentName) req.student_name = studentName;
         if (preferredAddress) req.preferred_address = preferredAddress;
+        if (gradeLevel) req.grade_level = gradeLevel;
+        if (personalContext) req.personal_context = personalContext;
+        // Engagement profile fields
+        const favoriteFigure = (document.getElementById("anim-favorite-figure").value || "").trim();
+        const favoriteTeam = (document.getElementById("anim-favorite-team").value || "").trim();
         if (favoriteFigure) req.favorite_figure = favoriteFigure;
         if (favoriteTeam) req.favorite_team = favoriteTeam;
     }

@@ -310,45 +310,25 @@ body {
     cursor: pointer;
 }
 
-/* ---- Collapsible Student Profile ---- */
+/* ---- Profile Cards (Student / Engagement) ---- */
 
-.student-profile-section {
-    margin: 8px 0 12px;
+.profile-card {
+    margin: 8px 0 16px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background: var(--bg-card);
-    overflow: hidden;
+    padding: 0 14px 6px;
 }
 
-.student-profile-section summary {
-    padding: 10px 14px;
+.profile-card-header {
+    padding: 10px 0 6px;
     font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    cursor: pointer;
-    user-select: none;
-    list-style: none;
-}
-
-.student-profile-section summary::before {
-    content: "\25B6\00a0";
-    font-size: 10px;
-    transition: transform var(--transition);
-    display: inline-block;
-}
-
-.student-profile-section[open] summary::before {
-    transform: rotate(90deg);
-}
-
-.student-profile-section summary:hover {
-    color: var(--accent);
-}
-
-.student-profile-section .form-row {
-    padding: 0 14px 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
 }
 
 /* ---- Buttons ---- */

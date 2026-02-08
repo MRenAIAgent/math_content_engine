@@ -156,6 +156,8 @@ def run_animation_generation(
     user_prompt_override: Optional[str] = None,
     student_name: Optional[str] = None,
     preferred_address: Optional[str] = None,
+    grade_level: Optional[str] = None,
+    personal_context: Optional[str] = None,
     favorite_figure: Optional[str] = None,
     favorite_team: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -171,6 +173,8 @@ def run_animation_generation(
         animation_style=animation_style,
         student_name=student_name,
         preferred_address=preferred_address,
+        grade_level=grade_level,
+        personal_context=personal_context,
         favorite_figure=favorite_figure,
         favorite_team=favorite_team,
     )

@@ -201,6 +201,8 @@ def preview_animation_prompts(
     animation_style: str = "dark",
     student_name: Optional[str] = None,
     preferred_address: Optional[str] = None,
+    grade_level: Optional[str] = None,
+    personal_context: Optional[str] = None,
     favorite_figure: Optional[str] = None,
     favorite_team: Optional[str] = None,
 ) -> PromptPreview:
@@ -217,12 +219,14 @@ def preview_animation_prompts(
 
     # Build student profile if any student fields provided
     student = None
-    if student_name or preferred_address or favorite_figure or favorite_team:
+    if student_name or preferred_address or grade_level or personal_context or favorite_figure or favorite_team:
         student = StudentProfile(
             name=student_name,
             preferred_address=preferred_address,
+            grade_level=grade_level,
             favorite_figure=favorite_figure,
             favorite_team=favorite_team,
+            personal_context=personal_context,
         )
 
     # Resolve display address for the prompt

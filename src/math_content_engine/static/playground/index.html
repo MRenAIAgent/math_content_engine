@@ -118,9 +118,7 @@
                 <div class="form-row">
                     <div class="form-group" style="flex: 1">
                         <label>Interest</label>
-                        <select id="interest-select" onchange="onInterestChange()">
-                            <option value="">Select interest...</option>
-                        </select>
+                        <input type="text" id="interest-input" placeholder="e.g. basketball, music, gaming" oninput="onInterestChange()" />
                     </div>
                     <div class="form-group">
                         <label>Load sample</label>
@@ -198,9 +196,7 @@
                 <div class="form-row">
                     <div class="form-group" style="flex: 1">
                         <label>Interest</label>
-                        <select id="personalize-interest" onchange="onPersonalizeInterestChange()">
-                            <option value="">Select interest...</option>
-                        </select>
+                        <input type="text" id="personalize-interest-input" placeholder="e.g. basketball, music, gaming" oninput="onPersonalizeInterestChange()" />
                     </div>
                 </div>
 
@@ -280,9 +276,16 @@
                     </div>
                 </div>
 
-                <!-- Student Profile (optional, collapsible) -->
-                <details class="student-profile-section">
-                    <summary>Student Profile (optional)</summary>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1">
+                        <label>Interests</label>
+                        <input type="text" id="anim-interest-input" placeholder="e.g. basketball, music, gaming" oninput="onAnimInterestChange()" />
+                    </div>
+                </div>
+
+                <!-- Student Profile -->
+                <div class="profile-card">
+                    <div class="profile-card-header">Student Profile</div>
                     <div class="form-row">
                         <div class="form-group" style="flex: 1">
                             <label>Student Name</label>
@@ -295,6 +298,21 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group" style="flex: 1">
+                            <label>Grade Level</label>
+                            <input type="text" id="anim-grade-level" placeholder="e.g. 8th grade, high school" />
+                        </div>
+                        <div class="form-group" style="flex: 1">
+                            <label>Personal Context</label>
+                            <input type="text" id="anim-personal-context" placeholder="e.g. visual learner, loves puzzles" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Engagement Profile -->
+                <div class="profile-card">
+                    <div class="profile-card-header">Engagement Profile</div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1">
                             <label>Favorite Figure</label>
                             <input type="text" id="anim-favorite-figure" placeholder="e.g. Stephen Curry, Taylor Swift" />
                         </div>
@@ -303,7 +321,7 @@
                             <input type="text" id="anim-favorite-team" placeholder="e.g. Warriors, Lakers" />
                         </div>
                     </div>
-                </details>
+                </div>
 
                 <div class="card">
                     <div class="card-header">

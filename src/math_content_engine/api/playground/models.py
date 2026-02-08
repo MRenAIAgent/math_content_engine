@@ -55,6 +55,8 @@ class PromptPreviewRequest(BaseModel):
     audience_level: str = Field("high school", description="Audience level")
     student_name: Optional[str] = Field(None, description="Student name for direct address")
     preferred_address: Optional[str] = Field(None, description="How the student prefers to be called (nickname, etc.)")
+    grade_level: Optional[str] = Field(None, description="Student's grade level (e.g. 8th grade)")
+    personal_context: Optional[str] = Field(None, description="Free-text personal context (e.g. visual learner)")
     favorite_figure: Optional[str] = Field(None, description="Student's favorite figure (player, singer, etc.)")
     favorite_team: Optional[str] = Field(None, description="Student's favorite team or group")
 
@@ -87,6 +89,8 @@ class StageExecuteRequest(BaseModel):
     max_tokens: Optional[int] = None
     student_name: Optional[str] = None
     preferred_address: Optional[str] = None
+    grade_level: Optional[str] = None
+    personal_context: Optional[str] = None
     favorite_figure: Optional[str] = None
     favorite_team: Optional[str] = None
 

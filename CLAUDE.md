@@ -17,9 +17,16 @@ pip install -e ".[all]"       # Everything
 
 # Run tests
 pytest tests/test_validators.py tests/test_code_extractor.py tests/test_config.py -v  # Unit tests (no deps)
+pytest tests/test_playground_prompt_builder.py -v                                      # Playground prompt builder tests
 pytest tests/test_render_only.py -v                                                    # Render tests (needs Manim)
 pytest tests/test_algebra_integration.py -v                                            # Integration (needs API key)
 pytest tests/test_algebra_integration.py::TestAlgebraAnimations::test_linear_equation_code_generation -v  # Single test
+
+# Run the Playground (prompt tuning UI)
+pip install -e ".[api]"                              # Install API dependencies
+source .env                                          # Load API keys (ANTHROPIC_API_KEY required)
+python -m math_content_engine.api.server             # Start server on http://localhost:8000
+# Open http://localhost:8000/playground/ in browser
 
 # Linting & formatting
 ruff check src/                # Lint
@@ -41,6 +48,16 @@ src/math_content_engine/
 ├── engine.py              # MathContentEngine - main orchestrator, handles retry loop
 ├── config.py              # Config dataclass, LLMProvider/VideoQuality enums, env var loading
 ├── cli.py                 # Click-based CLI (math-engine command)
+├── api/
+│   ├── server.py          # FastAPI app factory, mounts all routes + static files
+│   ├── routes.py          # Video API endpoints
+│   └── playground/        # Prompt tuning playground
+│       ├── __init__.py    # Exports playground_router
+│       ├── models.py      # Pydantic request/response models
+│       ├── prompt_builder.py  # Prompt introspection (preview without LLM calls)
+│       ├── pipeline_runner.py # Wraps pipeline steps with prompt override support
+│       ├── routes.py      # All /api/v1/playground/* endpoints
+│       └── tasks.py       # Async task manager with SSE streaming
 ├── llm/
 │   ├── base.py            # Abstract LLMClient base class
 │   ├── claude.py          # Anthropic Claude implementation
@@ -51,6 +68,10 @@ src/math_content_engine/
 │   └── prompts.py         # System prompts and few-shot examples for Manim generation
 ├── renderer/
 │   └── manim_renderer.py  # ManimRenderer - subprocess execution, RenderResult dataclass
+├── static/playground/     # Frontend (vanilla JS, no build step)
+│   ├── index.html         # Single-page app layout
+│   ├── app.js             # Frontend logic, state management, SSE handling
+│   └── styles.css         # Dark theme styling
 ├── utils/
 │   ├── code_extractor.py  # Extract Python code blocks and class names from LLM responses
 │   └── validators.py      # validate_manim_code() - syntax and Manim-specific validation
@@ -86,6 +107,31 @@ Two visual styles are available in `prompts.py`:
 - **LIGHT** (`LIGHT_SYSTEM_PROMPT`): White background with dark text/colors
 
 Style-specific prompts instruct the LLM on color palettes, avoiding LaTeX issues (e.g., use `Text()` instead of `axes.get_axis_labels()`).
+
+## Playground (Prompt Tuning UI)
+
+A web-based developer tool for iterating on prompts. Start the server and open `http://localhost:8000/playground/`.
+
+```bash
+source .env && python -m math_content_engine.api.server
+```
+
+**Pipeline stages** (each with editable system + user prompts):
+1. **Upload Content** — Paste textbook markdown, select student interest
+2. **Extract Concepts** — Identify math concepts in content (returns JSON)
+3. **Personalize** — Transform textbook into interest-themed version
+4. **Generate Animation** — Produce Manim Python code for a topic
+5. **Render Video** — Compile Manim code into MP4
+
+**Tuning workflow**: Preview Prompts → Edit in textarea → Execute → Compare in Run History
+
+**LLM Settings bar** exposes temperature, max tokens, model, and provider. Prompt overrides bypass default prompt construction and call the LLM directly.
+
+**Key API endpoints** (`/api/v1/playground/`):
+- `GET /config` — LLM provider, model, available interests
+- `POST /prompts/preview` — Preview prompts without calling the LLM
+- `POST /execute` — Run a stage (returns task ID, streams progress via SSE)
+- `GET /tasks/{id}/stream` — SSE event stream for task progress
 
 ## Curriculum Resources
 

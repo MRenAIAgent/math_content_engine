@@ -9,6 +9,7 @@ from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .routes import router, set_storage
 from .storage import VideoStorage
@@ -67,6 +68,20 @@ def create_app(
     # Include routes
     app.include_router(router)
 
+    # Include playground routes
+    from .playground import playground_router
+
+    app.include_router(playground_router)
+
+    # Serve playground frontend as static files
+    static_dir = Path(__file__).parent.parent / "static" / "playground"
+    if static_dir.exists():
+        app.mount(
+            "/playground",
+            StaticFiles(directory=str(static_dir), html=True),
+            name="playground",
+        )
+
     # Health check endpoint
     @app.get("/health")
     async def health_check() -> dict:
@@ -81,6 +96,7 @@ def create_app(
             "name": "Math Content Engine - Video API",
             "version": "1.0.0",
             "docs": "/docs",
+            "playground": "/playground/",
             "endpoints": {
                 "list_videos": "GET /api/v1/videos",
                 "get_video": "GET /api/v1/videos/{id}",
@@ -89,6 +105,10 @@ def create_app(
                 "create_video": "POST /api/v1/videos",
                 "delete_video": "DELETE /api/v1/videos/{id}",
                 "stats": "GET /api/v1/videos/stats/summary",
+                "playground_config": "GET /api/v1/playground/config",
+                "playground_interests": "GET /api/v1/playground/interests",
+                "playground_prompts": "POST /api/v1/playground/prompts/preview",
+                "playground_execute": "POST /api/v1/playground/execute",
             }
         }
 

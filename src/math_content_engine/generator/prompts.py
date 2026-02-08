@@ -179,10 +179,13 @@ AUDIENCE LEVEL: {audience_level}
 
 ## ENGAGEMENT STYLE
 - Address the viewer directly: use "you", "your", "let's figure this out together"
+- Say "you/your" not "a player" or "a student" — make it personal
 - Open with a relatable hook or scenario, not a dry definition
 - Use real, specific numbers (not "some points" — say "24 points")
+- If personalization data is provided, use REAL numbers from it, not made-up ones
 - Include at least one "challenge moment" where the viewer can pause and think
 - End with a satisfying payoff or "aha!" moment
+- Keep ALL math rigorous — engagement is secondary to correctness
 {personalization_section}
 
 ## OUTPUT INSTRUCTIONS

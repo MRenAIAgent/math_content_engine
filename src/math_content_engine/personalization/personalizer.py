@@ -12,7 +12,7 @@ from typing import Optional, List
 
 from .interests import InterestProfile, get_interest_profile, list_available_interests
 from .student_profile import StudentProfile
-from .engagement_profile import EngagementProfile, build_engagement_profile
+from .engagement_profile import EngagementProfile, build_engagement_profile, has_student
 
 logger = logging.getLogger(__name__)
 
@@ -258,45 +258,45 @@ class ContentPersonalizer:
 
         # --- Header with current context ---
         header = f"Theme: {interest_profile.display_name}"
-        if ep.current_season:
-            header += f" ({ep.current_season})"
+        if ep["current_season"]:
+            header += f" ({ep['current_season']})"
         parts.append(header)
 
         # --- Student address ---
-        if ep.has_student:
+        if has_student(ep):
             parts.append(
-                f"Address the viewer as: \"{ep.address}\" "
+                f"Address the viewer as: \"{ep['address']}\" "
                 f"(or \"you\" when paraphrasing)"
             )
         else:
             parts.append("Address the viewer as: \"you\" (2nd person, not \"a player\")")
 
         # --- Current/trending references ---
-        if ep.trending:
-            trending = ", ".join(ep.trending[:2])
+        if ep["trending"]:
+            trending = ", ".join(ep["trending"][:2])
             parts.append(f"Current references: {trending}")
 
         # --- Figures (with favorite highlighted) ---
-        parts.append(f"Figures: {', '.join(ep.figures)}")
+        parts.append(f"Figures: {', '.join(ep['figures'])}")
 
         # --- Color palette ---
-        parts.append(f"Color palette: {ep.color_palette}")
+        parts.append(f"Color palette: {ep['color_palette']}")
 
         # --- Scenarios (2nd person) ---
-        scenarios = "\n".join(f"  - {s}" for s in ep.scenarios[:2])
+        scenarios = "\n".join(f"  - {s}" for s in ep["scenarios"][:2])
         parts.append(
             f"Scenarios (use 2nd person — say \"you\", not \"a player\"):\n{scenarios}"
         )
 
         # --- Engagement hooks ---
-        if ep.hooks:
-            hooks = "\n".join(f"  - {h}" for h in ep.hooks[:2])
+        if ep["hooks"]:
+            hooks = "\n".join(f"  - {h}" for h in ep["hooks"][:2])
             parts.append(f"Engagement hooks (weave one into the animation):\n{hooks}")
 
         # --- Verified stats ---
-        if ep.stats:
+        if ep["stats"]:
             stats = ", ".join(
-                f"{k}: {v}" for k, v in list(ep.stats.items())[:3]
+                f"{k}: {v}" for k, v in list(ep["stats"].items())[:3]
             )
             parts.append(f"Real stats you can use: {stats}")
 
@@ -307,14 +307,9 @@ class ContentPersonalizer:
                 parts.append(f"Analogy: {key} is like {analogy}")
                 break
 
-        # --- Engagement rules ---
-        parts.append(
-            "Rules:\n"
-            "1. Say \"you/your\" not \"a player\" — make it personal\n"
-            "2. Use REAL numbers from the stats above, not made-up ones\n"
-            "3. Start with a hook or question, not a dry definition\n"
-            f"4. Keep ALL math rigorous — engagement is secondary to correctness"
-        )
+        # NOTE: Engagement *rules* (say "you/your", use real numbers, etc.)
+        # are in the universal ## ENGAGEMENT STYLE section of the prompt
+        # template.  This method provides only per-student/per-interest DATA.
 
         return "\n".join(parts)
 

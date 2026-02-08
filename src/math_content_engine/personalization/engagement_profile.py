@@ -1,26 +1,27 @@
 """
 Engagement profile — merges interest data with student context.
 
-The engagement profile is a **computed** object: it takes a static
+The engagement profile is a **computed** dict: it takes a static
 InterestProfile (curated per-domain data) and an optional StudentProfile
 (individual preferences) and produces a personalized engagement bundle.
 
 No LLM call is needed — this uses template-based personalization to
 combine the best of both sources.
+
+The profile is a plain dict (typed via ``EngagementProfile`` TypedDict)
+so it can be serialized to JSON and persisted in the KV store.
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TypedDict
 
 from .interests import InterestProfile
 from .student_profile import StudentProfile
 
 
-@dataclass(frozen=True)
-class EngagementProfile:
+class EngagementProfile(TypedDict, total=True):
     """Personalized engagement data ready to inject into prompts.
 
-    Attributes:
+    Keys:
         address: How to call the student ("Jordan", "J", "champ", or "you")
         student_name: The student's actual name (may differ from address)
         scenarios: 2nd-person scenarios personalized to the student
@@ -33,21 +34,43 @@ class EngagementProfile:
         color_palette: Suggested color palette string
     """
 
-    address: str = "you"
-    student_name: Optional[str] = None
-    scenarios: List[str] = field(default_factory=list)
-    hooks: List[str] = field(default_factory=list)
-    stats: Dict[str, str] = field(default_factory=dict)
-    trending: List[str] = field(default_factory=list)
-    current_season: str = ""
-    favorite_label: Optional[str] = None
-    figures: List[str] = field(default_factory=list)
-    color_palette: str = "thematic colors"
+    address: str
+    student_name: Optional[str]
+    scenarios: List[str]
+    hooks: List[str]
+    stats: Dict[str, str]
+    trending: List[str]
+    current_season: str
+    favorite_label: Optional[str]
+    figures: List[str]
+    color_palette: str
 
-    @property
-    def has_student(self) -> bool:
-        """Whether this profile has individual student data."""
-        return self.address != "you" or self.student_name is not None
+
+def create_engagement_profile(**overrides: object) -> EngagementProfile:
+    """Create an engagement profile dict with sensible defaults.
+
+    Any key in ``overrides`` replaces the corresponding default value.
+    Unknown keys are silently ignored so callers can evolve independently.
+    """
+    defaults: EngagementProfile = {
+        "address": "you",
+        "student_name": None,
+        "scenarios": [],
+        "hooks": [],
+        "stats": {},
+        "trending": [],
+        "current_season": "",
+        "favorite_label": None,
+        "figures": [],
+        "color_palette": "thematic colors",
+    }
+    valid_keys = set(defaults.keys())
+    return {**defaults, **{k: v for k, v in overrides.items() if k in valid_keys}}  # type: ignore[return-value]
+
+
+def has_student(profile: EngagementProfile) -> bool:
+    """Whether this profile has individual student data."""
+    return profile["address"] != "you" or profile.get("student_name") is not None
 
 
 def build_engagement_profile(
@@ -67,7 +90,7 @@ def build_engagement_profile(
         student: Optional individual student context.
 
     Returns:
-        A fully-populated EngagementProfile ready for prompt injection.
+        A fully-populated EngagementProfile dict ready for prompt injection.
     """
     # --- 1. Resolve address ---
     address = "you"
@@ -77,7 +100,7 @@ def build_engagement_profile(
         student_name = student.name
 
     # --- 2. Build scenarios (personalized with student's favorite) ---
-    base_scenarios = (
+    base_scenarios: list[str] = (
         list(interest_profile.second_person_scenarios)
         if interest_profile.second_person_scenarios
         else list(interest_profile.example_scenarios)
@@ -129,7 +152,7 @@ def build_engagement_profile(
         "primary_colors", "thematic colors"
     )
 
-    return EngagementProfile(
+    return create_engagement_profile(
         address=address,
         student_name=student_name,
         scenarios=base_scenarios[:4],

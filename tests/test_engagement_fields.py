@@ -85,12 +85,12 @@ class TestAnimationPersonalizationEngagement:
         result = personalizer.get_animation_personalization("linear equations")
         assert "Real stats" in result
 
-    def test_includes_engagement_rules(self):
+    def test_no_duplicated_rules_in_personalizer_output(self):
+        """Rules block is now in the universal ENGAGEMENT STYLE template,
+        not in the per-student personalizer output."""
         personalizer = ContentPersonalizer("basketball")
         result = personalizer.get_animation_personalization("linear equations")
-        assert "you/your" in result
-        assert "REAL numbers" in result
-        assert "hook" in result.lower()
+        assert "Rules:" not in result
 
     def test_with_student_name(self):
         personalizer = ContentPersonalizer("basketball")

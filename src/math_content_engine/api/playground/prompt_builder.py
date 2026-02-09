@@ -202,9 +202,11 @@ def preview_animation_prompts(
     student_name: Optional[str] = None,
     preferred_address: Optional[str] = None,
     grade_level: Optional[str] = None,
-    personal_context: Optional[str] = None,
+    city: Optional[str] = None,
+    state: Optional[str] = None,
     favorite_figure: Optional[str] = None,
     favorite_team: Optional[str] = None,
+    textbook_content: Optional[str] = None,
 ) -> PromptPreview:
     """Build animation generation prompts without executing them.
 
@@ -217,16 +219,24 @@ def preview_animation_prompts(
     style = AnimationStyle(animation_style) if animation_style else AnimationStyle.DARK
     system_prompt = get_system_prompt(style)
 
+    # Build location string from city/state
+    location = None
+    if city and state:
+        location = f"{city}, {state}"
+    elif city:
+        location = city
+    elif state:
+        location = state
+
     # Build student profile if any student fields provided
     student = None
-    if student_name or preferred_address or grade_level or personal_context or favorite_figure or favorite_team:
+    if student_name or preferred_address or grade_level or favorite_figure or favorite_team:
         student = StudentProfile(
             name=student_name,
             preferred_address=preferred_address,
             grade_level=grade_level,
             favorite_figure=favorite_figure,
             favorite_team=favorite_team,
-            personal_context=personal_context,
         )
 
     # Resolve display address for the prompt
@@ -245,6 +255,43 @@ def preview_animation_prompts(
                 topic, student=student
             )
 
+        # Enrich with engagement-specific data from InterestProfile
+        profile = get_interest_profile(interest)
+        if profile:
+            if getattr(profile, "second_person_scenarios", None):
+                personalization_context += "\n## REAL SCENARIOS (use these directly, don't make up generic ones)\n"
+                for s in profile.second_person_scenarios[:3]:
+                    personalization_context += f"- {s}\n"
+            if getattr(profile, "engagement_hooks", None):
+                personalization_context += "\n## ENGAGEMENT HOOKS (weave into the animation)\n"
+                for h in profile.engagement_hooks[:2]:
+                    personalization_context += f"- {h}\n"
+            if getattr(profile, "verified_stats", None):
+                personalization_context += "\n## VERIFIED STATS (use real numbers, not made-up ones)\n"
+                for k, v in list(profile.verified_stats.items())[:4]:
+                    personalization_context += f"- {k}: {v}\n"
+            if getattr(profile, "trending_now", None):
+                personalization_context += "\n## TRENDING NOW (current references)\n"
+                for t in profile.trending_now[:2]:
+                    personalization_context += f"- {t}\n"
+
+    # Add location context if provided
+    if location:
+        personalization_context += f"\nStudent location: {location} (use local references when relevant)\n"
+
+    # Include personalized textbook content as context for animation
+    textbook_context = ""
+    if textbook_content:
+        # Truncate to avoid overwhelming the prompt
+        max_len = 2000
+        truncated = textbook_content[:max_len]
+        if len(textbook_content) > max_len:
+            truncated += "\n...[truncated]"
+        textbook_context = (
+            "\n## TEXTBOOK CONTENT (base the animation on this material)\n"
+            f"{truncated}\n"
+        )
+
     user_prompt = build_generation_prompt(
         topic=topic,
         requirements=requirements,
@@ -252,6 +299,7 @@ def preview_animation_prompts(
         personalization_context=personalization_context,
         student_name=student_name,
         student_address=display_address,
+        textbook_context=textbook_context,
     )
 
     return PromptPreview(

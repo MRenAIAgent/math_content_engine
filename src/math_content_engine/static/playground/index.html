@@ -27,185 +27,173 @@
     </header>
 
     <!-- ============================================================ -->
-    <!-- APP LAYOUT                                                    -->
+    <!-- MAIN CONTENT (single-page, no sidebar)                        -->
     <!-- ============================================================ -->
-    <div class="app-layout">
-        <!-- ======================================================== -->
-        <!-- SIDEBAR                                                    -->
-        <!-- ======================================================== -->
-        <nav class="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">Pipeline Stages</div>
-                <div class="sidebar-item active" data-stage="upload" onclick="switchStage('upload')">
-                    <span class="step-num">1</span> Upload Content
-                </div>
-                <div class="sidebar-item" data-stage="extract_concepts" onclick="switchStage('extract_concepts')">
-                    <span class="step-num">2</span> Extract Concepts
-                </div>
-                <div class="sidebar-item" data-stage="personalize" onclick="switchStage('personalize')">
-                    <span class="step-num">3</span> Personalize
-                </div>
-                <div class="sidebar-item" data-stage="generate_animation" onclick="switchStage('generate_animation')">
-                    <span class="step-num">4</span> Gen. Animation
-                </div>
-                <div class="sidebar-item" data-stage="render" onclick="switchStage('render')">
-                    <span class="step-num">5</span> Render Video
-                </div>
+    <main class="main-content">
+
+        <!-- ---- LLM Settings Bar ---- -->
+        <div class="llm-settings-bar">
+            <div class="llm-settings-toggle" onclick="toggleLLMSettings()">
+                <span class="settings-icon">&#x2699;</span>
+                <span>LLM Settings</span>
+                <span class="llm-settings-summary" id="llm-settings-summary"></span>
+                <span class="chevron" id="llm-settings-chevron">&#x25B6;</span>
             </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">Run History</div>
-                <div id="history-list">
-                    <div style="padding: 8px 16px; font-size: 13px; color: var(--text-muted);">
-                        No runs yet
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <!-- ======================================================== -->
-        <!-- MAIN CONTENT                                               -->
-        <!-- ======================================================== -->
-        <main class="main-content">
-
-            <!-- ---- LLM Settings Bar ---- -->
-            <div class="llm-settings-bar">
-                <div class="llm-settings-toggle" onclick="toggleLLMSettings()">
-                    <span class="settings-icon">&#x2699;</span>
-                    <span>LLM Settings</span>
-                    <span class="llm-settings-summary" id="llm-settings-summary"></span>
-                    <span class="chevron" id="llm-settings-chevron">&#x25B6;</span>
-                </div>
-                <div class="llm-settings-panel" id="llm-settings-panel">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Temperature</label>
-                            <div class="range-with-value">
-                                <input type="range" id="llm-temperature" min="0" max="1" step="0.05" value="0.7"
-                                       oninput="onTemperatureChange()" />
-                                <span id="llm-temperature-value" class="range-value">0.70</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Max Tokens</label>
-                            <select id="llm-max-tokens" onchange="onMaxTokensChange()">
-                                <option value="2048">2,048</option>
-                                <option value="4096" selected>4,096</option>
-                                <option value="8192">8,192</option>
-                                <option value="16384">16,384</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Model</label>
-                            <span class="badge readonly-badge" id="llm-model-display">loading...</span>
-                        </div>
-                        <div class="form-group">
-                            <label>Provider</label>
-                            <span class="badge readonly-badge" id="llm-provider-display">loading...</span>
-                        </div>
-                    </div>
-                    <div class="settings-hint">
-                        Temperature controls creativity (0 = deterministic, 1 = creative).
-                        Max tokens caps the response length. Model/provider set via env vars.
-                    </div>
-                </div>
-            </div>
-
-            <!-- ---- Student & Engagement Settings Bar (global) ---- -->
-            <div class="llm-settings-bar">
-                <div class="llm-settings-toggle" onclick="toggleStudentSettings()">
-                    <span class="settings-icon">&#x1F393;</span>
-                    <span>Student &amp; Engagement</span>
-                    <span class="llm-settings-summary" id="student-settings-summary"></span>
-                    <span class="chevron" id="student-settings-chevron">&#x25B6;</span>
-                </div>
-                <div class="llm-settings-panel" id="student-settings-panel">
-                    <!-- Interests -->
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 1">
-                            <label>Interests</label>
-                            <input type="text" id="global-interest" placeholder="e.g. basketball, music, gaming" oninput="onGlobalInterestChange()" />
-                        </div>
-                    </div>
-                    <!-- Student Profile -->
-                    <div class="settings-section-label">Student Profile</div>
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 1">
-                            <label>Student Name</label>
-                            <input type="text" id="global-student-name" placeholder="e.g. Jordan" oninput="onGlobalSettingChange()" />
-                        </div>
-                        <div class="form-group" style="flex: 1">
-                            <label>Preferred Address</label>
-                            <input type="text" id="global-preferred-address" placeholder="e.g. J, champ, bro" oninput="onGlobalSettingChange()" />
-                        </div>
-                        <div class="form-group" style="flex: 1">
-                            <label>Grade Level</label>
-                            <input type="text" id="global-grade-level" placeholder="e.g. 8th grade" oninput="onGlobalSettingChange()" />
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 1">
-                            <label>Personal Context</label>
-                            <input type="text" id="global-personal-context" placeholder="e.g. visual learner, loves puzzles" oninput="onGlobalSettingChange()" />
-                        </div>
-                    </div>
-                    <!-- Engagement Profile -->
-                    <div class="settings-section-label">Engagement Profile</div>
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 1">
-                            <label>Favorite Figure</label>
-                            <input type="text" id="global-favorite-figure" placeholder="e.g. Stephen Curry, Taylor Swift" oninput="onGlobalSettingChange()" />
-                        </div>
-                        <div class="form-group" style="flex: 1">
-                            <label>Favorite Team</label>
-                            <input type="text" id="global-favorite-team" placeholder="e.g. Warriors, Lakers" oninput="onGlobalSettingChange()" />
-                        </div>
-                    </div>
-                    <div class="settings-hint">
-                        These settings apply to all pipeline stages. Interest must match a known profile (e.g. basketball, gaming, music) for personalization to activate.
-                    </div>
-                </div>
-            </div>
-
-            <!-- ---- Stage 1: Upload Content ---- -->
-            <div class="stage-panel active" id="stage-upload">
-                <h2 class="stage-title">Upload Textbook Content</h2>
-
+            <div class="llm-settings-panel" id="llm-settings-panel">
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Load sample</label>
+                        <label>Temperature</label>
+                        <div class="range-with-value">
+                            <input type="range" id="llm-temperature" min="0" max="1" step="0.05" value="0.7"
+                                   oninput="onTemperatureChange()" />
+                            <span id="llm-temperature-value" class="range-value">0.70</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Tokens</label>
+                        <select id="llm-max-tokens" onchange="onMaxTokensChange()">
+                            <option value="2048">2,048</option>
+                            <option value="4096" selected>4,096</option>
+                            <option value="8192">8,192</option>
+                            <option value="16384">16,384</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Model</label>
+                        <span class="badge readonly-badge" id="llm-model-display">loading...</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Provider</label>
+                        <span class="badge readonly-badge" id="llm-provider-display">loading...</span>
+                    </div>
+                </div>
+                <div class="settings-hint">
+                    Temperature controls creativity (0 = deterministic, 1 = creative).
+                    Max tokens caps the response length. Model/provider set via env vars.
+                </div>
+            </div>
+        </div>
+
+        <!-- ---- Student & Engagement Settings Bar ---- -->
+        <div class="llm-settings-bar">
+            <div class="llm-settings-toggle" onclick="toggleStudentSettings()">
+                <span class="settings-icon">&#x1F393;</span>
+                <span>Student &amp; Engagement</span>
+                <span class="llm-settings-summary" id="student-settings-summary"></span>
+                <span class="chevron" id="student-settings-chevron">&#x25B6;</span>
+            </div>
+            <div class="llm-settings-panel" id="student-settings-panel">
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1">
+                        <label>Interests</label>
+                        <input type="text" id="global-interest" placeholder="e.g. basketball, music, gaming" oninput="onGlobalInterestChange()" />
+                    </div>
+                </div>
+                <div class="settings-section-label">Student Profile</div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1">
+                        <label>Student Name</label>
+                        <input type="text" id="global-student-name" placeholder="e.g. Jordan" oninput="onGlobalSettingChange()" />
+                    </div>
+                    <div class="form-group" style="flex: 1">
+                        <label>Preferred Address</label>
+                        <input type="text" id="global-preferred-address" placeholder="e.g. J, champ, bro" oninput="onGlobalSettingChange()" />
+                    </div>
+                    <div class="form-group" style="flex: 1">
+                        <label>Grade Level</label>
+                        <input type="text" id="global-grade-level" placeholder="e.g. 8th grade" oninput="onGlobalSettingChange()" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1">
+                        <label>City</label>
+                        <input type="text" id="global-city" placeholder="e.g. San Francisco" oninput="onGlobalSettingChange()" />
+                    </div>
+                    <div class="form-group" style="flex: 1">
+                        <label>State</label>
+                        <input type="text" id="global-state" placeholder="e.g. California" oninput="onGlobalSettingChange()" />
+                    </div>
+                </div>
+                <div class="settings-section-label">Engagement Profile</div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1">
+                        <label>Favorite Figure</label>
+                        <input type="text" id="global-favorite-figure" placeholder="e.g. Stephen Curry, Taylor Swift" oninput="onGlobalSettingChange()" />
+                    </div>
+                    <div class="form-group" style="flex: 1">
+                        <label>Favorite Team</label>
+                        <input type="text" id="global-favorite-team" placeholder="e.g. Warriors, Lakers" oninput="onGlobalSettingChange()" />
+                    </div>
+                </div>
+                <div class="settings-hint">
+                    These settings apply to all pipeline stages. Interest must match a known profile (e.g. basketball, gaming, music) for personalization to activate.
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- PIPELINE SECTION 1: Upload Content                            -->
+        <!-- ============================================================ -->
+        <div class="pipeline-section" id="section-upload">
+            <div class="pipeline-section-toggle" onclick="toggleSection('upload')">
+                <span class="chevron expanded" id="chevron-upload">&#x25B6;</span>
+                <span class="step-badge">1</span>
+                <span class="section-label">Upload Textbook Content</span>
+                <span class="section-status empty" id="status-upload"></span>
+            </div>
+            <div class="pipeline-section-body visible" id="body-upload">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Upload File (PDF or Markdown)</label>
+                        <input type="file" id="textbook-file-input" accept=".pdf,.md,.txt,.markdown" onchange="onFileUpload()" />
+                    </div>
+                    <div class="form-group">
+                        <label>Or load sample</label>
                         <button class="btn btn-sm" onclick="loadSampleContent()">Load Sample</button>
                     </div>
                 </div>
 
+                <div class="progress-bar" id="progress-upload" style="display:none">
+                    <div class="spinner"></div>
+                    <span id="progress-text-upload">Uploading...</span>
+                </div>
+
                 <div class="card">
                     <div class="card-header">
-                        <span class="label">Textbook Markdown</span>
+                        <span class="label">Textbook Content</span>
                         <span id="upload-stats" class="text-muted" style="font-weight:normal"></span>
                     </div>
                     <div class="card-body">
                         <textarea
                             class="prompt-textarea"
                             id="textbook-input"
-                            placeholder="Paste your textbook markdown content here, or click 'Load Sample' for an example..."
+                            placeholder="Paste your textbook content here, upload a PDF/Markdown file above, or click 'Load Sample'..."
                             style="min-height: 300px"
                             oninput="onTextbookInput()"
                         ></textarea>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- ---- Stage 2: Extract Concepts ---- -->
-            <div class="stage-panel" id="stage-extract_concepts">
-                <h2 class="stage-title">Extract Concepts from Knowledge Graph</h2>
-
+        <!-- ============================================================ -->
+        <!-- PIPELINE SECTION 2: Extract Concepts                          -->
+        <!-- ============================================================ -->
+        <div class="pipeline-section" id="section-extract_concepts">
+            <div class="pipeline-section-toggle" onclick="toggleSection('extract_concepts')">
+                <span class="chevron" id="chevron-extract_concepts">&#x25B6;</span>
+                <span class="step-badge">2</span>
+                <span class="section-label">Extract Concepts</span>
+                <span class="section-status empty" id="status-extract_concepts"></span>
+            </div>
+            <div class="pipeline-section-body" id="body-extract_concepts">
                 <div class="card">
                     <div class="card-header">
                         <span class="label">System Prompt</span>
                         <button class="btn btn-sm" onclick="resetPrompt('extract_concepts', 'system')">Reset</button>
                     </div>
                     <div class="card-body">
-                        <textarea class="prompt-textarea" id="prompt-extract_concepts-system" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                        <textarea class="prompt-textarea" id="prompt-extract_concepts-system" placeholder="Auto-loaded when section opens..."></textarea>
                     </div>
                 </div>
                 <div class="card">
@@ -214,25 +202,25 @@
                         <button class="btn btn-sm" onclick="resetPrompt('extract_concepts', 'user')">Reset</button>
                     </div>
                     <div class="card-body">
-                        <textarea class="prompt-textarea" id="prompt-extract_concepts-user" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                        <textarea class="prompt-textarea" id="prompt-extract_concepts-user" placeholder="Auto-loaded when section opens..."></textarea>
                     </div>
                 </div>
 
                 <div class="btn-group">
                     <button class="btn" onclick="previewPrompts('extract_concepts')">Preview Prompts</button>
                     <button class="btn btn-primary" onclick="executeStage('extract_concepts')" id="btn-exec-extract_concepts">
-                        Execute &#x25B6;
+                        Extract Concepts &#x25B6;
                     </button>
                 </div>
 
                 <div class="progress-bar" id="progress-extract_concepts">
                     <div class="spinner"></div>
-                    <span id="progress-text-extract_concepts">Running...</span>
+                    <span id="progress-text-extract_concepts">Extracting concepts...</span>
                 </div>
 
                 <div class="card" id="output-card-extract_concepts" style="display:none">
                     <div class="card-header">
-                        <span class="label">Output</span>
+                        <span class="label">Extracted Concepts</span>
                         <span class="stats-bar" id="stats-extract_concepts"></span>
                     </div>
                     <div class="card-body">
@@ -240,18 +228,26 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- ---- Stage 3: Personalize ---- -->
-            <div class="stage-panel" id="stage-personalize">
-                <h2 class="stage-title">Personalize Textbook</h2>
-
+        <!-- ============================================================ -->
+        <!-- PIPELINE SECTION 3: Personalize Content                       -->
+        <!-- ============================================================ -->
+        <div class="pipeline-section" id="section-personalize">
+            <div class="pipeline-section-toggle" onclick="toggleSection('personalize')">
+                <span class="chevron" id="chevron-personalize">&#x25B6;</span>
+                <span class="step-badge">3</span>
+                <span class="section-label">Personalize Content</span>
+                <span class="section-status empty" id="status-personalize"></span>
+            </div>
+            <div class="pipeline-section-body" id="body-personalize">
                 <div class="card">
                     <div class="card-header">
                         <span class="label">System Prompt</span>
                         <button class="btn btn-sm" onclick="resetPrompt('personalize', 'system')">Reset</button>
                     </div>
                     <div class="card-body">
-                        <textarea class="prompt-textarea small" id="prompt-personalize-system" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                        <textarea class="prompt-textarea small" id="prompt-personalize-system" placeholder="Auto-loaded when section opens..."></textarea>
                     </div>
                 </div>
                 <div class="card">
@@ -260,20 +256,20 @@
                         <button class="btn btn-sm" onclick="resetPrompt('personalize', 'user')">Reset</button>
                     </div>
                     <div class="card-body">
-                        <textarea class="prompt-textarea" id="prompt-personalize-user" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                        <textarea class="prompt-textarea" id="prompt-personalize-user" placeholder="Auto-loaded when section opens..."></textarea>
                     </div>
                 </div>
 
                 <div class="btn-group">
                     <button class="btn" onclick="previewPrompts('personalize')">Preview Prompts</button>
                     <button class="btn btn-primary" onclick="executeStage('personalize')" id="btn-exec-personalize">
-                        Execute &#x25B6;
+                        Personalize &#x25B6;
                     </button>
                 </div>
 
                 <div class="progress-bar" id="progress-personalize">
                     <div class="spinner"></div>
-                    <span id="progress-text-personalize">Running...</span>
+                    <span id="progress-text-personalize">Personalizing...</span>
                 </div>
 
                 <div class="card" id="output-card-personalize" style="display:none">
@@ -286,38 +282,64 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- ---- Stage 4: Generate Animation ---- -->
-            <div class="stage-panel" id="stage-generate_animation">
-                <h2 class="stage-title">Generate Animation Code</h2>
-
-                <div class="form-row">
-                    <div class="form-group" style="flex: 2">
-                        <label>Topic</label>
-                        <input type="text" id="anim-topic" placeholder="e.g. Solving Two-Step Linear Equations" />
-                    </div>
-                    <div class="form-group">
-                        <label>Style</label>
-                        <select id="anim-style">
-                            <option value="dark">Dark</option>
-                            <option value="light">Light</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Audience</label>
-                        <select id="anim-audience">
-                            <option value="high school">High School</option>
-                            <option value="middle school">Middle School</option>
-                            <option value="college">College</option>
-                            <option value="elementary">Elementary</option>
-                        </select>
+        <!-- ============================================================ -->
+        <!-- PIPELINE SECTION 4: Generate Animations                       -->
+        <!-- ============================================================ -->
+        <div class="pipeline-section" id="section-generate_animation">
+            <div class="pipeline-section-toggle" onclick="toggleSection('generate_animation')">
+                <span class="chevron" id="chevron-generate_animation">&#x25B6;</span>
+                <span class="step-badge">4</span>
+                <span class="section-label">Generate Animations</span>
+                <span class="section-status empty" id="status-generate_animation"></span>
+            </div>
+            <div class="pipeline-section-body" id="body-generate_animation">
+                <!-- Concept selector from extracted concepts -->
+                <div id="concept-selector-area" style="display:none">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="label">Select Concepts to Animate</span>
+                            <div>
+                                <button class="btn btn-sm" onclick="selectAllConcepts(true)">All</button>
+                                <button class="btn btn-sm" onclick="selectAllConcepts(false)">None</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="concept-checklist" id="concept-checklist"></div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group" style="flex: 1">
-                        <label>Requirements</label>
-                        <input type="text" id="anim-requirements" placeholder="Additional requirements (optional)" />
+                <!-- Manual topic entry (fallback when no concepts extracted) -->
+                <div id="manual-topic-area">
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2">
+                            <label>Topic (or auto-filled from concepts)</label>
+                            <input type="text" id="anim-topic" placeholder="e.g. Solving Two-Step Linear Equations" />
+                        </div>
+                        <div class="form-group">
+                            <label>Style</label>
+                            <select id="anim-style">
+                                <option value="dark">Dark</option>
+                                <option value="light">Light</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Audience</label>
+                            <select id="anim-audience">
+                                <option value="high school">High School</option>
+                                <option value="middle school">Middle School</option>
+                                <option value="college">College</option>
+                                <option value="elementary">Elementary</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1">
+                            <label>Requirements</label>
+                            <input type="text" id="anim-requirements" placeholder="Additional requirements (optional)" />
+                        </div>
                     </div>
                 </div>
 
@@ -327,7 +349,7 @@
                         <button class="btn btn-sm" onclick="resetPrompt('generate_animation', 'system')">Reset</button>
                     </div>
                     <div class="card-body">
-                        <textarea class="prompt-textarea" id="prompt-generate_animation-system" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                        <textarea class="prompt-textarea" id="prompt-generate_animation-system" placeholder="Auto-loaded when section opens..."></textarea>
                     </div>
                 </div>
                 <div class="card">
@@ -336,22 +358,26 @@
                         <button class="btn btn-sm" onclick="resetPrompt('generate_animation', 'user')">Reset</button>
                     </div>
                     <div class="card-body">
-                        <textarea class="prompt-textarea" id="prompt-generate_animation-user" placeholder="Click 'Preview Prompts' to load..."></textarea>
+                        <textarea class="prompt-textarea" id="prompt-generate_animation-user" placeholder="Auto-loaded when section opens..."></textarea>
                     </div>
                 </div>
 
                 <div class="btn-group">
                     <button class="btn" onclick="previewPrompts('generate_animation')">Preview Prompts</button>
-                    <button class="btn btn-primary" onclick="executeStage('generate_animation')" id="btn-exec-generate_animation">
-                        Execute &#x25B6;
+                    <button class="btn btn-primary" onclick="executeSingleAnimation()" id="btn-exec-generate_animation">
+                        Generate Single &#x25B6;
+                    </button>
+                    <button class="btn btn-primary" onclick="executeBatchAnimations()" id="btn-batch-generate" style="display:none">
+                        Generate All Concepts &#x25B6;
                     </button>
                 </div>
 
                 <div class="progress-bar" id="progress-generate_animation">
                     <div class="spinner"></div>
-                    <span id="progress-text-generate_animation">Running...</span>
+                    <span id="progress-text-generate_animation">Generating...</span>
                 </div>
 
+                <!-- Single animation output (for manual topic) -->
                 <div class="card" id="output-card-generate_animation" style="display:none">
                     <div class="card-header">
                         <span class="label">Generated Manim Code</span>
@@ -364,12 +390,23 @@
                         <div class="output-panel code-output" id="output-generate_animation"></div>
                     </div>
                 </div>
+
+                <!-- Batch animation results -->
+                <div class="batch-results" id="batch-results"></div>
             </div>
+        </div>
 
-            <!-- ---- Stage 5: Render Video ---- -->
-            <div class="stage-panel" id="stage-render">
-                <h2 class="stage-title">Render Video</h2>
-
+        <!-- ============================================================ -->
+        <!-- PIPELINE SECTION 5: Render Videos                             -->
+        <!-- ============================================================ -->
+        <div class="pipeline-section" id="section-render">
+            <div class="pipeline-section-toggle" onclick="toggleSection('render')">
+                <span class="chevron" id="chevron-render">&#x25B6;</span>
+                <span class="step-badge">5</span>
+                <span class="section-label">Render Videos</span>
+                <span class="section-status empty" id="status-render"></span>
+            </div>
+            <div class="pipeline-section-body" id="body-render">
                 <div class="form-row">
                     <div class="form-group">
                         <label>Quality</label>
@@ -395,6 +432,9 @@
                     <button class="btn btn-primary" onclick="executeRender()" id="btn-exec-render">
                         Render Video &#x25B6;
                     </button>
+                    <button class="btn btn-primary" onclick="renderAllBatchResults()" id="btn-batch-render" style="display:none">
+                        Render All &#x25B6;
+                    </button>
                 </div>
 
                 <div class="progress-bar" id="progress-render">
@@ -408,10 +448,23 @@
                     </div>
                     <div class="stats-bar" id="stats-render"></div>
                 </div>
-            </div>
 
-        </main>
-    </div>
+                <!-- Batch render results -->
+                <div class="batch-results" id="batch-render-results"></div>
+            </div>
+        </div>
+
+        <!-- ---- Run History ---- -->
+        <div class="history-bar">
+            <div class="history-title">Run History</div>
+            <div id="history-list">
+                <div style="padding: 4px 0; font-size: 13px; color: var(--text-muted);">
+                    No runs yet
+                </div>
+            </div>
+        </div>
+
+    </main>
 
     <!-- Toast container -->
     <div class="toast-container" id="toast-container"></div>

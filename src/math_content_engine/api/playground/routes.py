@@ -139,9 +139,11 @@ async def preview_prompts(req: PromptPreviewRequest) -> PromptPreview:
             student_name=req.student_name,
             preferred_address=req.preferred_address,
             grade_level=req.grade_level,
-            personal_context=req.personal_context,
+            city=req.city,
+            state=req.state,
             favorite_figure=req.favorite_figure,
             favorite_team=req.favorite_team,
+            textbook_content=req.textbook_content,
         )
 
     raise HTTPException(400, f"Unknown stage: {req.stage}")
@@ -215,9 +217,11 @@ async def execute_stage(req: StageExecuteRequest) -> dict:
                 student_name=req.student_name,
                 preferred_address=req.preferred_address,
                 grade_level=req.grade_level,
-                personal_context=req.personal_context,
+                city=req.city,
+                state=req.state,
                 favorite_figure=req.favorite_figure,
                 favorite_team=req.favorite_team,
+                textbook_content=req.textbook_content,
             )
         )
 
@@ -313,20 +317,169 @@ async def upload_textbook(
     file: Optional[UploadFile] = File(None),
     content: Optional[str] = Body(None, embed=True),
 ) -> TextbookUploadResponse:
-    """Upload textbook content — either as a file or as raw text."""
+    """Upload textbook content — file (PDF or Markdown) or raw text.
+
+    For PDFs the endpoint uses a caching strategy:
+
+    1. Derive a stable ``.md`` filename from the original PDF name.
+    2. If the ``.md`` already exists (previously parsed), return it instantly.
+    3. Otherwise parse via Mathpix → save ``.md`` → return content.
+    4. Fall back to PyMuPDF / pdfplumber if Mathpix is unavailable.
+    """
     if file:
         raw = await file.read()
-        text = raw.decode("utf-8", errors="replace")
-    elif content:
-        text = content
-    else:
-        raise HTTPException(400, "Provide a file or content body")
+        original_name = file.filename or "upload"
+        filename_lower = original_name.lower()
 
-    return TextbookUploadResponse(
-        content=text,
-        length=len(text),
-        preview=text[:500],
+        if filename_lower.endswith(".pdf"):
+            text, source, md_path = _extract_text_from_pdf(raw, original_name)
+            return TextbookUploadResponse(
+                content=text,
+                length=len(text),
+                preview=text[:500],
+                source=source,
+                cached_md_path=md_path,
+            )
+
+        # .md, .txt, or any other text file
+        text = raw.decode("utf-8", errors="replace")
+        return TextbookUploadResponse(
+            content=text,
+            length=len(text),
+            preview=text[:500],
+            source="raw",
+        )
+
+    if content:
+        return TextbookUploadResponse(
+            content=content,
+            length=len(content),
+            preview=content[:500],
+            source="raw",
+        )
+
+    raise HTTPException(400, "Provide a file or content body")
+
+
+# ---------------------------------------------------------------------------
+# PDF extraction helpers (with Mathpix .md caching)
+# ---------------------------------------------------------------------------
+
+# Directory where cached Mathpix .md files are stored
+_PARSED_MD_DIR = PLAYGROUND_OUTPUT_DIR / "parsed_textbooks"
+_PARSED_MD_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _md_cache_path(original_filename: str) -> Path:
+    """Return a stable ``.md`` path derived from the original PDF filename.
+
+    Example: ``Algebra_Textbook.pdf`` → ``<parsed_textbooks>/algebra_textbook.md``
+    """
+    import re
+
+    stem = Path(original_filename).stem
+    safe = re.sub(r"[^\w]+", "_", stem.lower()).strip("_")
+    return _PARSED_MD_DIR / f"{safe}.md"
+
+
+def _extract_text_from_pdf(
+    raw_bytes: bytes,
+    original_filename: str,
+) -> tuple:
+    """Extract text from a PDF.
+
+    Returns ``(text, source, cached_md_path | None)``.
+
+    Priority:
+
+    1. **Cached .md** — if Mathpix previously parsed this file, reuse it.
+    2. **Mathpix API** — parse, save .md cache, return.
+    3. **PyMuPDF** — local fallback (no caching).
+    4. **pdfplumber** — local fallback (no caching).
+    """
+    md_path = _md_cache_path(original_filename)
+
+    # --- 1. Cached .md from a previous Mathpix parse ---
+    if md_path.exists():
+        text = md_path.read_text(encoding="utf-8")
+        logger.info("Returning cached Mathpix markdown: %s", md_path)
+        return text, "mathpix_cached", str(md_path)
+
+    # --- 2. Parse via Mathpix and save the .md ---
+    text = _try_mathpix_pdf(raw_bytes, save_md_path=md_path)
+    if text is not None:
+        return text, "mathpix", str(md_path)
+
+    # --- 3. PyMuPDF (local, no cache) ---
+    try:
+        import fitz  # PyMuPDF
+
+        doc = fitz.open(stream=raw_bytes, filetype="pdf")
+        pages = [page.get_text() for page in doc]
+        doc.close()
+        return "\n\n".join(pages), "pymupdf", None
+    except ImportError:
+        pass
+
+    # --- 4. pdfplumber (local, no cache) ---
+    try:
+        import pdfplumber
+        import io
+
+        pages = []
+        with pdfplumber.open(io.BytesIO(raw_bytes)) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    pages.append(page_text)
+        return "\n\n".join(pages), "pdfplumber", None
+    except ImportError:
+        pass
+
+    raise HTTPException(
+        400,
+        "PDF parsing requires Mathpix credentials (MATHPIX_APP_ID / MATHPIX_APP_KEY), "
+        "PyMuPDF, or pdfplumber. "
+        "Install with: pip install pymupdf  or  pip install pdfplumber",
     )
+
+
+def _try_mathpix_pdf(
+    raw_bytes: bytes,
+    save_md_path: Optional[Path] = None,
+) -> Optional[str]:
+    """Parse a PDF via Mathpix.  On success save the markdown to *save_md_path*.
+
+    Returns the markdown string, or ``None`` if Mathpix is unavailable / fails.
+    """
+    import tempfile
+
+    try:
+        from ...personalization.pdf_parser import MathpixPDFParser
+
+        parser = MathpixPDFParser.from_env()
+    except (ValueError, Exception):
+        return None
+
+    tmp = None
+    try:
+        tmp = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False)
+        tmp.write(raw_bytes)
+        tmp.close()
+
+        md_save_arg = str(save_md_path) if save_md_path else None
+        markdown = parser.parse_pdf_to_markdown(
+            tmp.name,
+            save_to_file=md_save_arg,
+        )
+        logger.info("PDF parsed via Mathpix → cached at %s", save_md_path)
+        return markdown
+    except Exception as exc:
+        logger.warning("Mathpix PDF parsing failed, falling back: %s", exc)
+        return None
+    finally:
+        if tmp:
+            Path(tmp.name).unlink(missing_ok=True)
 
 
 # ---------------------------------------------------------------------------

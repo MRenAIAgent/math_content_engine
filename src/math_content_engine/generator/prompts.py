@@ -349,6 +349,7 @@ def build_generation_prompt(
     personalization_context: str = "",
     student_name: Optional[str] = None,
     student_address: Optional[str] = None,
+    textbook_context: str = "",
 ) -> str:
     """
     Build a complete generation prompt for the given topic.
@@ -365,6 +366,7 @@ def build_generation_prompt(
         student_name: Optional student name for direct address in animations
         student_address: Optional preferred way to address the student.
             Falls back to student_name, then omitted.
+        textbook_context: Optional textbook content to base the animation on.
 
     Returns:
         Formatted prompt string
@@ -389,6 +391,10 @@ def build_generation_prompt(
             f"{student_line}"
             f"{personalization_context}"
         )
+
+    # Append textbook context if provided
+    if textbook_context:
+        personalization_section += textbook_context
 
     return GENERATION_PROMPT_TEMPLATE.format(
         topic=topic,

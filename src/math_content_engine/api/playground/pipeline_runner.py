@@ -157,9 +157,11 @@ def run_animation_generation(
     student_name: Optional[str] = None,
     preferred_address: Optional[str] = None,
     grade_level: Optional[str] = None,
-    personal_context: Optional[str] = None,
+    city: Optional[str] = None,
+    state: Optional[str] = None,
     favorite_figure: Optional[str] = None,
     favorite_team: Optional[str] = None,
+    textbook_content: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Generate Manim animation code via LLM (no rendering).
 
@@ -174,9 +176,11 @@ def run_animation_generation(
         student_name=student_name,
         preferred_address=preferred_address,
         grade_level=grade_level,
-        personal_context=personal_context,
+        city=city,
+        state=state,
         favorite_figure=favorite_figure,
         favorite_team=favorite_team,
+        textbook_content=textbook_content,
     )
 
     system_prompt = system_prompt_override or preview.system_prompt
@@ -244,14 +248,19 @@ def run_render(
     output_dir = PLAYGROUND_OUTPUT_DIR / "videos"
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    cache_dir = PLAYGROUND_OUTPUT_DIR / "manim_cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
     start = time.time()
     try:
-        renderer = ManimRenderer(config)
+        renderer = ManimRenderer(
+            output_dir=output_dir,
+            cache_dir=cache_dir,
+            quality=video_quality,
+        )
         result = renderer.render(
             code=code,
             scene_name=scene_name,
-            output_dir=output_dir,
-            quality=video_quality,
         )
         render_time_ms = int((time.time() - start) * 1000)
 

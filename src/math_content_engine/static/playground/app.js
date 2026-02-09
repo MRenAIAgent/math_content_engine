@@ -1,5 +1,6 @@
 /* ================================================================
    Math Content Playground — Frontend Application
+   Single-page collapsible pipeline with batch animation generation
    ================================================================ */
 
 const API = "/api/v1/playground";
@@ -10,7 +11,6 @@ const API = "/api/v1/playground";
 
 const state = {
     textbookContent: "",
-    currentStage: "upload",
     config: {},
     // LLM settings (user-tunable)
     llmSettings: {
@@ -23,7 +23,8 @@ const state = {
         studentName: "",
         preferredAddress: "",
         gradeLevel: "",
-        personalContext: "",
+        city: "",
+        state: "",
         favoriteFigure: "",
         favoriteTeam: "",
     },
@@ -41,6 +42,18 @@ const state = {
         scene_name: null,
         video_path: null,
     },
+    // Extracted concepts for batch generation
+    extractedConcepts: [],
+    // Batch generation results: { conceptName: { code, scene_name, video_filename, status } }
+    batchResults: {},
+    // Pipeline status tracking
+    pipelineStatus: {
+        upload: "empty",
+        extract_concepts: "empty",
+        personalize: "empty",
+        generate_animation: "empty",
+        render: "empty",
+    },
     // Run history
     history: [],
 };
@@ -51,7 +64,6 @@ const state = {
 
 document.addEventListener("DOMContentLoaded", async () => {
     await loadConfig();
-    // Configure marked for markdown rendering
     if (typeof marked !== "undefined") {
         marked.setOptions({
             highlight: (code, lang) => {
@@ -70,18 +82,15 @@ async function loadConfig() {
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         state.config = await resp.json();
 
-        // Update header
         document.getElementById("config-provider").textContent =
             state.config.llm_provider || "?";
         document.getElementById("config-model").textContent =
             state.config.model || "";
 
-        // Initialize LLM settings from server config
         state.llmSettings.temperature = state.config.temperature || 0.7;
         state.llmSettings.maxTokens = state.config.max_tokens || 4096;
         initLLMSettingsUI();
 
-        // Store available interests for reference
         state.availableInterests = state.config.available_interests || [];
     } catch (err) {
         showToast(`Failed to load config: ${err.message}`, "error");
@@ -89,21 +98,59 @@ async function loadConfig() {
 }
 
 // ---------------------------------------------------------------------------
-// Navigation
+// Section Toggle (replaces switchStage)
 // ---------------------------------------------------------------------------
 
-function switchStage(stage) {
-    state.currentStage = stage;
+function toggleSection(stage) {
+    const body = document.getElementById(`body-${stage}`);
+    const chevron = document.getElementById(`chevron-${stage}`);
+    if (!body) return;
 
-    // Update sidebar
-    document.querySelectorAll(".sidebar-item").forEach((el) => {
-        el.classList.toggle("active", el.dataset.stage === stage);
-    });
+    const isVisible = body.classList.contains("visible");
+    body.classList.toggle("visible", !isVisible);
+    if (chevron) {
+        chevron.classList.toggle("expanded", !isVisible);
+    }
 
-    // Update panels
-    document.querySelectorAll(".stage-panel").forEach((el) => {
-        el.classList.toggle("active", el.id === `stage-${stage}`);
-    });
+    // Auto-load prompts when opening a section with prompt editors
+    if (!isVisible && ["personalize", "extract_concepts", "generate_animation"].includes(stage)) {
+        const sysEl = document.getElementById(`prompt-${stage}-system`);
+        if (sysEl && !sysEl.value) {
+            previewPrompts(stage);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Pipeline Status Management
+// ---------------------------------------------------------------------------
+
+function updatePipelineStatus(stage, status) {
+    state.pipelineStatus[stage] = status;
+    const el = document.getElementById(`status-${stage}`);
+    if (!el) return;
+
+    el.className = `section-status ${status}`;
+    const labels = {
+        empty: "",
+        completed: "Done",
+        stale: "Stale",
+        running: "Running...",
+    };
+    el.textContent = labels[status] || "";
+}
+
+function markDownstreamStale(fromStage) {
+    const pipeline = ["upload", "extract_concepts", "personalize", "generate_animation", "render"];
+    const idx = pipeline.indexOf(fromStage);
+    if (idx < 0) return;
+
+    for (let i = idx + 1; i < pipeline.length; i++) {
+        const s = pipeline[i];
+        if (state.pipelineStatus[s] === "completed") {
+            updatePipelineStatus(s, "stale");
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -117,8 +164,57 @@ function onTextbookInput() {
     if (state.textbookContent) {
         const len = state.textbookContent.length;
         stats.textContent = `${len.toLocaleString()} chars`;
+        updatePipelineStatus("upload", "completed");
+        markDownstreamStale("upload");
     } else {
         stats.textContent = "";
+        updatePipelineStatus("upload", "empty");
+    }
+}
+
+function onContentChanged() {
+    updatePipelineStatus("upload", "completed");
+    markDownstreamStale("upload");
+
+    // Auto-trigger concept extraction if content is long enough
+    if (state.textbookContent && state.textbookContent.length > 50) {
+        autoExtractConcepts();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Auto concept extraction
+// ---------------------------------------------------------------------------
+
+async function autoExtractConcepts() {
+    if (!state.textbookContent) return;
+
+    updatePipelineStatus("extract_concepts", "running");
+    setStageLoading("extract_concepts", true);
+
+    const body = {
+        stage: "extract_concepts",
+        textbook_content: state.textbookContent,
+        temperature: state.llmSettings.temperature,
+        max_tokens: state.llmSettings.maxTokens,
+    };
+
+    try {
+        const resp = await fetch(`${API}/execute`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+        if (!resp.ok) {
+            updatePipelineStatus("extract_concepts", "stale");
+            setStageLoading("extract_concepts", false);
+            return;
+        }
+        const { task_id } = await resp.json();
+        connectSSE(task_id, "extract_concepts");
+    } catch (err) {
+        updatePipelineStatus("extract_concepts", "stale");
+        setStageLoading("extract_concepts", false);
     }
 }
 
@@ -144,7 +240,8 @@ function onGlobalSettingChange() {
     state.studentSettings.studentName = (document.getElementById("global-student-name").value || "").trim();
     state.studentSettings.preferredAddress = (document.getElementById("global-preferred-address").value || "").trim();
     state.studentSettings.gradeLevel = (document.getElementById("global-grade-level").value || "").trim();
-    state.studentSettings.personalContext = (document.getElementById("global-personal-context").value || "").trim();
+    state.studentSettings.city = (document.getElementById("global-city").value || "").trim();
+    state.studentSettings.state = (document.getElementById("global-state").value || "").trim();
     state.studentSettings.favoriteFigure = (document.getElementById("global-favorite-figure").value || "").trim();
     state.studentSettings.favoriteTeam = (document.getElementById("global-favorite-team").value || "").trim();
     updateStudentSettingsSummary();
@@ -158,13 +255,13 @@ function updateStudentSettingsSummary() {
     const s = state.studentSettings;
     if (s.interest) parts.push(s.interest);
     if (s.studentName) parts.push(s.studentName);
+    if (s.city || s.state) parts.push([s.city, s.state].filter(Boolean).join(", "));
     if (s.favoriteFigure) parts.push(s.favoriteFigure);
     if (s.favoriteTeam) parts.push(s.favoriteTeam);
 
     el.textContent = parts.length > 0 ? parts.join(", ") : "";
 }
 
-/** Read all global student/engagement fields into a flat object for API requests. */
 function getGlobalStudentFields() {
     const s = state.studentSettings;
     const fields = {};
@@ -172,7 +269,8 @@ function getGlobalStudentFields() {
     if (s.studentName) fields.student_name = s.studentName;
     if (s.preferredAddress) fields.preferred_address = s.preferredAddress;
     if (s.gradeLevel) fields.grade_level = s.gradeLevel;
-    if (s.personalContext) fields.personal_context = s.personalContext;
+    if (s.city) fields.city = s.city;
+    if (s.state) fields.state = s.state;
     if (s.favoriteFigure) fields.favorite_figure = s.favoriteFigure;
     if (s.favoriteTeam) fields.favorite_team = s.favoriteTeam;
     return fields;
@@ -193,7 +291,7 @@ A **linear equation** is an equation that can be written in the form ax + b = c.
 1. Subtract 5 from both sides: x + 5 - 5 = 12 - 5
 2. Simplify: x = 7
 
-**Verification:** 7 + 5 = 12 \\u2713
+**Verification:** 7 + 5 = 12 \u2713
 
 ### Example 2: Solving 3x = 21
 
@@ -214,7 +312,7 @@ A **linear equation** is an equation that can be written in the form ax + b = c.
 2. Simplify: 2x = 8
 3. Divide both sides by 2: x = 4
 
-**Verification:** 2(4) + 3 = 8 + 3 = 11 \\u2713
+**Verification:** 2(4) + 3 = 8 + 3 = 11 \u2713
 
 ## Practice Problems
 
@@ -226,7 +324,103 @@ A **linear equation** is an equation that can be written in the form ax + b = c.
     document.getElementById("textbook-input").value = sample;
     state.textbookContent = sample;
     onTextbookInput();
+    onContentChanged();
     showToast("Sample textbook loaded", "info");
+}
+
+// ---------------------------------------------------------------------------
+// File upload
+// ---------------------------------------------------------------------------
+
+async function onFileUpload() {
+    const fileInput = document.getElementById("textbook-file-input");
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const progress = document.getElementById("progress-upload");
+    progress.style.display = "flex";
+    document.getElementById("progress-text-upload").textContent = `Uploading ${file.name}...`;
+
+    try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const resp = await fetch(`${API}/upload/textbook`, {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json();
+            showToast(err.detail || "Upload failed", "error");
+            return;
+        }
+
+        const data = await resp.json();
+        document.getElementById("textbook-input").value = data.content;
+        state.textbookContent = data.content;
+        onTextbookInput();
+        onContentChanged();
+
+        const sourceLabels = {
+            mathpix_cached: "Loaded from cached Mathpix markdown",
+            mathpix: "Parsed via Mathpix (math-aware OCR)",
+            pymupdf: "Parsed via PyMuPDF (basic text extraction)",
+            pdfplumber: "Parsed via pdfplumber (basic text extraction)",
+            raw: "Loaded",
+        };
+        const label = sourceLabels[data.source] || "Loaded";
+        showToast(`${label}: ${file.name} (${data.length.toLocaleString()} chars)`, "success");
+    } catch (err) {
+        showToast(`Upload error: ${err.message}`, "error");
+    } finally {
+        progress.style.display = "none";
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Concept Checklist (for batch animation generation)
+// ---------------------------------------------------------------------------
+
+function renderConceptChecklist(concepts) {
+    state.extractedConcepts = concepts;
+    const area = document.getElementById("concept-selector-area");
+    const checklist = document.getElementById("concept-checklist");
+    const batchBtn = document.getElementById("btn-batch-generate");
+
+    if (!concepts || concepts.length === 0) {
+        area.style.display = "none";
+        batchBtn.style.display = "none";
+        return;
+    }
+
+    area.style.display = "block";
+    batchBtn.style.display = "inline-flex";
+
+    let html = "";
+    for (const c of concepts) {
+        const id = c.concept_id || c.suggested_id || c.name;
+        const name = c.name || id;
+        const confidence = c.confidence ? Math.round(c.confidence * 100) : null;
+        html += `<div class="concept-check-item">
+            <input type="checkbox" id="concept-chk-${esc(id)}" value="${esc(name)}" checked />
+            <span class="concept-name">${esc(name)}</span>
+            ${confidence !== null ? `<span class="concept-confidence">${confidence}%</span>` : ""}
+        </div>`;
+    }
+    checklist.innerHTML = html;
+}
+
+function selectAllConcepts(checked) {
+    const checklist = document.getElementById("concept-checklist");
+    const boxes = checklist.querySelectorAll('input[type="checkbox"]');
+    boxes.forEach((box) => { box.checked = checked; });
+}
+
+function getSelectedConcepts() {
+    const checklist = document.getElementById("concept-checklist");
+    const boxes = checklist.querySelectorAll('input[type="checkbox"]:checked');
+    return Array.from(boxes).map((box) => box.value);
 }
 
 // ---------------------------------------------------------------------------
@@ -250,13 +444,11 @@ async function previewPrompts(stage) {
         }
         const data = await resp.json();
 
-        // Store defaults
         state.defaultPrompts[stage] = {
             system: data.system_prompt,
             user: data.user_prompt,
         };
 
-        // Populate textareas
         document.getElementById(`prompt-${stage}-system`).value = data.system_prompt;
         document.getElementById(`prompt-${stage}-user`).value = data.user_prompt;
 
@@ -272,7 +464,7 @@ function buildPreviewRequest(stage) {
 
     if (stage === "personalize") {
         if (!state.textbookContent) {
-            showToast("Upload textbook content first (step 1)", "error");
+            showToast("Upload textbook content first", "error");
             return null;
         }
         if (!globals.interest) {
@@ -283,7 +475,7 @@ function buildPreviewRequest(stage) {
         req.interest = globals.interest;
     } else if (stage === "extract_concepts") {
         if (!state.textbookContent) {
-            showToast("Upload textbook content first (step 1)", "error");
+            showToast("Upload textbook content first", "error");
             return null;
         }
         req.textbook_content = state.textbookContent;
@@ -297,7 +489,9 @@ function buildPreviewRequest(stage) {
         req.requirements = document.getElementById("anim-requirements").value || "";
         req.animation_style = document.getElementById("anim-style").value;
         req.audience_level = document.getElementById("anim-audience").value;
-        // Apply global student & engagement settings
+        if (state.textbookContent) {
+            req.textbook_content = state.textbookContent;
+        }
         Object.assign(req, globals);
     }
     return req;
@@ -321,6 +515,7 @@ async function executeStage(stage) {
     if (!body) return;
 
     setStageLoading(stage, true);
+    updatePipelineStatus(stage, "running");
 
     try {
         const resp = await fetch(`${API}/execute`, {
@@ -332,6 +527,7 @@ async function executeStage(stage) {
             const err = await resp.json();
             showToast(err.detail || "Execution failed", "error");
             setStageLoading(stage, false);
+            updatePipelineStatus(stage, "stale");
             return;
         }
         const { task_id } = await resp.json();
@@ -339,17 +535,16 @@ async function executeStage(stage) {
     } catch (err) {
         showToast(`Error: ${err.message}`, "error");
         setStageLoading(stage, false);
+        updatePipelineStatus(stage, "stale");
     }
 }
 
 function buildExecuteRequest(stage) {
     const req = { stage };
 
-    // Always include LLM parameter overrides
     req.temperature = state.llmSettings.temperature;
     req.max_tokens = state.llmSettings.maxTokens;
 
-    // Check for prompt overrides
     const sysEl = document.getElementById(`prompt-${stage}-system`);
     const usrEl = document.getElementById(`prompt-${stage}-user`);
     if (sysEl && usrEl) {
@@ -395,10 +590,17 @@ function buildExecuteRequest(stage) {
         req.requirements = document.getElementById("anim-requirements").value || "";
         req.animation_style = document.getElementById("anim-style").value;
         req.audience_level = document.getElementById("anim-audience").value;
-        // Apply global student & engagement settings
+        if (state.textbookContent) {
+            req.textbook_content = state.textbookContent;
+        }
         Object.assign(req, globals);
     }
     return req;
+}
+
+/** Execute a single animation (manual topic entry). */
+function executeSingleAnimation() {
+    executeStage("generate_animation");
 }
 
 async function executeRender() {
@@ -408,7 +610,6 @@ async function executeRender() {
         return;
     }
 
-    // Extract scene name from code
     const match = code.match(/class\s+(\w+)\s*\(\s*Scene\s*\)/);
     const sceneName = match ? match[1] : "GeneratedScene";
 
@@ -420,6 +621,7 @@ async function executeRender() {
     };
 
     setStageLoading("render", true);
+    updatePipelineStatus("render", "running");
 
     try {
         const resp = await fetch(`${API}/execute`, {
@@ -431,6 +633,7 @@ async function executeRender() {
             const err = await resp.json();
             showToast(err.detail || "Render failed", "error");
             setStageLoading("render", false);
+            updatePipelineStatus("render", "stale");
             return;
         }
         const { task_id } = await resp.json();
@@ -438,7 +641,267 @@ async function executeRender() {
     } catch (err) {
         showToast(`Error: ${err.message}`, "error");
         setStageLoading("render", false);
+        updatePipelineStatus("render", "stale");
     }
+}
+
+// ---------------------------------------------------------------------------
+// Batch Animation Generation
+// ---------------------------------------------------------------------------
+
+async function executeBatchAnimations() {
+    const selectedConcepts = getSelectedConcepts();
+    if (selectedConcepts.length === 0) {
+        showToast("Select at least one concept to animate", "error");
+        return;
+    }
+
+    const batchBtn = document.getElementById("btn-batch-generate");
+    batchBtn.disabled = true;
+    updatePipelineStatus("generate_animation", "running");
+
+    state.batchResults = {};
+    const resultsContainer = document.getElementById("batch-results");
+    resultsContainer.innerHTML = "";
+
+    // Create cards for each concept
+    for (const conceptName of selectedConcepts) {
+        state.batchResults[conceptName] = { status: "pending", code: null, scene_name: null };
+        resultsContainer.innerHTML += buildBatchCardHTML(conceptName, "pending");
+    }
+
+    // Generate animations sequentially
+    for (const conceptName of selectedConcepts) {
+        updateBatchCardStatus(conceptName, "generating");
+        state.batchResults[conceptName].status = "generating";
+
+        try {
+            const result = await generateSingleConceptAnimation(conceptName);
+            state.batchResults[conceptName] = {
+                status: "done",
+                code: result.code,
+                scene_name: result.scene_name,
+            };
+            updateBatchCard(conceptName, result);
+        } catch (err) {
+            state.batchResults[conceptName].status = "error";
+            updateBatchCardStatus(conceptName, "error", err.message);
+        }
+    }
+
+    batchBtn.disabled = false;
+    updatePipelineStatus("generate_animation", "completed");
+
+    // Show batch render button
+    const batchRenderBtn = document.getElementById("btn-batch-render");
+    if (batchRenderBtn) {
+        batchRenderBtn.style.display = "inline-flex";
+    }
+
+    showToast(`Generated ${selectedConcepts.length} animations`, "success");
+}
+
+async function generateSingleConceptAnimation(conceptName) {
+    const globals = getGlobalStudentFields();
+    const body = {
+        stage: "generate_animation",
+        topic: conceptName,
+        requirements: document.getElementById("anim-requirements").value || "",
+        animation_style: document.getElementById("anim-style").value,
+        audience_level: document.getElementById("anim-audience").value,
+        temperature: state.llmSettings.temperature,
+        max_tokens: state.llmSettings.maxTokens,
+        ...globals,
+    };
+
+    if (state.textbookContent) {
+        body.textbook_content = state.textbookContent;
+    }
+
+    const resp = await fetch(`${API}/execute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.detail || "Generation failed");
+    }
+
+    const { task_id } = await resp.json();
+    return await waitForTaskResult(task_id);
+}
+
+async function waitForTaskResult(taskId) {
+    const maxPolls = 120;
+    for (let i = 0; i < maxPolls; i++) {
+        await sleep(2000);
+        try {
+            const resp = await fetch(`${API}/tasks/${taskId}`);
+            if (!resp.ok) break;
+            const data = await resp.json();
+
+            if (data.status === "completed" && data.result) {
+                return data.result.output;
+            } else if (data.status === "failed") {
+                throw new Error(data.result?.error || "Task failed");
+            }
+        } catch (err) {
+            if (err.message !== "Task failed") continue;
+            throw err;
+        }
+    }
+    throw new Error("Task polling timed out");
+}
+
+function buildBatchCardHTML(conceptName, status) {
+    const safeId = makeSafeId(conceptName);
+    return `<div class="batch-result-card" id="batch-card-${safeId}">
+        <div class="batch-result-header">
+            <span class="concept-label">${esc(conceptName)}</span>
+            <span class="batch-status ${status}" id="batch-status-${safeId}">${statusLabel(status)}</span>
+        </div>
+        <div class="batch-result-body" id="batch-body-${safeId}"></div>
+    </div>`;
+}
+
+function updateBatchCardStatus(conceptName, status, errorMsg) {
+    const safeId = makeSafeId(conceptName);
+    const statusEl = document.getElementById(`batch-status-${safeId}`);
+    if (statusEl) {
+        statusEl.className = `batch-status ${status}`;
+        statusEl.textContent = errorMsg ? `Error: ${errorMsg}` : statusLabel(status);
+    }
+}
+
+function updateBatchCard(conceptName, result) {
+    const safeId = makeSafeId(conceptName);
+    const statusEl = document.getElementById(`batch-status-${safeId}`);
+    const bodyEl = document.getElementById(`batch-body-${safeId}`);
+    if (!statusEl || !bodyEl) return;
+
+    statusEl.className = "batch-status done";
+    statusEl.textContent = "Done";
+
+    const code = result.code || "";
+    let highlightedCode = esc(code);
+    if (typeof hljs !== "undefined") {
+        highlightedCode = hljs.highlight(code, { language: "python" }).value;
+    }
+
+    bodyEl.innerHTML = `
+        <div class="batch-code-toggle" onclick="toggleBatchCode('${safeId}')">
+            &#x25B6; Show Code (${code.split("\\n").length} lines)
+        </div>
+        <div class="batch-code-panel" id="batch-code-${safeId}">
+            <pre class="output-panel code-output" style="max-height:250px;margin:0">${highlightedCode}</pre>
+        </div>
+    `;
+}
+
+function toggleBatchCode(safeId) {
+    const panel = document.getElementById(`batch-code-${safeId}`);
+    if (panel) panel.classList.toggle("visible");
+}
+
+function statusLabel(status) {
+    const labels = {
+        pending: "Pending",
+        generating: "Generating...",
+        rendering: "Rendering...",
+        done: "Done",
+        error: "Error",
+    };
+    return labels[status] || status;
+}
+
+// ---------------------------------------------------------------------------
+// Batch Render
+// ---------------------------------------------------------------------------
+
+async function renderAllBatchResults() {
+    const renderBtn = document.getElementById("btn-batch-render");
+    if (renderBtn) renderBtn.disabled = true;
+
+    const renderResults = document.getElementById("batch-render-results");
+    renderResults.innerHTML = "";
+    updatePipelineStatus("render", "running");
+
+    const quality = document.getElementById("render-quality").value;
+
+    for (const [conceptName, data] of Object.entries(state.batchResults)) {
+        if (data.status !== "done" || !data.code) continue;
+
+        const safeId = makeSafeId(conceptName);
+        const sceneName = data.scene_name || "GeneratedScene";
+
+        updateBatchCardStatus(conceptName, "rendering");
+
+        renderResults.innerHTML += `<div class="batch-result-card" id="render-card-${safeId}">
+            <div class="batch-result-header">
+                <span class="concept-label">${esc(conceptName)}</span>
+                <span class="batch-status rendering" id="render-status-${safeId}">Rendering...</span>
+            </div>
+            <div class="batch-result-body" id="render-body-${safeId}"></div>
+        </div>`;
+
+        try {
+            const body = {
+                stage: "render",
+                code: data.code,
+                scene_name: sceneName,
+                video_quality: quality,
+            };
+
+            const resp = await fetch(`${API}/execute`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+
+            if (!resp.ok) throw new Error("Render request failed");
+
+            const { task_id } = await resp.json();
+            const result = await waitForTaskResult(task_id);
+
+            const renderStatusEl = document.getElementById(`render-status-${safeId}`);
+            const renderBodyEl = document.getElementById(`render-body-${safeId}`);
+
+            if (result.success && result.video_filename) {
+                if (renderStatusEl) {
+                    renderStatusEl.className = "batch-status done";
+                    renderStatusEl.textContent = "Done";
+                }
+                if (renderBodyEl) {
+                    renderBodyEl.innerHTML = `
+                        <div class="batch-video-container">
+                            <video controls src="${API}/files/video/${result.video_filename}"></video>
+                        </div>
+                    `;
+                }
+                state.batchResults[conceptName].video_filename = result.video_filename;
+                updateBatchCardStatus(conceptName, "done");
+            } else {
+                if (renderStatusEl) {
+                    renderStatusEl.className = "batch-status error";
+                    renderStatusEl.textContent = `Error: ${result.error || "Unknown"}`;
+                }
+                updateBatchCardStatus(conceptName, "error", result.error);
+            }
+        } catch (err) {
+            const renderStatusEl = document.getElementById(`render-status-${safeId}`);
+            if (renderStatusEl) {
+                renderStatusEl.className = "batch-status error";
+                renderStatusEl.textContent = `Error: ${err.message}`;
+            }
+            updateBatchCardStatus(conceptName, "error", err.message);
+        }
+    }
+
+    updatePipelineStatus("render", "completed");
+    if (renderBtn) renderBtn.disabled = false;
+    showToast("Batch rendering complete", "success");
 }
 
 // ---------------------------------------------------------------------------
@@ -474,17 +937,17 @@ function connectSSE(taskId, stage) {
     es.addEventListener("failed", () => {
         es.close();
         setStageLoading(stage, false);
+        updatePipelineStatus(stage, "stale");
     });
 
     es.addEventListener("timeout", () => {
         es.close();
         setStageLoading(stage, false);
+        updatePipelineStatus(stage, "stale");
         showToast("Task timed out", "error");
     });
 
     es.onerror = () => {
-        // EventSource auto-reconnects, but if we get repeated errors, close.
-        // Use polling fallback instead.
         es.close();
         pollTaskStatus(taskId, stage);
     };
@@ -511,6 +974,7 @@ async function pollTaskStatus(taskId, stage) {
             } else if (data.status === "failed") {
                 showToast(data.result?.error || "Task failed", "error");
                 setStageLoading(stage, false);
+                updatePipelineStatus(stage, "stale");
                 return;
             }
         } catch {
@@ -518,6 +982,7 @@ async function pollTaskStatus(taskId, stage) {
         }
     }
     setStageLoading(stage, false);
+    updatePipelineStatus(stage, "stale");
     showToast("Task polling timed out", "error");
 }
 
@@ -526,6 +991,8 @@ async function pollTaskStatus(taskId, stage) {
 // ---------------------------------------------------------------------------
 
 function handleStageResult(stage, result) {
+    updatePipelineStatus(stage, "completed");
+
     if (stage === "extract_concepts") {
         showConceptsOutput(result);
     } else if (stage === "personalize") {
@@ -536,7 +1003,6 @@ function handleStageResult(stage, result) {
         showRenderOutput(result);
     }
 
-    // Add to history
     addHistoryEntry(stage, result);
     showToast(`${stageName(stage)} completed`, "success");
 }
@@ -548,6 +1014,8 @@ function showConceptsOutput(result) {
     card.style.display = "block";
 
     let html = "";
+    const allConcepts = [];
+
     if (result.matched_concepts && result.matched_concepts.length > 0) {
         html += '<div class="concept-tree"><div class="concept-group">';
         html += `<div class="concept-group-title">Matched Concepts (${result.matched_concepts.length})</div>`;
@@ -557,6 +1025,7 @@ function showConceptsOutput(result) {
                 <span>${esc(c.name)}</span>
                 <span class="confidence">${Math.round((c.confidence || 0) * 100)}%</span>
             </div>`;
+            allConcepts.push(c);
         }
         html += "</div>";
 
@@ -568,6 +1037,7 @@ function showConceptsOutput(result) {
                     <span class="concept-id">${esc(c.suggested_id)}</span>
                     <span>${esc(c.name)} - ${esc(c.description || "")}</span>
                 </div>`;
+                allConcepts.push({ ...c, concept_id: c.suggested_id });
             }
             html += "</div>";
         }
@@ -584,6 +1054,9 @@ function showConceptsOutput(result) {
 
     el.innerHTML = html;
     showStats("extract_concepts", result);
+
+    // Populate concept checklist in Stage 4 for batch generation
+    renderConceptChecklist(allConcepts);
 }
 
 function showPersonalizedOutput(result) {
@@ -610,19 +1083,17 @@ function showAnimationOutput(result) {
     const card = document.getElementById("output-card-generate_animation");
     card.style.display = "block";
 
-    // Highlight Python code
     if (typeof hljs !== "undefined") {
         el.innerHTML = hljs.highlight(code, { language: "python" }).value;
     } else {
         el.textContent = code;
     }
 
-    // Also populate the render tab
+    // Also populate the render section
     document.getElementById("render-code").value = code;
     document.getElementById("render-scene-name").textContent =
         `Scene: ${state.outputs.scene_name}`;
 
-    // Show validation warnings
     if (result.validation && !result.validation.is_valid) {
         const errs = (result.validation.errors || []).join(", ");
         showToast(`Validation issues: ${errs}`, "warning");
@@ -695,13 +1166,13 @@ function addHistoryEntry(stage, result) {
 function renderHistory() {
     const list = document.getElementById("history-list");
     if (state.history.length === 0) {
-        list.innerHTML = '<div style="padding: 8px 16px; font-size: 13px; color: var(--text-muted);">No runs yet</div>';
+        list.innerHTML = '<div style="padding: 4px 0; font-size: 13px; color: var(--text-muted);">No runs yet</div>';
         return;
     }
     list.innerHTML = state.history
         .slice(0, 20)
         .map(
-            (h, i) => `
+            (h) => `
         <div class="history-item">
             <span class="status-dot ${h.success ? "success" : "error"}"></span>
             <span>${esc(h.label)}</span>
@@ -753,6 +1224,10 @@ function esc(str) {
     const div = document.createElement("div");
     div.textContent = str || "";
     return div.innerHTML;
+}
+
+function makeSafeId(str) {
+    return (str || "").replace(/[^a-zA-Z0-9]/g, "_");
 }
 
 function sleep(ms) {

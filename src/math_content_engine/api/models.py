@@ -41,6 +41,10 @@ class VideoMetadata(BaseModel):
     video_path: str
     code: str
 
+    # Integration fields
+    concept_ids: List[str] = Field(default_factory=list)
+    grade: Optional[str] = None
+
     # Generation settings
     requirements: Optional[str] = None
     audience_level: str = "high school"
@@ -82,6 +86,10 @@ class VideoCreate(BaseModel):
     scene_name: str
     video_path: str
     code: str
+
+    # Integration fields
+    concept_ids: List[str] = Field(default_factory=list)
+    grade: Optional[str] = None
 
     # Optional fields
     requirements: Optional[str] = None
@@ -151,6 +159,7 @@ class VideoSearchParams(BaseModel):
     topic: Optional[str] = None
     scene_name: Optional[str] = None
     interest: Optional[str] = None
+    grade: Optional[str] = None
     style: Optional[AnimationStyle] = None
     quality: Optional[VideoQuality] = None
     success_only: bool = True

@@ -44,7 +44,8 @@ class TestMathpixConfig:
 
     def test_from_env_missing_credentials(self):
         """Test that from_env raises error when credentials missing."""
-        with patch.dict(os.environ, {}, clear=True):
+        with patch.dict(os.environ, {}, clear=True), \
+             patch("math_content_engine.personalization.pdf_parser.load_dotenv"):
             with pytest.raises(ValueError, match="Mathpix credentials not found"):
                 MathpixConfig.from_env()
 
@@ -170,7 +171,7 @@ class TestMathpixPDFParser:
         """Test get_markdown_from_result raises error when no URL."""
         result = {"status": "completed"}
 
-        with pytest.raises(ValueError, match="No markdown URL"):
+        with pytest.raises(ValueError, match="Cannot find markdown URL"):
             pdf_parser.get_markdown_from_result(result)
 
 

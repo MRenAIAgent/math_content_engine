@@ -129,6 +129,8 @@ class MathContentEngine:
         interest: Optional[str] = None,
         student_profile: Optional[StudentProfile] = None,
         save_to_storage: bool = True,
+        concept_ids: Optional[list] = None,
+        grade: Optional[str] = None,
     ) -> AnimationResult:
         """
         Generate a math animation from a topic description.
@@ -141,6 +143,8 @@ class MathContentEngine:
             interest: Optional interest override for personalization (e.g., "basketball")
             student_profile: Optional student profile for individual personalization
             save_to_storage: Whether to save video metadata to storage (if storage is configured)
+            concept_ids: Optional list of concept IDs this video covers (e.g., ["AT-24"])
+            grade: Optional grade level (e.g., "grade_8")
 
         Returns:
             AnimationResult with success status, video path, and metadata
@@ -186,7 +190,8 @@ class MathContentEngine:
             if save_to_storage and self.storage:
                 result = self._save_to_storage(
                     result, topic, requirements, audience_level, interest,
-                    generation_time_ms, None
+                    generation_time_ms, None,
+                    concept_ids=concept_ids, grade=grade,
                 )
             return result
 
@@ -225,7 +230,8 @@ class MathContentEngine:
                 if save_to_storage and self.storage:
                     result = self._save_to_storage(
                         result, topic, requirements, audience_level, interest,
-                        generation_time_ms, render_time_ms
+                        generation_time_ms, render_time_ms,
+                        concept_ids=concept_ids, grade=grade,
                     )
                 return result
 
@@ -265,7 +271,8 @@ class MathContentEngine:
         if save_to_storage and self.storage:
             result = self._save_to_storage(
                 result, topic, requirements, audience_level, interest,
-                generation_time_ms, render_time_ms
+                generation_time_ms, render_time_ms,
+                concept_ids=concept_ids, grade=grade,
             )
         return result
 
@@ -278,6 +285,8 @@ class MathContentEngine:
         interest: Optional[str],
         generation_time_ms: int,
         render_time_ms: Optional[int],
+        concept_ids: Optional[list] = None,
+        grade: Optional[str] = None,
     ) -> AnimationResult:
         """Save video metadata to storage and return updated result with video_id."""
         if not self.storage:
@@ -296,6 +305,8 @@ class MathContentEngine:
                 scene_name=result.scene_name,
                 video_path=str(result.video_path) if result.video_path else "",
                 code=result.code,
+                concept_ids=concept_ids or [],
+                grade=grade,
                 requirements=requirements if requirements else None,
                 audience_level=audience_level,
                 interest=interest or self.interest,

@@ -130,6 +130,20 @@ class Config:
         os.getenv("MATH_ENGINE_TTS_CUSTOM_VOICE")
     )
 
+    # Integration Settings
+    redis_url: Optional[str] = field(default_factory=lambda:
+        os.getenv("REDIS_URL")
+    )
+    tutor_api_url: Optional[str] = field(default_factory=lambda:
+        os.getenv("TUTOR_API_URL")
+    )
+    publish_events: bool = field(default_factory=lambda:
+        os.getenv("PUBLISH_EVENTS", "false").lower() == "true"
+    )
+    redis_stream_name: str = field(default_factory=lambda:
+        os.getenv("REDIS_STREAM_NAME", "content_events")
+    )
+
     # Video Style Settings
     video_style: VideoStyle = field(default_factory=lambda: VideoStyle(
         os.getenv("MATH_ENGINE_VIDEO_STYLE", "standard")

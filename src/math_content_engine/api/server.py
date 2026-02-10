@@ -68,6 +68,11 @@ def create_app(
     # Include routes
     app.include_router(router)
 
+    # Include generation routes
+    from .generation_routes import generation_router
+
+    app.include_router(generation_router)
+
     # Include playground routes
     from .playground import playground_router
 
@@ -105,6 +110,7 @@ def create_app(
                 "create_video": "POST /api/v1/videos",
                 "delete_video": "DELETE /api/v1/videos/{id}",
                 "stats": "GET /api/v1/videos/stats/summary",
+                "generate": "POST /api/v1/generate",
                 "playground_config": "GET /api/v1/playground/config",
                 "playground_interests": "GET /api/v1/playground/interests",
                 "playground_prompts": "POST /api/v1/playground/prompts/preview",

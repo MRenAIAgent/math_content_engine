@@ -13,6 +13,15 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--keep-data",
+        action="store_true",
+        default=False,
+        help="Keep test data in PostgreSQL after integration tests (default: clean up)",
+    )
+
+
 @pytest.fixture
 def sample_concept_data():
     """Sample concept data matching the knowledge graph structure."""

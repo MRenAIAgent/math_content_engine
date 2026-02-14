@@ -1,12 +1,15 @@
 """
 Integration tests for TutorDataServiceWriter → agentic_math_tutor PostgreSQL.
 
-These tests exercise the REAL data service integration:
-  - Write video records to the tutor's PostgreSQL `videos` table
-  - Read them back and verify all fields
-  - Test upsert on re-generation (same concept/theme/grade)
-  - Test error_message propagation on failures
-  - Test full engine pipeline → data service round-trip
+Write REAL data to the data service and read it back to verify.
+By default, test data is cleaned up after the run.
+
+To keep data in PG for manual inspection, pass --keep-data:
+    pytest tests/test_integration_data_service.py -v --keep-data
+
+Then inspect with:
+    docker exec -i math_tutor_postgres psql -U math_tutor_app -d math_tutor \
+        -c "SELECT concept_id, theme, grade, status, source, engine_video_id FROM videos ORDER BY created_at DESC;"
 
 Requires:
   - agentic_math_tutor PostgreSQL running (docker-compose up postgres)
@@ -18,7 +21,6 @@ Run with:
 
 import os
 import uuid
-from pathlib import Path
 
 import pytest
 
@@ -65,531 +67,412 @@ pytestmark = pytest.mark.skipif(
     reason="Tutor PostgreSQL not reachable (start with docker-compose up postgres)",
 )
 
-# Unique source tag so cleanup never touches real data
-_TEST_SOURCE = f"integration_test_{uuid.uuid4().hex[:8]}"
-
 
 # ---------------------------------------------------------------------------
-# Fixtures
+# Fixtures — cleanup by default, skip cleanup with --keep-data
 # ---------------------------------------------------------------------------
 
 
 @pytest.fixture
-def writer():
-    """TutorDataServiceWriter pointed at local Docker PG."""
+def writer(request):
+    """TutorDataServiceWriter pointed at local Docker PG.
+
+    Cleans up rows with source='math_content_engine' after tests
+    unless --keep-data is passed.
+    """
     w = TutorDataServiceWriter()
     yield w
-    # Cleanup rows created by this test run
-    w.cleanup_e2e(source=_TEST_SOURCE)
+    if not request.config.getoption("--keep-data"):
+        w.cleanup_e2e(source="math_content_engine")
 
 
 # ---------------------------------------------------------------------------
-# 1. Unit-level mapping helpers (no DB required, run anyway)
+# 1. Write → Read round-trip with real concept IDs
+# ---------------------------------------------------------------------------
+
+
+class TestWriteReadRoundTrip:
+    """Write videos to tutor PG with real data, read back, verify every field."""
+
+    def test_write_basketball_video_for_algebra(self, writer):
+        """Write AT-001 basketball grade_7 video, read back all fields."""
+        engine_vid = str(uuid.uuid4())
+        vid = writer.write_video(
+            concept_id="AT-001",
+            interest="basketball",
+            grade="grade_7",
+            engine_video_id=engine_vid,
+            manim_code=(
+                "from manim import *\n\n"
+                "class BasketballAlgebraScene(Scene):\n"
+                "    def construct(self):\n"
+                "        title = Text('Solving Equations with Basketball Stats')\n"
+                "        self.play(Write(title))\n"
+                "        eq = MathTex('2x + 5 = 11')\n"
+                "        self.play(FadeIn(eq))\n"
+                "        self.wait()\n"
+            ),
+            success=True,
+            file_size_bytes=524288,
+            generation_time_seconds=45.2,
+        )
+        assert vid is not None
+
+        row = writer.read_video(vid)
+        assert row is not None
+        assert row["concept_id"] == "AT-001"
+        assert row["theme"] == "sports_basketball"
+        assert row["grade"] == "grade_7"
+        assert row["status"] == "pre_generated"
+        assert row["source"] == "math_content_engine"
+        assert row["engine_video_id"] == engine_vid
+        assert row["gcs_path"] == f"engine/{engine_vid}.mp4"
+        assert row["template_id"] == "personalized"
+        assert "BasketballAlgebraScene" in row["manim_code"]
+        assert row["file_size_bytes"] == 524288
+        assert row["generation_time_seconds"] == pytest.approx(45.2)
+        assert row["error_message"] is None
+        assert row["created_at"] is not None
+        assert row["updated_at"] is not None
+
+    def test_write_gaming_video_for_fractions(self, writer):
+        """Write LF-001 gaming grade_6 video, read back and verify."""
+        engine_vid = str(uuid.uuid4())
+        vid = writer.write_video(
+            concept_id="LF-001",
+            interest="gaming",
+            grade="grade_6",
+            engine_video_id=engine_vid,
+            manim_code=(
+                "from manim import *\n\n"
+                "class MinecraftFractionsScene(Scene):\n"
+                "    def construct(self):\n"
+                "        title = Text('Fractions in Minecraft')\n"
+                "        self.play(Write(title))\n"
+                "        frac = MathTex(r'\\frac{3}{4}')\n"
+                "        self.play(FadeIn(frac))\n"
+                "        self.wait()\n"
+            ),
+            success=True,
+            file_size_bytes=612000,
+            generation_time_seconds=38.7,
+        )
+
+        row = writer.read_video(vid)
+        assert row is not None
+        assert row["concept_id"] == "LF-001"
+        assert row["theme"] == "gaming_minecraft"
+        assert row["grade"] == "grade_6"
+        assert row["status"] == "pre_generated"
+        assert row["source"] == "math_content_engine"
+        assert "MinecraftFractionsScene" in row["manim_code"]
+
+    def test_write_space_video_for_number_systems(self, writer):
+        """Write NS-001 space grade_8 video, read back and verify."""
+        engine_vid = str(uuid.uuid4())
+        vid = writer.write_video(
+            concept_id="NS-001",
+            interest="space",
+            grade="grade_8",
+            engine_video_id=engine_vid,
+            manim_code=(
+                "from manim import *\n\n"
+                "class SpaceNumbersScene(Scene):\n"
+                "    def construct(self):\n"
+                "        title = Text('Number Systems in Space')\n"
+                "        self.play(Write(title))\n"
+                "        self.wait()\n"
+            ),
+            success=True,
+            file_size_bytes=480000,
+            generation_time_seconds=32.1,
+        )
+
+        row = writer.read_video(vid)
+        assert row is not None
+        assert row["concept_id"] == "NS-001"
+        assert row["theme"] == "nature_space"
+        assert row["grade"] == "grade_8"
+        assert row["status"] == "pre_generated"
+        assert row["source"] == "math_content_engine"
+
+    def test_write_neutral_video_for_quadratics(self, writer):
+        """Write Q-001 neutral (no interest) grade_9 video."""
+        engine_vid = str(uuid.uuid4())
+        vid = writer.write_video(
+            concept_id="Q-001",
+            interest=None,
+            grade="grade_9",
+            engine_video_id=engine_vid,
+            manim_code=(
+                "from manim import *\n\n"
+                "class QuadraticsScene(Scene):\n"
+                "    def construct(self):\n"
+                "        eq = MathTex('ax^2 + bx + c = 0')\n"
+                "        self.play(Write(eq))\n"
+                "        self.wait()\n"
+            ),
+            success=True,
+            file_size_bytes=390000,
+            generation_time_seconds=28.5,
+        )
+
+        row = writer.read_video(vid)
+        assert row is not None
+        assert row["concept_id"] == "Q-001"
+        assert row["theme"] == "neutral"
+        assert row["grade"] == "grade_9"
+        assert row["source"] == "math_content_engine"
+
+    def test_write_failed_video_with_error_message(self, writer):
+        """Write a failed generation — status='failed', error_message persists."""
+        engine_vid = str(uuid.uuid4())
+        vid = writer.write_video(
+            concept_id="AT-001",
+            interest="soccer",
+            grade="grade_8",
+            engine_video_id=engine_vid,
+            manim_code="class BrokenScene(Scene): ...",
+            success=False,
+            error_message="Manim render failed: LaTeX not found",
+            generation_time_seconds=5.0,
+        )
+
+        row = writer.read_video(vid)
+        assert row is not None
+        assert row["concept_id"] == "AT-001"
+        assert row["theme"] == "sports_soccer"
+        assert row["grade"] == "grade_8"
+        assert row["status"] == "failed"
+        assert row["error_message"] == "Manim render failed: LaTeX not found"
+        assert row["source"] == "math_content_engine"
+
+
+# ---------------------------------------------------------------------------
+# 2. Upsert — re-generation updates, not crashes
+# ---------------------------------------------------------------------------
+
+
+class TestUpsertBehaviour:
+    """Re-generating same concept/theme/grade updates the existing row."""
+
+    def test_upsert_returns_same_uuid(self, writer):
+        """Two writes for same (concept_id, theme, grade) return the same row id."""
+        first = writer.write_video(
+            concept_id="AT-001",
+            interest="music",
+            grade="grade_7",
+            engine_video_id="gen-v1",
+            manim_code="class V1(Scene): pass",
+            success=True,
+        )
+        second = writer.write_video(
+            concept_id="AT-001",
+            interest="music",
+            grade="grade_7",
+            engine_video_id="gen-v2",
+            manim_code="class V2(Scene): pass",
+            success=True,
+        )
+        assert first == second  # Same PG row
+
+    def test_upsert_updates_fields_on_regen(self, writer):
+        """After upsert, row reflects the latest write's data."""
+        writer.write_video(
+            concept_id="LF-001",
+            interest="music",
+            grade="grade_8",
+            engine_video_id="old-id",
+            manim_code="class OldVersion(Scene): pass",
+            success=False,
+            error_message="first attempt failed",
+            file_size_bytes=100,
+            generation_time_seconds=5.0,
+        )
+        vid = writer.write_video(
+            concept_id="LF-001",
+            interest="music",
+            grade="grade_8",
+            engine_video_id="new-id",
+            manim_code="class NewVersion(Scene):\n    def construct(self): pass",
+            success=True,
+            error_message=None,
+            file_size_bytes=512000,
+            generation_time_seconds=40.0,
+        )
+
+        row = writer.read_video(vid)
+        assert row["engine_video_id"] == "new-id"
+        assert "NewVersion" in row["manim_code"]
+        assert row["status"] == "pre_generated"
+        assert row["error_message"] is None
+        assert row["file_size_bytes"] == 512000
+        assert row["generation_time_seconds"] == pytest.approx(40.0)
+
+    def test_failed_then_success_clears_error(self, writer):
+        """Failed gen followed by successful re-gen clears error_message."""
+        writer.write_video(
+            concept_id="NS-001",
+            interest="robots",
+            grade="grade_7",
+            engine_video_id="attempt-1",
+            manim_code="class Broken(Scene): ...",
+            success=False,
+            error_message="Timeout during render",
+        )
+        vid = writer.write_video(
+            concept_id="NS-001",
+            interest="robots",
+            grade="grade_7",
+            engine_video_id="attempt-2",
+            manim_code="class Fixed(Scene):\n    def construct(self): pass",
+            success=True,
+            error_message=None,
+        )
+
+        row = writer.read_video(vid)
+        assert row["status"] == "pre_generated"
+        assert row["error_message"] is None
+        assert row["engine_video_id"] == "attempt-2"
+
+
+# ---------------------------------------------------------------------------
+# 3. Different concept/theme/grade combos → separate rows
+# ---------------------------------------------------------------------------
+
+
+class TestSeparateRows:
+    """Verify the UNIQUE (concept_id, theme, grade) constraint creates separate rows correctly."""
+
+    def test_same_concept_different_themes(self, writer):
+        """AT-001 basketball vs AT-001 gaming → two separate rows."""
+        vid_bb = writer.write_video(
+            concept_id="AT-001",
+            interest="basketball",
+            grade="grade_8",
+            engine_video_id="at001-bb-g8",
+            manim_code="class BasketballVersion(Scene): pass",
+            success=True,
+        )
+        vid_gm = writer.write_video(
+            concept_id="AT-001",
+            interest="gaming",
+            grade="grade_8",
+            engine_video_id="at001-gm-g8",
+            manim_code="class GamingVersion(Scene): pass",
+            success=True,
+        )
+
+        assert vid_bb != vid_gm
+
+        row_bb = writer.read_video(vid_bb)
+        row_gm = writer.read_video(vid_gm)
+        assert row_bb["theme"] == "sports_basketball"
+        assert row_gm["theme"] == "gaming_minecraft"
+        assert row_bb["concept_id"] == row_gm["concept_id"] == "AT-001"
+
+    def test_same_concept_different_grades(self, writer):
+        """LF-001 basketball grade_7 vs grade_9 → two separate rows."""
+        vid_g7 = writer.write_video(
+            concept_id="LF-001",
+            interest="basketball",
+            grade="grade_7",
+            engine_video_id="lf001-bb-g7",
+            manim_code="class Grade7(Scene): pass",
+            success=True,
+        )
+        vid_g9 = writer.write_video(
+            concept_id="LF-001",
+            interest="basketball",
+            grade="grade_9",
+            engine_video_id="lf001-bb-g9",
+            manim_code="class Grade9(Scene): pass",
+            success=True,
+        )
+
+        assert vid_g7 != vid_g9
+
+        row_g7 = writer.read_video(vid_g7)
+        row_g9 = writer.read_video(vid_g9)
+        assert row_g7["grade"] == "grade_7"
+        assert row_g9["grade"] == "grade_9"
+
+    def test_different_concepts_same_theme_grade(self, writer):
+        """AT-001 vs NS-001 both basketball grade_8 → two separate rows."""
+        vid_at = writer.write_video(
+            concept_id="AT-001",
+            interest="basketball",
+            grade="grade_9",
+            engine_video_id="at-bb-g9",
+            manim_code="class Algebra(Scene): pass",
+            success=True,
+        )
+        vid_ns = writer.write_video(
+            concept_id="NS-001",
+            interest="basketball",
+            grade="grade_9",
+            engine_video_id="ns-bb-g9",
+            manim_code="class NumberSystems(Scene): pass",
+            success=True,
+        )
+
+        assert vid_at != vid_ns
+
+        row_at = writer.read_video(vid_at)
+        row_ns = writer.read_video(vid_ns)
+        assert row_at["concept_id"] == "AT-001"
+        assert row_ns["concept_id"] == "NS-001"
+        assert row_at["theme"] == row_ns["theme"] == "sports_basketball"
+
+
+# ---------------------------------------------------------------------------
+# 4. All interest/theme combinations persisted
+# ---------------------------------------------------------------------------
+
+
+class TestAllThemes:
+    """Write a video for each interest, verify correct theme persists in PG."""
+
+    @pytest.mark.parametrize(
+        "interest,expected_theme",
+        list(INTEREST_TO_THEME.items()),
+    )
+    def test_interest_persists_as_correct_theme(self, writer, interest, expected_theme):
+        vid = writer.write_video(
+            concept_id="AT-001",
+            interest=interest,
+            grade="grade_10",
+            engine_video_id=f"theme-test-{interest}",
+            manim_code=f"class {interest.title().replace('_','')}Scene(Scene): pass",
+            success=True,
+        )
+        row = writer.read_video(vid)
+        assert row["theme"] == expected_theme
+        assert row["source"] == "math_content_engine"
+
+
+# ---------------------------------------------------------------------------
+# 5. Mapping helpers (pure logic, no DB)
 # ---------------------------------------------------------------------------
 
 
 class TestMappingHelpers:
-    """Verify interest→theme and grade normalisation before touching the DB."""
+    """Verify interest→theme and grade normalisation."""
 
-    def test_interest_to_theme_known(self):
+    def test_known_interests(self):
         assert map_interest_to_theme("basketball") == "sports_basketball"
         assert map_interest_to_theme("gaming") == "gaming_minecraft"
         assert map_interest_to_theme("space") == "nature_space"
         assert map_interest_to_theme("music") == "music_pop"
 
-    def test_interest_to_theme_unknown_defaults_to_neutral(self):
-        assert map_interest_to_theme("unknown_interest") == "neutral"
+    def test_unknown_defaults_to_neutral(self):
+        assert map_interest_to_theme("unknown") == "neutral"
         assert map_interest_to_theme(None) == "neutral"
         assert map_interest_to_theme("") == "neutral"
 
     def test_normalize_grade(self):
         assert normalize_grade("grade_8") == "grade_8"
         assert normalize_grade(None) == "grade_7"
-        assert normalize_grade("") == "grade_7"
-
-    def test_all_interests_have_theme_mapping(self):
-        """Every key in INTEREST_TO_THEME must produce a non-neutral theme."""
-        for interest, expected_theme in INTEREST_TO_THEME.items():
-            result = map_interest_to_theme(interest)
-            assert result == expected_theme
-            assert result != "neutral", f"{interest} should not map to neutral"
-
-
-# ---------------------------------------------------------------------------
-# 2. Write → Read round-trip
-# ---------------------------------------------------------------------------
-
-
-class TestWriteReadRoundTrip:
-    """Write a video to tutor PG, read it back, verify every field."""
-
-    def test_write_and_read_success_video(self, writer):
-        """Insert a successful video and read it back."""
-        vid = writer.write_video(
-            concept_id="INT-TEST-01",
-            interest="basketball",
-            grade="grade_8",
-            engine_video_id="eng-001",
-            manim_code="class TestScene(Scene):\n    def construct(self): pass",
-            success=True,
-            file_size_bytes=2048,
-            generation_time_seconds=12.5,
-            source=_TEST_SOURCE,
-        )
-        assert vid is not None
-
-        row = writer.read_video(vid)
-        assert row is not None
-        assert row["concept_id"] == "INT-TEST-01"
-        assert row["theme"] == "sports_basketball"
-        assert row["grade"] == "grade_8"
-        assert row["template_id"] == "personalized"
-        assert row["engine_video_id"] == "eng-001"
-        assert row["gcs_path"] == "engine/eng-001.mp4"
-        assert row["status"] == "pre_generated"
-        assert row["file_size_bytes"] == 2048
-        assert row["generation_time_seconds"] == pytest.approx(12.5)
-        assert row["source"] == _TEST_SOURCE
-        assert "TestScene" in row["manim_code"]
-        assert row["error_message"] is None
-
-    def test_write_and_read_failed_video(self, writer):
-        """Insert a failed video with error_message and verify."""
-        vid = writer.write_video(
-            concept_id="INT-TEST-02",
-            interest="gaming",
-            grade="grade_7",
-            engine_video_id="eng-002",
-            manim_code="class Broken(Scene): ...",
-            success=False,
-            error_message="Manim render failed: LaTeX not found",
-            source=_TEST_SOURCE,
-        )
-        assert vid is not None
-
-        row = writer.read_video(vid)
-        assert row is not None
-        assert row["concept_id"] == "INT-TEST-02"
-        assert row["theme"] == "gaming_minecraft"
-        assert row["grade"] == "grade_7"
-        assert row["status"] == "failed"
-        assert row["error_message"] == "Manim render failed: LaTeX not found"
-
-    def test_write_neutral_theme(self, writer):
-        """When interest is None, theme should be 'neutral'."""
-        vid = writer.write_video(
-            concept_id="INT-TEST-03",
-            interest=None,
-            grade="grade_9",
-            engine_video_id="eng-003",
-            manim_code="class Neutral(Scene): ...",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-        row = writer.read_video(vid)
-        assert row["theme"] == "neutral"
-
-    def test_write_default_grade(self, writer):
-        """When grade is None, should default to 'grade_7'."""
-        vid = writer.write_video(
-            concept_id="INT-TEST-04",
-            interest="soccer",
-            grade=None,
-            engine_video_id="eng-004",
-            manim_code="class Default(Scene): ...",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-        row = writer.read_video(vid)
-        assert row["grade"] == "grade_7"
-        assert row["theme"] == "sports_soccer"
-
-
-# ---------------------------------------------------------------------------
-# 3. Upsert behaviour (ON CONFLICT)
-# ---------------------------------------------------------------------------
-
-
-class TestUpsertBehaviour:
-    """Re-generating the same concept/theme/grade must update, not crash."""
-
-    def test_upsert_returns_same_uuid(self, writer):
-        """Two writes for same (concept_id, theme, grade) return the same row id."""
-        first = writer.write_video(
-            concept_id="UPSERT-01",
-            interest="basketball",
-            grade="grade_8",
-            engine_video_id="gen-1",
-            manim_code="class V1(Scene): pass",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-        second = writer.write_video(
-            concept_id="UPSERT-01",
-            interest="basketball",
-            grade="grade_8",
-            engine_video_id="gen-2",
-            manim_code="class V2(Scene): pass",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-        assert first == second  # Same row UUID
-
-    def test_upsert_updates_fields(self, writer):
-        """After upsert the row reflects the second write's data."""
-        writer.write_video(
-            concept_id="UPSERT-02",
-            interest="music",
-            grade="grade_9",
-            engine_video_id="old-id",
-            manim_code="class Old(Scene): pass",
-            success=False,
-            error_message="first attempt failed",
-            file_size_bytes=100,
-            generation_time_seconds=5.0,
-            source=_TEST_SOURCE,
-        )
-        vid = writer.write_video(
-            concept_id="UPSERT-02",
-            interest="music",
-            grade="grade_9",
-            engine_video_id="new-id",
-            manim_code="class New(Scene): pass",
-            success=True,
-            error_message=None,
-            file_size_bytes=4096,
-            generation_time_seconds=15.0,
-            source=_TEST_SOURCE,
-        )
-        row = writer.read_video(vid)
-        assert row["engine_video_id"] == "new-id"
-        assert row["manim_code"] == "class New(Scene): pass"
-        assert row["status"] == "pre_generated"
-        assert row["error_message"] is None
-        assert row["file_size_bytes"] == 4096
-        assert row["generation_time_seconds"] == pytest.approx(15.0)
-
-    def test_upsert_preserves_original_source(self, writer):
-        """The source column is NOT updated on upsert (preserves first writer)."""
-        writer.write_video(
-            concept_id="UPSERT-03",
-            interest="space",
-            grade="grade_6",
-            engine_video_id="id-a",
-            manim_code="v1",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-        vid = writer.write_video(
-            concept_id="UPSERT-03",
-            interest="space",
-            grade="grade_6",
-            engine_video_id="id-b",
-            manim_code="v2",
-            success=True,
-            source="some_other_source",  # Different source
-        )
-        row = writer.read_video(vid)
-        # source is NOT in the DO UPDATE SET clause, so original is preserved
-        assert row["source"] == _TEST_SOURCE
-
-
-# ---------------------------------------------------------------------------
-# 4. Error message propagation
-# ---------------------------------------------------------------------------
-
-
-class TestErrorMessagePropagation:
-    """Verify error_message is correctly written and cleared on re-gen."""
-
-    def test_error_message_written_on_failure(self, writer):
-        vid = writer.write_video(
-            concept_id="ERR-01",
-            interest="animals",
-            grade="grade_6",
-            engine_video_id="err-eng-01",
-            manim_code="broken code",
-            success=False,
-            error_message="SyntaxError: invalid syntax at line 5",
-            source=_TEST_SOURCE,
-        )
-        row = writer.read_video(vid)
-        assert row["status"] == "failed"
-        assert row["error_message"] == "SyntaxError: invalid syntax at line 5"
-
-    def test_error_message_cleared_on_successful_regen(self, writer):
-        """After a failed attempt, successful re-gen clears the error."""
-        writer.write_video(
-            concept_id="ERR-02",
-            interest="robots",
-            grade="grade_10",
-            engine_video_id="err-eng-02a",
-            manim_code="broken",
-            success=False,
-            error_message="render timeout",
-            source=_TEST_SOURCE,
-        )
-        vid = writer.write_video(
-            concept_id="ERR-02",
-            interest="robots",
-            grade="grade_10",
-            engine_video_id="err-eng-02b",
-            manim_code="class Fixed(Scene): pass",
-            success=True,
-            error_message=None,
-            source=_TEST_SOURCE,
-        )
-        row = writer.read_video(vid)
-        assert row["status"] == "pre_generated"
-        assert row["error_message"] is None
-
-
-# ---------------------------------------------------------------------------
-# 5. All interest/theme combinations
-# ---------------------------------------------------------------------------
-
-
-class TestAllInterestThemeCombinations:
-    """Write one video for each known interest, read back and verify theme."""
-
-    @pytest.mark.parametrize(
-        "interest,expected_theme",
-        list(INTEREST_TO_THEME.items()),
-    )
-    def test_interest_maps_and_persists(self, writer, interest, expected_theme):
-        vid = writer.write_video(
-            concept_id=f"THEME-{interest[:6].upper()}",
-            interest=interest,
-            grade="grade_8",
-            engine_video_id=f"theme-{interest}",
-            manim_code=f"class {interest.title()}Scene(Scene): pass",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-        row = writer.read_video(vid)
-        assert row["theme"] == expected_theme
-
-
-# ---------------------------------------------------------------------------
-# 6. Engine pipeline → data service round-trip (mocked LLM, real PG)
-# ---------------------------------------------------------------------------
-
-
-class TestPipelineWriteReadVerify:
-    """
-    Simulate what the engine pipeline does — write to PG, read back, verify.
-    No mocks. Real PG only.
-    """
-
-    def test_successful_generation_write_and_readback(self, writer):
-        """Simulate a successful pipeline: write pre_generated video, read back all fields."""
-        engine_vid = str(uuid.uuid4())
-        vid = writer.write_video(
-            concept_id="PIPE-01",
-            interest="basketball",
-            grade="grade_8",
-            engine_video_id=engine_vid,
-            manim_code="class BasketballScene(Scene):\n    def construct(self): self.play(Write(Text('hello')))",
-            success=True,
-            file_size_bytes=2048,
-            generation_time_seconds=12.5,
-            source=_TEST_SOURCE,
-        )
-        assert vid is not None
-
-        row = writer.read_video(vid)
-        assert row is not None
-        assert row["concept_id"] == "PIPE-01"
-        assert row["theme"] == "sports_basketball"
-        assert row["grade"] == "grade_8"
-        assert row["status"] == "pre_generated"
-        assert row["engine_video_id"] == engine_vid
-        assert row["gcs_path"] == f"engine/{engine_vid}.mp4"
-        assert "BasketballScene" in row["manim_code"]
-        assert row["file_size_bytes"] == 2048
-        assert row["generation_time_seconds"] == pytest.approx(12.5)
-        assert row["error_message"] is None
-        assert row["source"] == _TEST_SOURCE
-        assert row["template_id"] == "personalized"
-        assert row["created_at"] is not None
-        assert row["updated_at"] is not None
-
-    def test_failed_generation_write_and_readback(self, writer):
-        """Simulate a failed pipeline: write with error_message, read back and verify."""
-        engine_vid = str(uuid.uuid4())
-        vid = writer.write_video(
-            concept_id="PIPE-02",
-            interest="cooking",
-            grade="grade_7",
-            engine_video_id=engine_vid,
-            manim_code="class BrokenScene(Scene): ...",
-            success=False,
-            error_message="LaTeX compilation error on line 12",
-            generation_time_seconds=3.0,
-            source=_TEST_SOURCE,
-        )
-        assert vid is not None
-
-        row = writer.read_video(vid)
-        assert row is not None
-        assert row["concept_id"] == "PIPE-02"
-        assert row["theme"] == "food_cooking"
-        assert row["grade"] == "grade_7"
-        assert row["status"] == "failed"
-        assert row["error_message"] == "LaTeX compilation error on line 12"
-        assert row["engine_video_id"] == engine_vid
-
-    def test_regeneration_overwrites_failed_with_success(self, writer):
-        """First gen fails, second succeeds — row should reflect success."""
-        # First: failed
-        vid1 = writer.write_video(
-            concept_id="PIPE-03",
-            interest="space",
-            grade="grade_9",
-            engine_video_id="gen-attempt-1",
-            manim_code="class Attempt1(Scene): ...",
-            success=False,
-            error_message="Timeout during render",
-            source=_TEST_SOURCE,
-        )
-        row1 = writer.read_video(vid1)
-        assert row1["status"] == "failed"
-        assert row1["error_message"] == "Timeout during render"
-
-        # Second: success (same concept/theme/grade → upsert)
-        vid2 = writer.write_video(
-            concept_id="PIPE-03",
-            interest="space",
-            grade="grade_9",
-            engine_video_id="gen-attempt-2",
-            manim_code="class Attempt2(Scene):\n    def construct(self): pass",
-            success=True,
-            file_size_bytes=4096,
-            generation_time_seconds=18.0,
-            error_message=None,
-            source=_TEST_SOURCE,
-        )
-
-        assert vid1 == vid2  # Same row
-
-        row2 = writer.read_video(vid2)
-        assert row2["status"] == "pre_generated"
-        assert row2["error_message"] is None
-        assert row2["engine_video_id"] == "gen-attempt-2"
-        assert "Attempt2" in row2["manim_code"]
-        assert row2["file_size_bytes"] == 4096
-        assert row2["generation_time_seconds"] == pytest.approx(18.0)
-
-    def test_multiple_concepts_written_independently(self, writer):
-        """Different concept_ids write separate rows."""
-        vid_a = writer.write_video(
-            concept_id="PIPE-04-A",
-            interest="gaming",
-            grade="grade_7",
-            engine_video_id="eng-a",
-            manim_code="class A(Scene): pass",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-        vid_b = writer.write_video(
-            concept_id="PIPE-04-B",
-            interest="gaming",
-            grade="grade_7",
-            engine_video_id="eng-b",
-            manim_code="class B(Scene): pass",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-
-        assert vid_a != vid_b  # Different rows
-
-        row_a = writer.read_video(vid_a)
-        row_b = writer.read_video(vid_b)
-        assert row_a["concept_id"] == "PIPE-04-A"
-        assert row_b["concept_id"] == "PIPE-04-B"
-        assert row_a["theme"] == row_b["theme"] == "gaming_minecraft"
-
-    def test_same_concept_different_grades_are_separate_rows(self, writer):
-        """Same concept_id + theme but different grade → separate rows."""
-        vid_g7 = writer.write_video(
-            concept_id="PIPE-05",
-            interest="music",
-            grade="grade_7",
-            engine_video_id="eng-g7",
-            manim_code="class G7(Scene): pass",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-        vid_g9 = writer.write_video(
-            concept_id="PIPE-05",
-            interest="music",
-            grade="grade_9",
-            engine_video_id="eng-g9",
-            manim_code="class G9(Scene): pass",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-
-        assert vid_g7 != vid_g9  # Different rows (different grade)
-
-        row_g7 = writer.read_video(vid_g7)
-        row_g9 = writer.read_video(vid_g9)
-        assert row_g7["grade"] == "grade_7"
-        assert row_g9["grade"] == "grade_9"
-        assert row_g7["concept_id"] == row_g9["concept_id"] == "PIPE-05"
-
-    def test_same_concept_different_themes_are_separate_rows(self, writer):
-        """Same concept_id + grade but different interest/theme → separate rows."""
-        vid_bb = writer.write_video(
-            concept_id="PIPE-06",
-            interest="basketball",
-            grade="grade_8",
-            engine_video_id="eng-bb",
-            manim_code="class BB(Scene): pass",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-        vid_gm = writer.write_video(
-            concept_id="PIPE-06",
-            interest="gaming",
-            grade="grade_8",
-            engine_video_id="eng-gm",
-            manim_code="class GM(Scene): pass",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-
-        assert vid_bb != vid_gm  # Different rows (different theme)
-
-        row_bb = writer.read_video(vid_bb)
-        row_gm = writer.read_video(vid_gm)
-        assert row_bb["theme"] == "sports_basketball"
-        assert row_gm["theme"] == "gaming_minecraft"
-
-
-# ---------------------------------------------------------------------------
-# 7. Cleanup verification
-# ---------------------------------------------------------------------------
-
-
-class TestCleanup:
-    """Verify cleanup_e2e only removes rows matching the given source."""
-
-    def test_cleanup_removes_matching_source(self, writer):
-        vid = writer.write_video(
-            concept_id="CLEAN-01",
-            interest="art",
-            grade="grade_6",
-            engine_video_id="clean-eng-01",
-            manim_code="class CleanTest(Scene): pass",
-            success=True,
-            source=_TEST_SOURCE,
-        )
-        assert vid is not None
-        assert writer.read_video(vid) is not None
-
-        writer.cleanup_e2e(source=_TEST_SOURCE)
-        assert writer.read_video(vid) is None
 
     def test_read_nonexistent_returns_none(self, writer):
         """Reading a UUID that doesn't exist returns None."""

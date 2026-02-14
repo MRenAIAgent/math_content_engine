@@ -1,19 +1,26 @@
 """
-Integration tests for TutorDataServiceWriter → agentic_math_tutor PostgreSQL.
+Integration tests for TutorDataServiceWriter → agentic_math_tutor data service.
 
-Write REAL data to the data service and read it back to verify.
+Writes REAL data to **both** PostgreSQL and Neo4j, reads it back, verifies.
 By default, test data is cleaned up after the run.
 
-To keep data in PG for manual inspection, pass --keep-data:
+To keep data for manual inspection, pass --keep-data:
     pytest tests/test_integration_data_service.py -v --keep-data
 
 Then inspect with:
+    # PostgreSQL
     docker exec -i math_tutor_postgres psql -U math_tutor_app -d math_tutor \
         -c "SELECT concept_id, theme, grade, status, source, engine_video_id FROM videos ORDER BY created_at DESC;"
 
+    # Neo4j
+    docker exec -i math_tutor_neo4j cypher-shell -u neo4j -p local_dev_password \
+        "MATCH (v:Video)-[r:DEMONSTRATES]->(c:Concept) RETURN v.engine_video_id, c.concept_id, v.source ORDER BY v.created_at DESC;"
+
 Requires:
   - agentic_math_tutor PostgreSQL running (docker-compose up postgres)
+  - agentic_math_tutor Neo4j running (docker-compose up neo4j)
   - TUTOR_DATABASE_URL or default localhost:15432
+  - NEO4J_URI or default bolt://localhost:17687
 
 Run with:
     pytest tests/test_integration_data_service.py -v
@@ -95,7 +102,7 @@ class TestWriteReadRoundTrip:
     """Write videos to tutor PG with real data, read back, verify every field."""
 
     def test_write_basketball_video_for_algebra(self, writer):
-        """Write AT-001 basketball grade_7 video, read back all fields."""
+        """Write AT-001 basketball grade_7 video, read back all fields from PG and Neo4j."""
         engine_vid = str(uuid.uuid4())
         vid = writer.write_video(
             concept_id="AT-001",
@@ -118,6 +125,7 @@ class TestWriteReadRoundTrip:
         )
         assert vid is not None
 
+        # --- PostgreSQL verification ---
         row = writer.read_video(vid)
         assert row is not None
         assert row["concept_id"] == "AT-001"
@@ -134,6 +142,17 @@ class TestWriteReadRoundTrip:
         assert row["error_message"] is None
         assert row["created_at"] is not None
         assert row["updated_at"] is not None
+
+        # --- Neo4j verification ---
+        neo = writer.read_neo4j_video(engine_vid)
+        assert neo is not None, "Video node not found in Neo4j"
+        assert neo["concept_id"] == "AT-001"
+        assert neo["theme"] == "sports_basketball"
+        assert neo["grade"] == "grade_7"
+        assert neo["status"] == "pre_generated"
+        assert neo["source"] == "math_content_engine"
+        assert neo["demonstrates_concept"] == "AT-001"
+        assert neo["demonstrates_props"]["is_primary"] is True
 
     def test_write_gaming_video_for_fractions(self, writer):
         """Write LF-001 gaming grade_6 video, read back and verify."""
@@ -478,3 +497,100 @@ class TestMappingHelpers:
         """Reading a UUID that doesn't exist returns None."""
         fake_uuid = str(uuid.uuid4())
         assert writer.read_video(fake_uuid) is None
+
+
+# ---------------------------------------------------------------------------
+# 6. Neo4j — Video node + DEMONSTRATES relationship
+# ---------------------------------------------------------------------------
+
+
+class TestNeo4jVideoNode:
+    """Verify Video nodes and DEMONSTRATES edges are created in Neo4j."""
+
+    def test_video_node_created_in_neo4j(self, writer):
+        """write_video creates a Video node in Neo4j with correct properties."""
+        engine_vid = str(uuid.uuid4())
+        writer.write_video(
+            concept_id="AT-001",
+            interest="basketball",
+            grade="grade_7",
+            engine_video_id=engine_vid,
+            manim_code="class Neo4jTest(Scene): pass",
+            success=True,
+            generation_time_seconds=12.5,
+        )
+
+        neo = writer.read_neo4j_video(engine_vid)
+        assert neo is not None, "Video node not found in Neo4j"
+        assert neo["engine_video_id"] == engine_vid
+        assert neo["concept_id"] == "AT-001"
+        assert neo["theme"] == "sports_basketball"
+        assert neo["grade"] == "grade_7"
+        assert neo["status"] == "pre_generated"
+        assert neo["source"] == "math_content_engine"
+        assert neo["generation_time_seconds"] == pytest.approx(12.5)
+
+    def test_demonstrates_relationship_created(self, writer):
+        """write_video creates a DEMONSTRATES edge from Video → Concept."""
+        engine_vid = str(uuid.uuid4())
+        writer.write_video(
+            concept_id="LF-001",
+            interest="gaming",
+            grade="grade_6",
+            engine_video_id=engine_vid,
+            manim_code="class DemoRelTest(Scene): pass",
+            success=True,
+        )
+
+        neo = writer.read_neo4j_video(engine_vid)
+        assert neo is not None
+        assert neo["demonstrates_concept"] == "LF-001"
+        assert neo["demonstrates_props"]["is_primary"] is True
+        assert neo["demonstrates_props"]["demonstration_type"] == "step_by_step"
+
+    def test_neo4j_video_merge_on_regen(self, writer):
+        """Re-generating same engine_video_id merges (updates) the Video node."""
+        engine_vid = "neo4j-merge-test"
+        writer.write_video(
+            concept_id="NS-001",
+            interest="space",
+            grade="grade_8",
+            engine_video_id=engine_vid,
+            manim_code="class V1(Scene): pass",
+            success=False,
+        )
+        writer.write_video(
+            concept_id="NS-001",
+            interest="space",
+            grade="grade_8",
+            engine_video_id=engine_vid,
+            manim_code="class V2(Scene): pass",
+            success=True,
+        )
+
+        neo = writer.read_neo4j_video(engine_vid)
+        assert neo is not None
+        # After merge, status should be the latest write
+        assert neo["status"] == "pre_generated"
+
+    def test_failed_video_node_in_neo4j(self, writer):
+        """Failed generation still creates a Video node with status='failed'."""
+        engine_vid = str(uuid.uuid4())
+        writer.write_video(
+            concept_id="Q-001",
+            interest=None,
+            grade="grade_9",
+            engine_video_id=engine_vid,
+            manim_code="class Broken(Scene): ...",
+            success=False,
+            error_message="LaTeX not found",
+        )
+
+        neo = writer.read_neo4j_video(engine_vid)
+        assert neo is not None
+        assert neo["status"] == "failed"
+        assert neo["demonstrates_concept"] == "Q-001"
+
+    def test_neo4j_read_nonexistent_returns_none(self, writer):
+        """Reading a non-existent engine_video_id returns None."""
+        assert writer.read_neo4j_video("does-not-exist") is None

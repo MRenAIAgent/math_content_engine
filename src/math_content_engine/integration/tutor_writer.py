@@ -1,10 +1,12 @@
 """
 TutorDataServiceWriter — writes generated video metadata to the
-agentic_math_tutor PostgreSQL database as part of the engine pipeline.
+agentic_math_tutor data service (PostgreSQL + Neo4j) as part of the
+engine pipeline.
 
-This module bridges math_content_engine → agentic_math_tutor by inserting
-video records into the tutor's `videos` table after successful (or failed)
-content generation.
+This module bridges math_content_engine → agentic_math_tutor by:
+  1. Upserting video records into the tutor's PostgreSQL ``videos`` table
+  2. Creating/merging a ``Video`` node in Neo4j and linking it to the
+     ``Concept`` node via a ``DEMONSTRATES`` relationship
 """
 
 from __future__ import annotations
@@ -52,14 +54,22 @@ def normalize_grade(grade: Optional[str]) -> str:
 
 
 class TutorDataServiceWriter:
-    """Writes video records into the agentic_math_tutor PostgreSQL `videos` table.
+    """Writes video records into the agentic_math_tutor data service.
 
-    This is a synchronous wrapper around asyncpg for easy use inside the
-    synchronous ``MathContentEngine.generate()`` pipeline.
+    Targets **two** stores:
+
+    * **PostgreSQL** — ``videos`` table (upsert on concept_id/theme/grade)
+    * **Neo4j** — ``Video`` node + ``DEMONSTRATES`` edge → ``Concept`` node
+
+    This is a synchronous wrapper around asyncpg / neo4j for easy use inside
+    the synchronous ``MathContentEngine.generate()`` pipeline.
 
     Usage::
 
-        writer = TutorDataServiceWriter(database_url="postgresql://...")
+        writer = TutorDataServiceWriter(
+            database_url="postgresql://...",
+            neo4j_uri="bolt://localhost:17687",
+        )
         writer.write_video(
             concept_id="AT-24",
             interest="basketball",
@@ -70,10 +80,23 @@ class TutorDataServiceWriter:
         )
     """
 
-    def __init__(self, database_url: Optional[str] = None):
+    def __init__(
+        self,
+        database_url: Optional[str] = None,
+        neo4j_uri: Optional[str] = None,
+        neo4j_user: Optional[str] = None,
+        neo4j_password: Optional[str] = None,
+    ):
         self._database_url = database_url or os.getenv(
             "TUTOR_DATABASE_URL",
             "postgresql://math_tutor_app:local_dev_password@localhost:15432/math_tutor",
+        )
+        self._neo4j_uri = neo4j_uri or os.getenv(
+            "NEO4J_URI", "bolt://localhost:17687"
+        )
+        self._neo4j_user = neo4j_user or os.getenv("NEO4J_USER", "neo4j")
+        self._neo4j_password = neo4j_password or os.getenv(
+            "NEO4J_PASSWORD", "local_dev_password"
         )
 
     @property
@@ -94,20 +117,26 @@ class TutorDataServiceWriter:
         error_message: Optional[str] = None,
         source: str = "math_content_engine",
     ) -> Optional[str]:
-        """Insert or update a video record in the tutor's PostgreSQL videos table.
+        """Insert or update a video record in both PostgreSQL and Neo4j.
 
-        Uses upsert (ON CONFLICT) so re-generating the same concept/theme/grade
-        updates the existing row rather than raising a unique-constraint error.
+        * **PostgreSQL**: upsert into ``videos`` table (ON CONFLICT on
+          concept_id/theme/grade).
+        * **Neo4j**: MERGE a ``Video`` node keyed on ``engine_video_id`` and
+          create/update a ``DEMONSTRATES`` relationship to the ``Concept``
+          node matching ``concept_id``.
 
-        Returns the UUID string of the created/updated row, or ``None`` on failure.
+        Returns the UUID string of the PG row, or ``None`` on failure.
         """
         theme = map_interest_to_theme(interest)
         grade_val = normalize_grade(grade)
         status = "pre_generated" if success else "failed"
 
+        pg_id: Optional[str] = None
+
+        # --- PostgreSQL ---
         try:
             loop = self._get_or_create_event_loop()
-            return loop.run_until_complete(
+            pg_id = loop.run_until_complete(
                 self._async_write(
                     concept_id=concept_id,
                     theme=theme,
@@ -123,7 +152,22 @@ class TutorDataServiceWriter:
             )
         except Exception:
             logger.exception("Failed to write video to tutor PostgreSQL")
-            return None
+
+        # --- Neo4j ---
+        try:
+            self._write_neo4j(
+                concept_id=concept_id,
+                theme=theme,
+                grade=grade_val,
+                engine_video_id=engine_video_id,
+                status=status,
+                source=source,
+                generation_time_seconds=generation_time_seconds,
+            )
+        except Exception:
+            logger.exception("Failed to write video to Neo4j")
+
+        return pg_id
 
     def read_video(self, video_uuid: str) -> Optional[dict]:
         """Read a video row from the tutor PostgreSQL by UUID.
@@ -137,13 +181,58 @@ class TutorDataServiceWriter:
             logger.exception("Failed to read video from tutor PostgreSQL")
             return None
 
+    def read_neo4j_video(self, engine_video_id: str) -> Optional[dict]:
+        """Read a Video node and its DEMONSTRATES relationship from Neo4j.
+
+        Returns a dict with video node properties plus ``demonstrates_concept``
+        (the concept_id it links to), or ``None`` if not found.
+        """
+        try:
+            from neo4j import GraphDatabase
+
+            driver = GraphDatabase.driver(
+                self._neo4j_uri,
+                auth=(self._neo4j_user, self._neo4j_password),
+            )
+            try:
+                with driver.session() as session:
+                    result = session.run(
+                        """
+                        MATCH (v:Video {engine_video_id: $vid})
+                        OPTIONAL MATCH (v)-[r:DEMONSTRATES]->(c:Concept)
+                        RETURN v, r, c.concept_id AS concept_id
+                        """,
+                        vid=engine_video_id,
+                    )
+                    record = result.single()
+                    if record is None:
+                        return None
+
+                    video_props = dict(record["v"])
+                    video_props["demonstrates_concept"] = record["concept_id"]
+                    if record["r"] is not None:
+                        video_props["demonstrates_props"] = dict(record["r"])
+                    return video_props
+            finally:
+                driver.close()
+        except Exception:
+            logger.exception("Failed to read video from Neo4j")
+            return None
+
     def cleanup_e2e(self, source: str = "math_content_engine") -> None:
-        """Remove videos inserted by this writer (matching source)."""
+        """Remove videos inserted by this writer (matching source) from PG and Neo4j."""
+        # PostgreSQL cleanup
         try:
             loop = self._get_or_create_event_loop()
             loop.run_until_complete(self._async_cleanup(source))
         except Exception:
             logger.exception("Failed to cleanup e2e videos from tutor PostgreSQL")
+
+        # Neo4j cleanup
+        try:
+            self._cleanup_neo4j(source)
+        except Exception:
+            logger.exception("Failed to cleanup e2e videos from Neo4j")
 
     # ------------------------------------------------------------------
     # Private async helpers
@@ -260,3 +349,105 @@ class TutorDataServiceWriter:
             logger.info("Cleaned up tutor PG videos with source=%s: %s", source, deleted)
         finally:
             await conn.close()
+
+    # ------------------------------------------------------------------
+    # Private Neo4j helpers
+    # ------------------------------------------------------------------
+
+    def _write_neo4j(
+        self,
+        *,
+        concept_id: str,
+        theme: str,
+        grade: str,
+        engine_video_id: str,
+        status: str,
+        source: str,
+        generation_time_seconds: Optional[float],
+    ) -> None:
+        """Create/merge a Video node and DEMONSTRATES edge in Neo4j."""
+        from neo4j import GraphDatabase
+
+        driver = GraphDatabase.driver(
+            self._neo4j_uri,
+            auth=(self._neo4j_user, self._neo4j_password),
+        )
+        with driver.session() as session:
+            session.run(
+                """
+                MERGE (v:Video {engine_video_id: $engine_video_id})
+                ON CREATE SET
+                    v.concept_id = $concept_id,
+                    v.theme = $theme,
+                    v.grade = $grade,
+                    v.status = $status,
+                    v.source = $source,
+                    v.generation_time_seconds = $gen_time,
+                    v.created_at = datetime(),
+                    v.updated_at = datetime()
+                ON MATCH SET
+                    v.status = $status,
+                    v.source = $source,
+                    v.generation_time_seconds = $gen_time,
+                    v.updated_at = datetime()
+                """,
+                engine_video_id=engine_video_id,
+                concept_id=concept_id,
+                theme=theme,
+                grade=grade,
+                status=status,
+                source=source,
+                gen_time=generation_time_seconds,
+            )
+
+            # Link Video → Concept via DEMONSTRATES
+            # MERGE the Concept if it doesn't exist yet (engine may
+            # reference concepts not yet seeded), then MERGE the edge.
+            session.run(
+                """
+                MERGE (v:Video {engine_video_id: $engine_video_id})
+                MERGE (c:Concept {concept_id: $concept_id})
+                MERGE (v)-[r:DEMONSTRATES]->(c)
+                ON CREATE SET
+                    r.is_primary = true,
+                    r.demonstration_type = 'step_by_step',
+                    r.created_at = datetime()
+                ON MATCH SET
+                    r.updated_at = datetime()
+                """,
+                engine_video_id=engine_video_id,
+                concept_id=concept_id,
+            )
+        driver.close()
+        logger.info(
+            "Wrote Video node + DEMONSTRATES edge to Neo4j "
+            "(engine_video_id=%s, concept=%s)",
+            engine_video_id,
+            concept_id,
+        )
+
+    def _cleanup_neo4j(self, source: str) -> None:
+        """Remove Video nodes (and their edges) matching source from Neo4j."""
+        from neo4j import GraphDatabase
+
+        driver = GraphDatabase.driver(
+            self._neo4j_uri,
+            auth=(self._neo4j_user, self._neo4j_password),
+        )
+        with driver.session() as session:
+            result = session.run(
+                """
+                MATCH (v:Video {source: $source})
+                DETACH DELETE v
+                RETURN count(v) AS deleted
+                """,
+                source=source,
+            )
+            record = result.single()
+            cnt = record["deleted"] if record else 0
+            logger.info(
+                "Cleaned up Neo4j Video nodes with source=%s: %d deleted",
+                source,
+                cnt,
+            )
+        driver.close()

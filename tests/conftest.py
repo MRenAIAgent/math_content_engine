@@ -5,6 +5,12 @@ Provides shared fixtures for testing integration schemas, publishers, and theme 
 """
 import os
 import pytest
+from dotenv import load_dotenv
+
+# Load .env at collection time so that @pytest.mark.skipif decorators
+# that check os.getenv("ANTHROPIC_API_KEY") see the value.
+# override=True is needed because the shell may export the var as empty.
+load_dotenv(override=True)
 
 
 @pytest.fixture

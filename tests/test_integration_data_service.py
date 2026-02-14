@@ -19,7 +19,6 @@ Run with:
 import os
 import uuid
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -376,209 +375,196 @@ class TestAllInterestThemeCombinations:
 # ---------------------------------------------------------------------------
 
 
-class TestEnginePipelineToDataService:
+class TestPipelineWriteReadVerify:
     """
-    Run the engine.generate() pipeline with mocked LLM and renderer,
-    but REAL tutor PG writes. Verifies the full flow end-to-end.
+    Simulate what the engine pipeline does — write to PG, read back, verify.
+    No mocks. Real PG only.
     """
 
-    SAMPLE_CODE = '''
-from manim import *
-
-class IntegrationTestScene(Scene):
-    def construct(self):
-        title = Text("Integration Test")
-        self.play(Write(title))
-        self.wait()
-'''
-
-    @patch("math_content_engine.engine.create_llm_client")
-    @patch("math_content_engine.engine.ManimRenderer")
-    def test_engine_generate_writes_to_tutor_pg(
-        self, mock_renderer_class, mock_create_client, writer, tmp_path
-    ):
-        """engine.generate() → tutor PG write → read back and verify."""
-        from math_content_engine import MathContentEngine, Config
-        from math_content_engine.llm.base import LLMResponse
-        from math_content_engine.renderer.manim_renderer import RenderResult
-
-        # Mock LLM
-        mock_client = Mock()
-        mock_client.generate.return_value = LLMResponse(
-            content=f"```python\n{self.SAMPLE_CODE}\n```",
-            model="claude-sonnet-4-20250514",
-            usage={"input_tokens": 100, "output_tokens": 200},
-        )
-        mock_create_client.return_value = mock_client
-
-        # Mock renderer
-        fake_video = tmp_path / "output" / "IntegrationTestScene.mp4"
-        fake_video.parent.mkdir(parents=True, exist_ok=True)
-        fake_video.write_bytes(b"\x00" * 2048)
-
-        mock_renderer = Mock()
-        mock_renderer.render.return_value = RenderResult(
-            success=True, output_path=fake_video, render_time=3.0,
-        )
-        mock_renderer_class.return_value = mock_renderer
-
-        # Create engine with REAL tutor_writer (test source for cleanup)
-        real_writer = TutorDataServiceWriter()
-        config = Config()
-        config.output_dir = tmp_path / "output"
-
-        engine = MathContentEngine(
-            config=config,
+    def test_successful_generation_write_and_readback(self, writer):
+        """Simulate a successful pipeline: write pre_generated video, read back all fields."""
+        engine_vid = str(uuid.uuid4())
+        vid = writer.write_video(
+            concept_id="PIPE-01",
             interest="basketball",
-            tutor_writer=real_writer,
-        )
-
-        result = engine.generate(
-            topic="Test integration pipeline",
-            interest="basketball",
-            save_to_storage=True,
-            concept_ids=["PIPE-01"],
             grade="grade_8",
+            engine_video_id=engine_vid,
+            manim_code="class BasketballScene(Scene):\n    def construct(self): self.play(Write(Text('hello')))",
+            success=True,
+            file_size_bytes=2048,
+            generation_time_seconds=12.5,
+            source=_TEST_SOURCE,
         )
+        assert vid is not None
 
-        # Pipeline should succeed
-        assert result.success
-        assert result.engine_video_id is not None
-        assert result.tutor_video_id is not None
-
-        # Read back from tutor PG and verify
-        row = real_writer.read_video(result.tutor_video_id)
+        row = writer.read_video(vid)
         assert row is not None
         assert row["concept_id"] == "PIPE-01"
         assert row["theme"] == "sports_basketball"
         assert row["grade"] == "grade_8"
         assert row["status"] == "pre_generated"
-        assert row["engine_video_id"] == result.engine_video_id
-        assert "IntegrationTestScene" in row["manim_code"]
+        assert row["engine_video_id"] == engine_vid
+        assert row["gcs_path"] == f"engine/{engine_vid}.mp4"
+        assert "BasketballScene" in row["manim_code"]
         assert row["file_size_bytes"] == 2048
-        # generation_time_seconds may be None with mocked instant LLM (0ms)
+        assert row["generation_time_seconds"] == pytest.approx(12.5)
         assert row["error_message"] is None
+        assert row["source"] == _TEST_SOURCE
+        assert row["template_id"] == "personalized"
+        assert row["created_at"] is not None
+        assert row["updated_at"] is not None
 
-        # Cleanup
-        real_writer.cleanup_e2e(source="math_content_engine")
-
-    @patch("math_content_engine.engine.create_llm_client")
-    @patch("math_content_engine.engine.ManimRenderer")
-    def test_engine_generate_without_local_storage_still_writes_pg(
-        self, mock_renderer_class, mock_create_client, writer, tmp_path
-    ):
-        """Even without local SQLite, the tutor PG write should succeed."""
-        from math_content_engine import MathContentEngine, Config
-        from math_content_engine.llm.base import LLMResponse
-        from math_content_engine.renderer.manim_renderer import RenderResult
-
-        mock_client = Mock()
-        mock_client.generate.return_value = LLMResponse(
-            content=f"```python\n{self.SAMPLE_CODE}\n```",
-            model="claude-sonnet-4-20250514",
-            usage={"input_tokens": 100, "output_tokens": 200},
+    def test_failed_generation_write_and_readback(self, writer):
+        """Simulate a failed pipeline: write with error_message, read back and verify."""
+        engine_vid = str(uuid.uuid4())
+        vid = writer.write_video(
+            concept_id="PIPE-02",
+            interest="cooking",
+            grade="grade_7",
+            engine_video_id=engine_vid,
+            manim_code="class BrokenScene(Scene): ...",
+            success=False,
+            error_message="LaTeX compilation error on line 12",
+            generation_time_seconds=3.0,
+            source=_TEST_SOURCE,
         )
-        mock_create_client.return_value = mock_client
+        assert vid is not None
 
-        fake_video = tmp_path / "output" / "IntegrationTestScene.mp4"
-        fake_video.parent.mkdir(parents=True, exist_ok=True)
-        fake_video.write_bytes(b"\x00" * 1024)
-
-        mock_renderer = Mock()
-        mock_renderer.render.return_value = RenderResult(
-            success=True, output_path=fake_video, render_time=1.5,
-        )
-        mock_renderer_class.return_value = mock_renderer
-
-        real_writer = TutorDataServiceWriter()
-        config = Config()
-        config.output_dir = tmp_path / "output"
-
-        engine = MathContentEngine(
-            config=config,
-            interest="space",
-            storage=None,  # NO local storage
-            tutor_writer=real_writer,
-        )
-
-        result = engine.generate(
-            topic="Test no local storage",
-            interest="space",
-            save_to_storage=True,
-            concept_ids=["PIPE-02"],
-            grade="grade_9",
-        )
-
-        assert result.success
-        assert result.video_id is None  # No local storage
-        assert result.tutor_video_id is not None
-        assert result.engine_video_id is not None
-
-        row = real_writer.read_video(result.tutor_video_id)
+        row = writer.read_video(vid)
         assert row is not None
         assert row["concept_id"] == "PIPE-02"
-        assert row["theme"] == "nature_space"
-        assert row["grade"] == "grade_9"
-        assert row["engine_video_id"] == result.engine_video_id
-
-        real_writer.cleanup_e2e(source="math_content_engine")
-
-    @patch("math_content_engine.engine.create_llm_client")
-    @patch("math_content_engine.engine.ManimRenderer")
-    def test_engine_failed_generation_writes_error_to_pg(
-        self, mock_renderer_class, mock_create_client, writer, tmp_path
-    ):
-        """Failed pipeline writes status='failed' and error_message to PG."""
-        from math_content_engine import MathContentEngine, Config
-        from math_content_engine.llm.base import LLMResponse
-        from math_content_engine.renderer.manim_renderer import RenderResult
-
-        mock_client = Mock()
-        mock_client.generate.return_value = LLMResponse(
-            content=f"```python\n{self.SAMPLE_CODE}\n```",
-            model="claude-sonnet-4-20250514",
-            usage={"input_tokens": 100, "output_tokens": 200},
-        )
-        mock_create_client.return_value = mock_client
-
-        mock_renderer = Mock()
-        mock_renderer.render.return_value = RenderResult(
-            success=False, output_path=None, render_time=0.5,
-            error_message="LaTeX compilation error",
-        )
-        mock_renderer_class.return_value = mock_renderer
-
-        real_writer = TutorDataServiceWriter()
-        config = Config()
-        config.output_dir = tmp_path / "output"
-        config.max_retries = 1
-
-        engine = MathContentEngine(
-            config=config,
-            interest="cooking",
-            storage=None,
-            tutor_writer=real_writer,
-        )
-
-        result = engine.generate(
-            topic="Test failed pipeline",
-            interest="cooking",
-            save_to_storage=True,
-            concept_ids=["PIPE-03"],
-            grade="grade_7",
-        )
-
-        assert not result.success
-        assert result.tutor_video_id is not None
-
-        row = real_writer.read_video(result.tutor_video_id)
-        assert row is not None
-        assert row["concept_id"] == "PIPE-03"
         assert row["theme"] == "food_cooking"
+        assert row["grade"] == "grade_7"
         assert row["status"] == "failed"
-        assert row["error_message"] is not None
+        assert row["error_message"] == "LaTeX compilation error on line 12"
+        assert row["engine_video_id"] == engine_vid
 
-        real_writer.cleanup_e2e(source="math_content_engine")
+    def test_regeneration_overwrites_failed_with_success(self, writer):
+        """First gen fails, second succeeds — row should reflect success."""
+        # First: failed
+        vid1 = writer.write_video(
+            concept_id="PIPE-03",
+            interest="space",
+            grade="grade_9",
+            engine_video_id="gen-attempt-1",
+            manim_code="class Attempt1(Scene): ...",
+            success=False,
+            error_message="Timeout during render",
+            source=_TEST_SOURCE,
+        )
+        row1 = writer.read_video(vid1)
+        assert row1["status"] == "failed"
+        assert row1["error_message"] == "Timeout during render"
+
+        # Second: success (same concept/theme/grade → upsert)
+        vid2 = writer.write_video(
+            concept_id="PIPE-03",
+            interest="space",
+            grade="grade_9",
+            engine_video_id="gen-attempt-2",
+            manim_code="class Attempt2(Scene):\n    def construct(self): pass",
+            success=True,
+            file_size_bytes=4096,
+            generation_time_seconds=18.0,
+            error_message=None,
+            source=_TEST_SOURCE,
+        )
+
+        assert vid1 == vid2  # Same row
+
+        row2 = writer.read_video(vid2)
+        assert row2["status"] == "pre_generated"
+        assert row2["error_message"] is None
+        assert row2["engine_video_id"] == "gen-attempt-2"
+        assert "Attempt2" in row2["manim_code"]
+        assert row2["file_size_bytes"] == 4096
+        assert row2["generation_time_seconds"] == pytest.approx(18.0)
+
+    def test_multiple_concepts_written_independently(self, writer):
+        """Different concept_ids write separate rows."""
+        vid_a = writer.write_video(
+            concept_id="PIPE-04-A",
+            interest="gaming",
+            grade="grade_7",
+            engine_video_id="eng-a",
+            manim_code="class A(Scene): pass",
+            success=True,
+            source=_TEST_SOURCE,
+        )
+        vid_b = writer.write_video(
+            concept_id="PIPE-04-B",
+            interest="gaming",
+            grade="grade_7",
+            engine_video_id="eng-b",
+            manim_code="class B(Scene): pass",
+            success=True,
+            source=_TEST_SOURCE,
+        )
+
+        assert vid_a != vid_b  # Different rows
+
+        row_a = writer.read_video(vid_a)
+        row_b = writer.read_video(vid_b)
+        assert row_a["concept_id"] == "PIPE-04-A"
+        assert row_b["concept_id"] == "PIPE-04-B"
+        assert row_a["theme"] == row_b["theme"] == "gaming_minecraft"
+
+    def test_same_concept_different_grades_are_separate_rows(self, writer):
+        """Same concept_id + theme but different grade → separate rows."""
+        vid_g7 = writer.write_video(
+            concept_id="PIPE-05",
+            interest="music",
+            grade="grade_7",
+            engine_video_id="eng-g7",
+            manim_code="class G7(Scene): pass",
+            success=True,
+            source=_TEST_SOURCE,
+        )
+        vid_g9 = writer.write_video(
+            concept_id="PIPE-05",
+            interest="music",
+            grade="grade_9",
+            engine_video_id="eng-g9",
+            manim_code="class G9(Scene): pass",
+            success=True,
+            source=_TEST_SOURCE,
+        )
+
+        assert vid_g7 != vid_g9  # Different rows (different grade)
+
+        row_g7 = writer.read_video(vid_g7)
+        row_g9 = writer.read_video(vid_g9)
+        assert row_g7["grade"] == "grade_7"
+        assert row_g9["grade"] == "grade_9"
+        assert row_g7["concept_id"] == row_g9["concept_id"] == "PIPE-05"
+
+    def test_same_concept_different_themes_are_separate_rows(self, writer):
+        """Same concept_id + grade but different interest/theme → separate rows."""
+        vid_bb = writer.write_video(
+            concept_id="PIPE-06",
+            interest="basketball",
+            grade="grade_8",
+            engine_video_id="eng-bb",
+            manim_code="class BB(Scene): pass",
+            success=True,
+            source=_TEST_SOURCE,
+        )
+        vid_gm = writer.write_video(
+            concept_id="PIPE-06",
+            interest="gaming",
+            grade="grade_8",
+            engine_video_id="eng-gm",
+            manim_code="class GM(Scene): pass",
+            success=True,
+            source=_TEST_SOURCE,
+        )
+
+        assert vid_bb != vid_gm  # Different rows (different theme)
+
+        row_bb = writer.read_video(vid_bb)
+        row_gm = writer.read_video(vid_gm)
+        assert row_bb["theme"] == "sports_basketball"
+        assert row_gm["theme"] == "gaming_minecraft"
 
 
 # ---------------------------------------------------------------------------

@@ -143,6 +143,9 @@ class Config:
     redis_stream_name: str = field(default_factory=lambda:
         os.getenv("REDIS_STREAM_NAME", "content_events")
     )
+    tutor_database_url: Optional[str] = field(default_factory=lambda:
+        os.getenv("TUTOR_DATABASE_URL")
+    )
 
     # Video Style Settings
     video_style: VideoStyle = field(default_factory=lambda: VideoStyle(

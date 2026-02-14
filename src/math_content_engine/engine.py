@@ -4,6 +4,7 @@ Main Math Content Engine - orchestrates LLM generation and Manim rendering.
 
 import logging
 import time
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING
@@ -36,6 +37,7 @@ class AnimationResult:
     render_time: float = 0.0
     video_id: Optional[str] = None  # ID assigned when stored in local database
     tutor_video_id: Optional[str] = None  # UUID from agentic_math_tutor PostgreSQL
+    engine_video_id: Optional[str] = None  # Independent UUID for cross-store linking
 
 
 class MathContentEngine:
@@ -294,6 +296,10 @@ class MathContentEngine:
         grade: Optional[str] = None,
     ) -> AnimationResult:
         """Save video metadata to storage and return updated result with video_id."""
+        # Generate a stable engine_video_id for cross-store linking
+        engine_vid = str(uuid.uuid4())
+        result.engine_video_id = engine_vid
+
         file_size_bytes = None
         if result.video_path and result.video_path.exists():
             file_size_bytes = result.video_path.stat().st_size
@@ -334,7 +340,7 @@ class MathContentEngine:
                 logger.warning(f"Failed to save video metadata to local storage: {e}")
 
         # --- 2. Save to agentic_math_tutor PostgreSQL ---
-        if self.tutor_writer and result.video_id:
+        if self.tutor_writer:
             try:
                 first_concept = concept_ids[0] if concept_ids else topic.replace(" ", "_")[:50]
                 gen_time_seconds = (
@@ -346,11 +352,12 @@ class MathContentEngine:
                     concept_id=first_concept,
                     interest=interest or self.interest,
                     grade=grade,
-                    engine_video_id=result.video_id,
+                    engine_video_id=engine_vid,
                     manim_code=result.code,
                     success=result.success,
                     file_size_bytes=file_size_bytes,
                     generation_time_seconds=gen_time_seconds,
+                    error_message=result.error_message,
                 )
                 if tutor_uuid:
                     logger.info(f"Saved video to tutor PostgreSQL: {tutor_uuid}")

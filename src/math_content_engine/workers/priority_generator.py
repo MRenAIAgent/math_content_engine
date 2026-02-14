@@ -90,10 +90,18 @@ def generate_video_sync(
     db_path = Path(os.getenv("MATH_ENGINE_DB_PATH", "./data/videos.db"))
     storage = VideoStorage(db_path)
 
+    # Optionally create TutorDataServiceWriter for PostgreSQL integration
+    tutor_writer = None
+    tutor_db_url = os.getenv("TUTOR_DATABASE_URL")
+    if tutor_db_url:
+        from math_content_engine.integration.tutor_writer import TutorDataServiceWriter
+        tutor_writer = TutorDataServiceWriter(database_url=tutor_db_url)
+
     engine = MathContentEngine(
         config=config,
         interest=interest if interest != "neutral" else None,
         storage=storage,
+        tutor_writer=tutor_writer,
     )
 
     # Adapt topic from concept_id if not provided

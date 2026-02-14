@@ -96,10 +96,17 @@ async def generate_content(request: GenerateRequest) -> GenerateResponse:
 
         storage = VideoStorage(Path(db_path_str))
 
+        # Optionally create tutor writer for PostgreSQL integration
+        tutor_writer = None
+        if config.tutor_database_url:
+            from math_content_engine.integration.tutor_writer import TutorDataServiceWriter
+            tutor_writer = TutorDataServiceWriter(database_url=config.tutor_database_url)
+
         engine = MathContentEngine(
             config=config,
             interest=interest if interest != "neutral" else None,
             storage=storage,
+            tutor_writer=tutor_writer,
         )
 
         # Run the synchronous generate() in a thread so we don't block the
@@ -111,6 +118,8 @@ async def generate_content(request: GenerateRequest) -> GenerateResponse:
             audience_level=request.audience_level,
             interest=interest if interest != "neutral" else None,
             student_profile=student_profile,
+            concept_ids=[request.concept_id],
+            grade=request.grade,
         )
 
         # Optionally publish to Redis stream

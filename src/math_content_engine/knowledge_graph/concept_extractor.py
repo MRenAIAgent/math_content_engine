@@ -43,7 +43,7 @@ Return ONLY valid JSON, no other text:
 {{
     "matched_concepts": [
         {{
-            "concept_id": "AT-24",
+            "concept_id": "algebra.pre_algebra.two_step_equations",
             "name": "Two-Step Linear Equations",
             "confidence": 0.95,
             "evidence": "short quote or description showing where this concept appears"
@@ -51,12 +51,12 @@ Return ONLY valid JSON, no other text:
     ],
     "new_concepts": [
         {{
-            "suggested_id": "LF-41",
+            "suggested_id": "algebra.linear_functions.new_concept_name",
             "name": "Concept Name",
             "description": "What this concept teaches",
-            "category": "Linear",
+            "category": "linear_functions",
             "difficulty": 3,
-            "prerequisites": ["AT-24"],
+            "prerequisites": ["algebra.pre_algebra.two_step_equations"],
             "examples": ["Example problem 1"]
         }}
     ],
@@ -65,8 +65,10 @@ Return ONLY valid JSON, no other text:
 
 ## Rules:
 - Only match concepts you are confident appear in the content (confidence >= 0.7)
-- For new concepts, use ID prefixes: NS- (Number Sense), AT- (Pre-Algebra), \
-LF- (Linear), Q- (Quadratic), EXP- (Exponential), POL- (Polynomials), FN- (Function Tools)
+- Concept IDs use hierarchical dot notation: algebra.{{topic}}.{{concept}}
+  Topics include: number_sense, pre_algebra, linear_functions, quadratics, \
+exponential_functions, polynomials, function_tools
+- For new concepts, follow the same naming convention: algebra.{{topic}}.{{short_snake_case_name}}
 - Difficulty scale: 1 (basic) to 5 (advanced)
 - Prerequisites should reference existing concept IDs when possible
 - Keep evidence snippets under 100 characters

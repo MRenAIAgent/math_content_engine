@@ -24,7 +24,7 @@ generation_router = APIRouter(prefix="/api/v1/generate", tags=["generation"])
 class GenerateRequest(BaseModel):
     """Request body for on-demand content generation."""
 
-    concept_id: str = Field(..., description="Concept ID (e.g. 'AT-24')")
+    concept_id: str = Field(..., description="Concept ID (e.g. 'algebra.pre_algebra.two_step_equations')")
     topic: str = Field(..., description="Human-readable topic name")
     theme: str = Field(default="neutral", description="Content theme (e.g. 'sports_basketball')")
     grade: str = Field(default="grade_8", description="Target grade level")
@@ -96,11 +96,19 @@ async def generate_content(request: GenerateRequest) -> GenerateResponse:
 
         storage = VideoStorage(Path(db_path_str))
 
-        # Optionally create tutor writer for PostgreSQL integration
+        # Create tutor writer for PostgreSQL + Neo4j integration.
+        # TutorDataServiceWriter falls back to local Docker defaults when no
+        # explicit URL is provided, so we always attempt to create it.
         tutor_writer = None
-        if config.tutor_database_url:
+        try:
             from math_content_engine.integration.tutor_writer import TutorDataServiceWriter
-            tutor_writer = TutorDataServiceWriter(database_url=config.tutor_database_url)
+            if config.tutor_database_url:
+                tutor_writer = TutorDataServiceWriter(database_url=config.tutor_database_url)
+            else:
+                # Let the writer use its own built-in default (local Docker)
+                tutor_writer = TutorDataServiceWriter()
+        except Exception:
+            logger.debug("TutorDataServiceWriter not available, skipping PG persistence")
 
         engine = MathContentEngine(
             config=config,

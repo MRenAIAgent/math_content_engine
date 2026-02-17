@@ -150,7 +150,7 @@ class MathContentEngine:
             interest: Optional interest override for personalization (e.g., "basketball")
             student_profile: Optional student profile for individual personalization
             save_to_storage: Whether to save video metadata to storage (if storage is configured)
-            concept_ids: Optional list of concept IDs this video covers (e.g., ["AT-24"])
+            concept_ids: Optional list of concept IDs this video covers (e.g., ["algebra.pre_algebra.two_step_equations"])
             grade: Optional grade level (e.g., "grade_8")
 
         Returns:

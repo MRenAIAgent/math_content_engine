@@ -12,6 +12,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from ...config import Config
 from ...personalization import get_interest_profile, list_available_interests
 from .models import (
+    DataServiceStatus,
     InterestDetail,
     PlaygroundConfig,
     PromptPreview,
@@ -23,6 +24,7 @@ from .models import (
 )
 from .pipeline_runner import (
     PLAYGROUND_OUTPUT_DIR,
+    check_data_service_status,
     run_animation_generation,
     run_concept_extraction,
     run_personalization,
@@ -53,6 +55,18 @@ _task_manager = TaskManager()
 async def get_config() -> PlaygroundConfig:
     """Return non-sensitive engine configuration for the UI."""
     config = Config.from_env()
+
+    # Probe data service connectivity (non-blocking — failures are swallowed)
+    try:
+        ds_status_dict = check_data_service_status()
+        ds_status = DataServiceStatus(**ds_status_dict)
+    except Exception:
+        ds_status = DataServiceStatus(
+            postgres_available=False,
+            neo4j_available=False,
+            message="Status check failed",
+        )
+
     return PlaygroundConfig(
         llm_provider=config.llm_provider.value,
         model=config.get_model(),
@@ -62,6 +76,7 @@ async def get_config() -> PlaygroundConfig:
         temperature=config.temperature,
         max_tokens=config.max_tokens,
         available_interests=list(list_available_interests()),
+        data_service=ds_status,
     )
 
 
@@ -182,6 +197,7 @@ async def execute_stage(req: StageExecuteRequest) -> dict:
                 config=config,
                 system_prompt_override=sys_override,
                 user_prompt_override=usr_override,
+                grade=req.grade,
             )
         )
 
@@ -222,6 +238,8 @@ async def execute_stage(req: StageExecuteRequest) -> dict:
                 favorite_figure=req.favorite_figure,
                 favorite_team=req.favorite_team,
                 textbook_content=req.textbook_content,
+                concept_ids=req.concept_ids,
+                grade=req.grade,
             )
         )
 
@@ -236,6 +254,10 @@ async def execute_stage(req: StageExecuteRequest) -> dict:
                 scene_name=req.scene_name,
                 quality=req.video_quality,
                 config=config,
+                concept_ids=req.concept_ids,
+                interest=req.interest,
+                grade=req.grade,
+                topic=req.topic,
             )
         )
 

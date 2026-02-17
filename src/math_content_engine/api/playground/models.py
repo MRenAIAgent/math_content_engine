@@ -96,6 +96,15 @@ class StageExecuteRequest(BaseModel):
     favorite_figure: Optional[str] = None
     favorite_team: Optional[str] = None
 
+    # Data service integration
+    concept_ids: Optional[List[str]] = Field(
+        None,
+        description="Concept IDs this content covers (e.g. ['algebra1.linear_equations.general_equations'])",
+    )
+    grade: Optional[str] = Field(
+        None, description="Target grade level (e.g. 'grade_8')"
+    )
+
     # For render stage
     code: Optional[str] = None
     scene_name: Optional[str] = None
@@ -145,6 +154,14 @@ class InterestDetail(BaseModel):
     visual_theme: Dict[str, str]
 
 
+class DataServiceStatus(BaseModel):
+    """Connectivity status for the tutor data service backends."""
+
+    postgres_available: bool = False
+    neo4j_available: bool = False
+    message: str = "Not configured"
+
+
 class PlaygroundConfig(BaseModel):
     """Non-sensitive engine configuration for the UI."""
 
@@ -158,6 +175,7 @@ class PlaygroundConfig(BaseModel):
     available_interests: List[str]
     available_styles: List[str] = ["dark", "light"]
     available_qualities: List[str] = ["l", "m", "h", "p", "k"]
+    data_service: Optional[DataServiceStatus] = None
 
 
 # ---------------------------------------------------------------------------

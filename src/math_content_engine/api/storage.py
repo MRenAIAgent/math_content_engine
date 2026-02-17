@@ -47,6 +47,9 @@ class VideoStorage:
                     video_path TEXT NOT NULL,
                     code TEXT NOT NULL,
 
+                    concept_ids TEXT,
+                    grade TEXT,
+
                     requirements TEXT,
                     audience_level TEXT DEFAULT 'high school',
                     interest TEXT,
@@ -75,6 +78,18 @@ class VideoStorage:
                 )
             """)
 
+            # Migrate existing tables: add columns if they don't exist
+            existing_cols = {
+                row[1]
+                for row in conn.execute("PRAGMA table_info(videos)").fetchall()
+            }
+            if "concept_ids" not in existing_cols:
+                conn.execute("ALTER TABLE videos ADD COLUMN concept_ids TEXT")
+                logger.info("Migrated: added concept_ids column to videos table")
+            if "grade" not in existing_cols:
+                conn.execute("ALTER TABLE videos ADD COLUMN grade TEXT")
+                logger.info("Migrated: added grade column to videos table")
+
             # Create indexes for common queries
             conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_videos_topic ON videos(topic)
@@ -90,6 +105,9 @@ class VideoStorage:
             """)
             conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_videos_success ON videos(success)
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_videos_grade ON videos(grade)
             """)
 
             conn.commit()
@@ -110,6 +128,8 @@ class VideoStorage:
             scene_name=video.scene_name,
             video_path=video.video_path,
             code=video.code,
+            concept_ids=video.concept_ids,
+            grade=video.grade,
             requirements=video.requirements,
             audience_level=video.audience_level,
             interest=video.interest,
@@ -134,6 +154,7 @@ class VideoStorage:
             conn.execute("""
                 INSERT INTO videos (
                     id, topic, scene_name, video_path, code,
+                    concept_ids, grade,
                     requirements, audience_level, interest, style, quality,
                     llm_provider, llm_model, input_tokens, output_tokens,
                     generation_attempts, render_attempts, total_attempts,
@@ -143,6 +164,7 @@ class VideoStorage:
                     created_at, updated_at
                 ) VALUES (
                     ?, ?, ?, ?, ?,
+                    ?, ?,
                     ?, ?, ?, ?, ?,
                     ?, ?, ?, ?,
                     ?, ?, ?,
@@ -157,6 +179,8 @@ class VideoStorage:
                 metadata.scene_name,
                 metadata.video_path,
                 metadata.code,
+                json.dumps(metadata.concept_ids),
+                metadata.grade,
                 metadata.requirements,
                 metadata.audience_level,
                 metadata.interest,
@@ -236,6 +260,10 @@ class VideoStorage:
         if params.interest:
             conditions.append("interest = ?")
             values.append(params.interest)
+
+        if params.grade:
+            conditions.append("grade = ?")
+            values.append(params.grade)
 
         if params.style:
             conditions.append("style = ?")
@@ -333,6 +361,8 @@ class VideoStorage:
             scene_name=row["scene_name"],
             video_path=row["video_path"],
             code=row["code"],
+            concept_ids=json.loads(row["concept_ids"] or "[]"),
+            grade=row["grade"],
             requirements=row["requirements"],
             audience_level=row["audience_level"] or "high school",
             interest=row["interest"],

@@ -2,7 +2,7 @@
   "name": "K-12 Algebra",
   "concepts": [
     {
-      "id": "NS-01",
+      "id": "algebra.number_sense.counting_up_down",
       "name": "Counting Up/Down",
       "description": "Count forward or backward by 1s within 1,000.",
       "difficulty": 1,
@@ -15,14 +15,14 @@
       "grade_level": "",
       "prerequisites": [],
       "dependents": [
-        "NS-03",
-        "NS-04",
-        "NS-02"
+        "algebra.number_sense.commutative_property",
+        "algebra.number_sense.associative_property",
+        "algebra.number_sense.place_value_to_millions"
       ],
       "related": []
     },
     {
-      "id": "NS-02",
+      "id": "algebra.number_sense.place_value_to_millions",
       "name": "Place Value to 1,000,000",
       "description": "Identify the value of each digit up to the millions place.",
       "difficulty": 1,
@@ -34,35 +34,35 @@
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-01"
+        "algebra.number_sense.counting_up_down"
       ],
       "dependents": [
-        "NS-06"
+        "algebra.number_sense.multiplication_facts"
       ],
       "related": []
     },
     {
-      "id": "NS-03",
+      "id": "algebra.number_sense.commutative_property",
       "name": "Commutative Property",
-      "description": "Understand a+b=b+a and a\u00d7b=b\u00d7a.",
+      "description": "Understand a+b=b+a and a×b=b×a.",
       "difficulty": 1,
       "time_to_master": 60,
       "category": "Number Sense",
       "examples": [
         "Show that 5+9 = 9+5.",
-        "Is 3\u00d77 equal to 7\u00d73? Explain."
+        "Is 3×7 equal to 7×3? Explain."
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-01"
+        "algebra.number_sense.counting_up_down"
       ],
       "dependents": [
-        "NS-05"
+        "algebra.number_sense.identity_and_inverse_properties"
       ],
       "related": []
     },
     {
-      "id": "NS-04",
+      "id": "algebra.number_sense.associative_property",
       "name": "Associative Property",
       "description": "Understand (a+b)+c=a+(b+c) and (ab)c=a(bc).",
       "difficulty": 1,
@@ -70,19 +70,19 @@
       "category": "Number Sense",
       "examples": [
         "Rewrite 2+(4+6) without parentheses.",
-        "Does (3\u00d75)\u00d72 equal 3\u00d7(5\u00d72)?"
+        "Does (3×5)×2 equal 3×(5×2)?"
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-01"
+        "algebra.number_sense.counting_up_down"
       ],
       "dependents": [
-        "NS-05"
+        "algebra.number_sense.identity_and_inverse_properties"
       ],
       "related": []
     },
     {
-      "id": "NS-05",
+      "id": "algebra.number_sense.identity_and_inverse_properties",
       "name": "Identity & Inverse Properties",
       "description": "Additive identity 0, multiplicative identity 1, and inverses.",
       "difficulty": 1,
@@ -90,125 +90,125 @@
       "category": "Number Sense",
       "examples": [
         "Find the additive inverse of 8.",
-        "What is the multiplicative inverse of 4\u20445?"
+        "What is the multiplicative inverse of 4⁄5?"
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-03",
-        "NS-04"
+        "algebra.number_sense.commutative_property",
+        "algebra.number_sense.associative_property"
       ],
       "dependents": [
-        "NS-11",
-        "NS-12"
+        "algebra.number_sense.greatest_common_factor",
+        "algebra.number_sense.least_common_multiple"
       ],
       "related": []
     },
     {
-      "id": "NS-06",
-      "name": "Multiplication Facts 0\u201312",
+      "id": "algebra.number_sense.multiplication_facts",
+      "name": "Multiplication Facts 0–12",
       "description": "Recall single-digit products quickly.",
       "difficulty": 2,
       "time_to_master": 90,
       "category": "Number Sense",
       "examples": [
-        "Give 8\u00d77 in under 3 seconds.",
-        "Complete the table: 9\u00d7__ = 63."
+        "Give 8×7 in under 3 seconds.",
+        "Complete the table: 9×__ = 63."
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-02"
+        "algebra.number_sense.place_value_to_millions"
       ],
       "dependents": [
-        "AT-19",
-        "NS-07",
-        "NS-13"
+        "algebra.pre_algebra.distributive_property",
+        "algebra.number_sense.division_facts",
+        "algebra.number_sense.integer_addition_subtraction"
       ],
       "related": []
     },
     {
-      "id": "NS-07",
-      "name": "Division Facts 0\u201312",
+      "id": "algebra.number_sense.division_facts",
+      "name": "Division Facts 0–12",
       "description": "Recall single-digit division facts quickly.",
       "difficulty": 2,
       "time_to_master": 90,
       "category": "Number Sense",
       "examples": [
-        "What is 56 \u00f7 8?",
-        "Complete: __ \u00f7 9 = 6."
+        "What is 56 ÷ 8?",
+        "Complete: __ ÷ 9 = 6."
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-06"
+        "algebra.number_sense.multiplication_facts"
       ],
       "dependents": [
-        "NS-08"
+        "algebra.number_sense.fractions_as_part_whole"
       ],
       "related": []
     },
     {
-      "id": "NS-08",
-      "name": "Fractions as Part\u2013Whole",
+      "id": "algebra.number_sense.fractions_as_part_whole",
+      "name": "Fractions as Part–Whole",
       "description": "Model and name simple fractions.",
       "difficulty": 2,
       "time_to_master": 120,
       "category": "Number Sense",
       "examples": [
-        "Shade 3\u20448 of a rectangle.",
+        "Shade 3⁄8 of a rectangle.",
         "Write the fraction for 2 red marbles out of 5."
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-07"
+        "algebra.number_sense.division_facts"
       ],
       "dependents": [
-        "NS-09"
+        "algebra.number_sense.equivalent_fractions"
       ],
       "related": []
     },
     {
-      "id": "NS-09",
+      "id": "algebra.number_sense.equivalent_fractions",
       "name": "Equivalent Fractions",
       "description": "Generate and recognize equal fractions.",
       "difficulty": 2,
       "time_to_master": 90,
       "category": "Number Sense",
       "examples": [
-        "Fill in: 3\u20445 = ___\u204415.",
-        "Are 4\u20446 and 2\u20443 equivalent?"
+        "Fill in: 3⁄5 = ___⁄15.",
+        "Are 4⁄6 and 2⁄3 equivalent?"
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-08"
+        "algebra.number_sense.fractions_as_part_whole"
       ],
       "dependents": [
-        "NS-10"
+        "algebra.number_sense.fraction_decimal_conversion"
       ],
       "related": []
     },
     {
-      "id": "NS-10",
+      "id": "algebra.number_sense.fraction_decimal_conversion",
       "name": "Fraction-Decimal Conversion",
       "description": "Convert terminating fractions to decimals and back.",
       "difficulty": 2,
       "time_to_master": 120,
       "category": "Number Sense",
       "examples": [
-        "Write 3\u20448 as a decimal (round to 0.001).",
+        "Write 3⁄8 as a decimal (round to 0.001).",
         "Express 0.75 as a fraction in simplest form."
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-09"
+        "algebra.number_sense.equivalent_fractions"
       ],
       "dependents": [
-        "AT-17"
+        "algebra.pre_algebra.translate_expressions"
       ],
       "related": []
     },
     {
-      "id": "NS-11",
+      "id": "algebra.number_sense.greatest_common_factor",
       "name": "Greatest Common Factor",
-      "description": "Find GCF of two whole numbers \u2264100.",
+      "description": "Find GCF of two whole numbers ≤100.",
       "difficulty": 2,
       "time_to_master": 90,
       "category": "Number Sense",
@@ -218,17 +218,17 @@
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-05"
+        "algebra.number_sense.identity_and_inverse_properties"
       ],
       "dependents": [
-        "POL-52"
+        "algebra.polynomials.factor_gcf"
       ],
       "related": []
     },
     {
-      "id": "NS-12",
+      "id": "algebra.number_sense.least_common_multiple",
       "name": "Least Common Multiple",
-      "description": "Find LCM of two whole numbers \u226450.",
+      "description": "Find LCM of two whole numbers ≤50.",
       "difficulty": 2,
       "time_to_master": 90,
       "category": "Number Sense",
@@ -238,180 +238,180 @@
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-05"
+        "algebra.number_sense.identity_and_inverse_properties"
       ],
       "dependents": [
-        "POL-52"
+        "algebra.polynomials.factor_gcf"
       ],
       "related": []
     },
     {
-      "id": "NS-13",
+      "id": "algebra.number_sense.integer_addition_subtraction",
       "name": "Integer Addition/Subtraction",
       "description": "Add and subtract positive and negative integers.",
       "difficulty": 2,
       "time_to_master": 120,
       "category": "Number Sense",
       "examples": [
-        "Evaluate \u22127 + 12.",
-        "Find 9 \u2212 (\u22124)."
+        "Evaluate −7 + 12.",
+        "Find 9 − (−4)."
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-06"
+        "algebra.number_sense.multiplication_facts"
       ],
       "dependents": [
-        "NS-14",
-        "NS-15"
+        "algebra.number_sense.integer_multiplication_division",
+        "algebra.number_sense.absolute_value"
       ],
       "related": []
     },
     {
-      "id": "NS-14",
+      "id": "algebra.number_sense.integer_multiplication_division",
       "name": "Integer Multiplication/Division",
       "description": "Multiply and divide signed integers.",
       "difficulty": 3,
       "time_to_master": 120,
       "category": "Number Sense",
       "examples": [
-        "Compute (\u22126)(\u22123).",
-        "Evaluate \u221248 \u00f7 6."
+        "Compute (−6)(−3).",
+        "Evaluate −48 ÷ 6."
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-13"
+        "algebra.number_sense.integer_addition_subtraction"
       ],
       "dependents": [
-        "EXP-41",
-        "NS-16"
+        "algebra.exponential_functions.exponent_product_rule",
+        "algebra.number_sense.order_of_operations"
       ],
       "related": []
     },
     {
-      "id": "NS-15",
+      "id": "algebra.number_sense.absolute_value",
       "name": "Absolute Value as Distance",
       "description": "Interpret |a| as distance from 0 on the number line.",
       "difficulty": 2,
       "time_to_master": 60,
       "category": "Number Sense",
       "examples": [
-        "Find |\u221211|.",
-        "Which has greater absolute value: \u22125 or 4?"
+        "Find |−11|.",
+        "Which has greater absolute value: −5 or 4?"
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-13"
+        "algebra.number_sense.integer_addition_subtraction"
       ],
       "dependents": [
-        "AT-22",
-        "AT-28"
+        "algebra.pre_algebra.one_step_equations_add_subtract",
+        "algebra.pre_algebra.coordinate_plane_plotting"
       ],
       "related": []
     },
     {
-      "id": "NS-16",
+      "id": "algebra.number_sense.order_of_operations",
       "name": "Order of Operations",
       "description": "Apply PEMDAS to simplify numeric expressions.",
       "difficulty": 3,
       "time_to_master": 90,
       "category": "Number Sense",
       "examples": [
-        "Simplify 3+4\u00d72.",
-        "Evaluate (5+3)\u00b2\u22126."
+        "Simplify 3+4×2.",
+        "Evaluate (5+3)²−6."
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-14"
+        "algebra.number_sense.integer_multiplication_division"
       ],
       "dependents": [
-        "AT-24"
+        "algebra.pre_algebra.two_step_linear_equations"
       ],
       "related": []
     },
     {
-      "id": "AT-17",
+      "id": "algebra.pre_algebra.translate_expressions",
       "name": "Translate Expressions",
       "description": "Convert word problems to algebraic expressions",
       "difficulty": 2,
       "time_to_master": 90,
       "category": "Pre-Algebra",
       "examples": [
-        "'5 more than x' \u2192 x + 5",
-        "'twice a number' \u2192 2n"
+        "'5 more than x' → x + 5",
+        "'twice a number' → 2n"
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-10"
+        "algebra.number_sense.fraction_decimal_conversion"
       ],
       "dependents": [
-        "AT-18"
+        "algebra.pre_algebra.identify_like_terms"
       ],
       "related": []
     },
     {
-      "id": "AT-18",
+      "id": "algebra.pre_algebra.identify_like_terms",
       "name": "Identify Like Terms",
       "description": "Spot terms with identical variable part.",
       "difficulty": 2,
       "time_to_master": 60,
       "category": "Pre-Algebra",
       "examples": [
-        "Circle the like terms: 3x, 7, \u22122x, 4x.",
-        "How many like-term groups in 5y\u00b2 \u2212 4y + 3y\u00b2 + 6?"
+        "Circle the like terms: 3x, 7, −2x, 4x.",
+        "How many like-term groups in 5y² − 4y + 3y² + 6?"
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-17"
+        "algebra.pre_algebra.translate_expressions"
       ],
       "dependents": [
-        "AT-21"
+        "algebra.pre_algebra.evaluate_expression"
       ],
       "related": []
     },
     {
-      "id": "AT-19",
+      "id": "algebra.pre_algebra.distributive_property",
       "name": "Distributive Property",
       "description": "Expand a(b+c) and factor out common factor.",
       "difficulty": 3,
       "time_to_master": 90,
       "category": "Pre-Algebra",
       "examples": [
-        "Expand 3(2x\u22125).",
+        "Expand 3(2x−5).",
         "Factor 15x+10."
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-06"
+        "algebra.number_sense.multiplication_facts"
       ],
       "dependents": [
-        "POL-50",
-        "AT-21"
+        "algebra.polynomials.multiply_monomial_polynomial",
+        "algebra.pre_algebra.evaluate_expression"
       ],
       "related": []
     },
     {
-      "id": "AT-20",
+      "id": "algebra.pre_algebra.combine_like_terms",
       "name": "Combine Like Terms",
       "description": "Add/subtract coefficients of like terms.",
       "difficulty": 3,
       "time_to_master": 90,
       "category": "Pre-Algebra",
       "examples": [
-        "Simplify 4x + 7x \u2212 3.",
-        "Combine: 5y\u00b2 \u2212 2y + 7y\u00b2."
+        "Simplify 4x + 7x − 3.",
+        "Combine: 5y² − 2y + 7y²."
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-21"
+        "algebra.pre_algebra.evaluate_expression"
       ],
       "dependents": [
-        "AT-22",
-        "AT-23"
+        "algebra.pre_algebra.one_step_equations_add_subtract",
+        "algebra.pre_algebra.one_step_equations_multiply_divide"
       ],
       "related": []
     },
     {
-      "id": "AT-21",
+      "id": "algebra.pre_algebra.evaluate_expression",
       "name": "Evaluate Expression",
       "description": "Substitute values and calculate algebraic expressions",
       "difficulty": 3,
@@ -423,59 +423,59 @@
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-18",
-        "AT-19"
+        "algebra.pre_algebra.identify_like_terms",
+        "algebra.pre_algebra.distributive_property"
       ],
       "dependents": [
-        "POL-49",
-        "AT-20"
+        "algebra.polynomials.add_subtract_polynomials",
+        "algebra.pre_algebra.combine_like_terms"
       ],
       "related": []
     },
     {
-      "id": "AT-22",
-      "name": "One-Step Equations (+/\u2212)",
-      "description": "Solve x\u00b1a=b.",
+      "id": "algebra.pre_algebra.one_step_equations_add_subtract",
+      "name": "One-Step Equations (+/−)",
+      "description": "Solve x±a=b.",
       "difficulty": 2,
       "time_to_master": 90,
       "category": "Pre-Algebra",
       "examples": [
-        "Solve x\u22127=12.",
-        "Find m+5=\u22122."
+        "Solve x−7=12.",
+        "Find m+5=−2."
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-20",
-        "NS-15"
+        "algebra.pre_algebra.combine_like_terms",
+        "algebra.number_sense.absolute_value"
       ],
       "dependents": [
-        "AT-24",
-        "LF-35"
+        "algebra.pre_algebra.two_step_linear_equations",
+        "algebra.linear_functions.graph_linear_inequality_1var"
       ],
       "related": []
     },
     {
-      "id": "AT-23",
-      "name": "One-Step Equations (\u00d7/\u00f7)",
+      "id": "algebra.pre_algebra.one_step_equations_multiply_divide",
+      "name": "One-Step Equations (×/÷)",
       "description": "Solve ax=b and x/a=b.",
       "difficulty": 2,
       "time_to_master": 90,
       "category": "Pre-Algebra",
       "examples": [
         "Solve 4p=28.",
-        "Find x/5 = \u22123."
+        "Find x/5 = −3."
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-20"
+        "algebra.pre_algebra.combine_like_terms"
       ],
       "dependents": [
-        "AT-24"
+        "algebra.pre_algebra.two_step_linear_equations"
       ],
       "related": []
     },
     {
-      "id": "AT-24",
+      "id": "algebra.pre_algebra.two_step_linear_equations",
       "name": "Two-Step Linear Equations",
       "description": "Solve ax+b=c.",
       "difficulty": 3,
@@ -483,41 +483,41 @@
       "category": "Pre-Algebra",
       "examples": [
         "Solve 3x+4=19.",
-        "Find y/2 \u22127 =5."
+        "Find y/2 −7 =5."
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-22",
-        "AT-23",
-        "NS-16"
+        "algebra.pre_algebra.one_step_equations_add_subtract",
+        "algebra.pre_algebra.one_step_equations_multiply_divide",
+        "algebra.number_sense.order_of_operations"
       ],
       "dependents": [
-        "AT-25"
+        "algebra.pre_algebra.multi_step_linear_equations"
       ],
       "related": []
     },
     {
-      "id": "AT-25",
+      "id": "algebra.pre_algebra.multi_step_linear_equations",
       "name": "Multi-Step Linear Equations",
       "description": "Equations requiring distribution, combining terms, etc.",
       "difficulty": 4,
       "time_to_master": 150,
       "category": "Pre-Algebra",
       "examples": [
-        "Solve 2(3x\u22121)=4x+10.",
-        "Find k\u22124\u22122k=11."
+        "Solve 2(3x−1)=4x+10.",
+        "Find k−4−2k=11."
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-24"
+        "algebra.pre_algebra.two_step_linear_equations"
       ],
       "dependents": [
-        "AT-26"
+        "algebra.pre_algebra.proportional_relationships"
       ],
       "related": []
     },
     {
-      "id": "AT-26",
+      "id": "algebra.pre_algebra.proportional_relationships",
       "name": "Proportional Relationships & k",
       "description": "y = kx relationships and constant of proportionality",
       "difficulty": 4,
@@ -525,19 +525,19 @@
       "category": "Pre-Algebra",
       "examples": [
         "y = 3x has k = 3",
-        "Distance = rate \u00d7 time"
+        "Distance = rate × time"
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-25"
+        "algebra.pre_algebra.multi_step_linear_equations"
       ],
       "dependents": [
-        "AT-27"
+        "algebra.pre_algebra.unit_rate_and_slope_concept"
       ],
       "related": []
     },
     {
-      "id": "AT-27",
+      "id": "algebra.pre_algebra.unit_rate_and_slope_concept",
       "name": "Unit Rate & Slope Concept",
       "description": "Interpret slope as rate of change.",
       "difficulty": 3,
@@ -549,36 +549,36 @@
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-26"
+        "algebra.pre_algebra.proportional_relationships"
       ],
       "dependents": [
-        "LF-30"
+        "algebra.linear_functions.slope_from_two_points"
       ],
       "related": []
     },
     {
-      "id": "AT-28",
+      "id": "algebra.pre_algebra.coordinate_plane_plotting",
       "name": "Coordinate Plane Plotting",
       "description": "Plot ordered pairs in four quadrants.",
       "difficulty": 2,
       "time_to_master": 90,
       "category": "Pre-Algebra",
       "examples": [
-        "Plot (\u22123,4).",
-        "Which quadrant is (5,\u22122)?"
+        "Plot (−3,4).",
+        "Which quadrant is (5,−2)?"
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-15"
+        "algebra.number_sense.absolute_value"
       ],
       "dependents": [
-        "LF-30",
-        "AT-29"
+        "algebra.linear_functions.slope_from_two_points",
+        "algebra.pre_algebra.distance_formula"
       ],
       "related": []
     },
     {
-      "id": "AT-29",
+      "id": "algebra.pre_algebra.distance_formula",
       "name": "Distance Formula",
       "description": "Find distance between two plane points.",
       "difficulty": 3,
@@ -586,755 +586,755 @@
       "category": "Pre-Algebra",
       "examples": [
         "Distance between (2,3) and (7,11).",
-        "Is segment AB of length \u221a40? A(1,2) B(5,8)"
+        "Is segment AB of length √40? A(1,2) B(5,8)"
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-28"
+        "algebra.pre_algebra.coordinate_plane_plotting"
       ],
       "dependents": [
-        "LF-30"
+        "algebra.linear_functions.slope_from_two_points"
       ],
       "related": []
     },
     {
-      "id": "LF-30",
+      "id": "algebra.linear_functions.slope_from_two_points",
       "name": "Slope from Two Points",
-      "description": "Compute m = (y\u2082\u2212y\u2081)/(x\u2082\u2212x\u2081).",
+      "description": "Compute m = (y₂−y₁)/(x₂−x₁).",
       "difficulty": 3,
       "time_to_master": 90,
       "category": "Linear",
       "examples": [
-        "Slope through (3,\u22121) and (9,5).",
+        "Slope through (3,−1) and (9,5).",
         "Find slope of a horizontal line."
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-27",
-        "AT-28",
-        "AT-29"
+        "algebra.pre_algebra.unit_rate_and_slope_concept",
+        "algebra.pre_algebra.coordinate_plane_plotting",
+        "algebra.pre_algebra.distance_formula"
       ],
       "dependents": [
-        "LF-32",
-        "LF-31"
+        "algebra.linear_functions.point_slope_form",
+        "algebra.linear_functions.slope_intercept_form"
       ],
       "related": []
     },
     {
-      "id": "LF-31",
+      "id": "algebra.linear_functions.slope_intercept_form",
       "name": "Slope-Intercept Form",
       "description": "Write/graph y=mx+b.",
       "difficulty": 3,
       "time_to_master": 120,
       "category": "Linear",
       "examples": [
-        "Graph y=\u22122x+3.",
-        "Write equation with m=4, b=\u22127."
+        "Graph y=−2x+3.",
+        "Write equation with m=4, b=−7."
       ],
       "grade_level": "",
       "prerequisites": [
-        "LF-30"
+        "algebra.linear_functions.slope_from_two_points"
       ],
       "dependents": [
-        "LF-35",
-        "FN-62",
-        "LF-37",
-        "LF-33",
-        "LF-36"
+        "algebra.linear_functions.graph_linear_inequality_1var",
+        "algebra.function_tools.function_notation",
+        "algebra.linear_functions.system_graphing",
+        "algebra.linear_functions.convert_linear_forms",
+        "algebra.linear_functions.graph_linear_inequality_2var"
       ],
       "related": []
     },
     {
-      "id": "LF-32",
+      "id": "algebra.linear_functions.point_slope_form",
       "name": "Point-Slope Form",
-      "description": "Use y\u2212y\u2081=m(x\u2212x\u2081).",
+      "description": "Use y−y₁=m(x−x₁).",
       "difficulty": 3,
       "time_to_master": 120,
       "category": "Linear",
       "examples": [
         "Equation through (4,5) slope 2.",
-        "Convert y\u22123=3(x+1) to slope-intercept."
+        "Convert y−3=3(x+1) to slope-intercept."
       ],
       "grade_level": "",
       "prerequisites": [
-        "LF-30"
+        "algebra.linear_functions.slope_from_two_points"
       ],
       "dependents": [
-        "LF-33"
+        "algebra.linear_functions.convert_linear_forms"
       ],
       "related": []
     },
     {
-      "id": "LF-33",
+      "id": "algebra.linear_functions.convert_linear_forms",
       "name": "Convert Linear Forms",
       "description": "Switch between standard, slope-intercept, point-slope.",
       "difficulty": 3,
       "time_to_master": 120,
       "category": "Linear",
       "examples": [
-        "Convert 2x\u22123y=6 to y=mx+b.",
-        "Write Ax+By=C from y=\u00bdx\u22124."
+        "Convert 2x−3y=6 to y=mx+b.",
+        "Write Ax+By=C from y=½x−4."
       ],
       "grade_level": "",
       "prerequisites": [
-        "LF-32",
-        "LF-31"
+        "algebra.linear_functions.point_slope_form",
+        "algebra.linear_functions.slope_intercept_form"
       ],
       "dependents": [
-        "LF-34"
+        "algebra.linear_functions.parallel_and_perpendicular_slopes"
       ],
       "related": []
     },
     {
-      "id": "LF-34",
+      "id": "algebra.linear_functions.parallel_and_perpendicular_slopes",
       "name": "Parallel & Perpendicular Slopes",
       "description": "Identify/produce lines with given relationships.",
       "difficulty": 3,
       "time_to_master": 120,
       "category": "Linear",
       "examples": [
-        "Line l: y=3x\u22122. Give slope of line parallel to l.",
-        "Equation of line through (2,1) perpendicular to y=\u2212\u00bcx+5."
+        "Line l: y=3x−2. Give slope of line parallel to l.",
+        "Equation of line through (2,1) perpendicular to y=−¼x+5."
       ],
       "grade_level": "",
       "prerequisites": [
-        "LF-33"
+        "algebra.linear_functions.convert_linear_forms"
       ],
       "dependents": [],
       "related": []
     },
     {
-      "id": "LF-35",
+      "id": "algebra.linear_functions.graph_linear_inequality_1var",
       "name": "Graph Linear Inequality (1-var)",
-      "description": "Graph solutions to x > 3, x \u2264 -2 on number line",
+      "description": "Graph solutions to x > 3, x ≤ -2 on number line",
       "difficulty": 3,
       "time_to_master": 45,
       "category": "Linear",
       "examples": [
         "x > 3: open circle, arrow right",
-        "x \u2264 -2: closed circle, arrow left"
+        "x ≤ -2: closed circle, arrow left"
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-22",
-        "LF-31"
+        "algebra.pre_algebra.one_step_equations_add_subtract",
+        "algebra.linear_functions.slope_intercept_form"
       ],
       "dependents": [],
       "related": []
     },
     {
-      "id": "LF-36",
+      "id": "algebra.linear_functions.graph_linear_inequality_2var",
       "name": "Graph Linear Inequality (2-var)",
       "description": "Shade half-plane solution.",
       "difficulty": 3,
       "time_to_master": 120,
       "category": "Linear",
       "examples": [
-        "Graph y<\u2212\u00bdx+4.",
-        "Is (3,0) a solution of 2x\u2212y\u22655?"
+        "Graph y<−½x+4.",
+        "Is (3,0) a solution of 2x−y≥5?"
       ],
       "grade_level": "",
       "prerequisites": [
-        "LF-31"
+        "algebra.linear_functions.slope_intercept_form"
       ],
       "dependents": [
-        "LF-40"
+        "algebra.linear_functions.system_solution_classification"
       ],
       "related": []
     },
     {
-      "id": "LF-37",
-      "name": "System \u2013 Graphing",
+      "id": "algebra.linear_functions.system_graphing",
+      "name": "System – Graphing",
       "description": "Solve a linear system by intersecting lines.",
       "difficulty": 3,
       "time_to_master": 120,
       "category": "Linear",
       "examples": [
-        "Graph and solve y=2x+1 and y=\u2212x+7.",
-        "Estimate intersection of y=0.5x\u22124 and y=3x+2."
+        "Graph and solve y=2x+1 and y=−x+7.",
+        "Estimate intersection of y=0.5x−4 and y=3x+2."
       ],
       "grade_level": "",
       "prerequisites": [
-        "LF-31"
+        "algebra.linear_functions.slope_intercept_form"
       ],
       "dependents": [
-        "LF-38",
-        "LF-39"
+        "algebra.linear_functions.system_substitution",
+        "algebra.linear_functions.system_elimination"
       ],
       "related": []
     },
     {
-      "id": "LF-38",
-      "name": "System \u2013 Substitution",
+      "id": "algebra.linear_functions.system_substitution",
+      "name": "System – Substitution",
       "description": "Solve 2-eq system using substitution.",
       "difficulty": 3,
       "time_to_master": 120,
       "category": "Linear",
       "examples": [
-        "Solve y=4x\u22125 and 2x+y=7.",
-        "System: x=3y\u22122, 2x\u2212y=8."
+        "Solve y=4x−5 and 2x+y=7.",
+        "System: x=3y−2, 2x−y=8."
       ],
       "grade_level": "",
       "prerequisites": [
-        "LF-37"
+        "algebra.linear_functions.system_graphing"
       ],
       "dependents": [
-        "LF-40"
+        "algebra.linear_functions.system_solution_classification"
       ],
       "related": []
     },
     {
-      "id": "LF-39",
-      "name": "System \u2013 Elimination",
+      "id": "algebra.linear_functions.system_elimination",
+      "name": "System – Elimination",
       "description": "Solve using addition/elimination.",
       "difficulty": 3,
       "time_to_master": 120,
       "category": "Linear",
       "examples": [
-        "Solve 3x+2y=22 and 5x\u22122y=18.",
-        "System: 4a\u2212b=9, 6a+3b=33."
+        "Solve 3x+2y=22 and 5x−2y=18.",
+        "System: 4a−b=9, 6a+3b=33."
       ],
       "grade_level": "",
       "prerequisites": [
-        "LF-37"
+        "algebra.linear_functions.system_graphing"
       ],
       "dependents": [
-        "LF-40"
+        "algebra.linear_functions.system_solution_classification"
       ],
       "related": []
     },
     {
-      "id": "LF-40",
-      "name": "System \u2013 Solution Classification",
+      "id": "algebra.linear_functions.system_solution_classification",
+      "name": "System – Solution Classification",
       "description": "Decide one, none, or infinitely many solutions.",
       "difficulty": 3,
       "time_to_master": 90,
       "category": "Linear",
       "examples": [
-        "Classify 2x\u22123y=6 and 4x\u22126y=12.",
+        "Classify 2x−3y=6 and 4x−6y=12.",
         "Give example of inconsistent system."
       ],
       "grade_level": "",
       "prerequisites": [
-        "LF-36",
-        "LF-38",
-        "LF-39"
+        "algebra.linear_functions.graph_linear_inequality_2var",
+        "algebra.linear_functions.system_substitution",
+        "algebra.linear_functions.system_elimination"
       ],
       "dependents": [
-        "FN-63"
+        "algebra.function_tools.domain_and_range"
       ],
       "related": []
     },
     {
-      "id": "EXP-41",
+      "id": "algebra.exponential_functions.exponent_product_rule",
       "name": "Exponent Product Rule",
-      "description": "a^m \u00b7 a^n = a^{m+n}.",
+      "description": "a^m · a^n = a^{m+n}.",
       "difficulty": 3,
       "time_to_master": 45,
       "category": "Exponential",
       "examples": [
-        "Simplify x\u00b3\u00b7x\u2075.",
-        "Compute 2\u2074\u00b72\u00b3."
+        "Simplify x³·x⁵.",
+        "Compute 2⁴·2³."
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-14"
+        "algebra.number_sense.integer_multiplication_division"
       ],
       "dependents": [
-        "EXP-43",
-        "EXP-48",
-        "POL-50",
-        "FN-62",
-        "EXP-42"
+        "algebra.exponential_functions.power_of_a_product",
+        "algebra.exponential_functions.scientific_notation",
+        "algebra.polynomials.multiply_monomial_polynomial",
+        "algebra.function_tools.function_notation",
+        "algebra.exponential_functions.power_of_a_power"
       ],
       "related": []
     },
     {
-      "id": "EXP-42",
+      "id": "algebra.exponential_functions.power_of_a_power",
       "name": "Power of a Power",
       "description": "(a^m)^n = a^{mn}.",
       "difficulty": 3,
       "time_to_master": 45,
       "category": "Exponential",
       "examples": [
-        "Simplify (x\u00b2)\u00b3.",
-        "Evaluate (3\u00b2)\u2074."
+        "Simplify (x²)³.",
+        "Evaluate (3²)⁴."
       ],
       "grade_level": "",
       "prerequisites": [
-        "EXP-41"
+        "algebra.exponential_functions.exponent_product_rule"
       ],
       "dependents": [
-        "EXP-44"
+        "algebra.exponential_functions.zero_exponent"
       ],
       "related": []
     },
     {
-      "id": "EXP-43",
+      "id": "algebra.exponential_functions.power_of_a_product",
       "name": "Power of a Product",
       "description": "(ab)^n = a^n b^n.",
       "difficulty": 3,
       "time_to_master": 45,
       "category": "Exponential",
       "examples": [
-        "Rewrite (2x)\u00b3.",
-        "Expand (5ab)\u00b2."
+        "Rewrite (2x)³.",
+        "Expand (5ab)²."
       ],
       "grade_level": "",
       "prerequisites": [
-        "EXP-41"
+        "algebra.exponential_functions.exponent_product_rule"
       ],
       "dependents": [
-        "EXP-44"
+        "algebra.exponential_functions.zero_exponent"
       ],
       "related": []
     },
     {
-      "id": "EXP-44",
+      "id": "algebra.exponential_functions.zero_exponent",
       "name": "Zero Exponent",
-      "description": "a^0 = 1 for a\u22600.",
+      "description": "a^0 = 1 for a≠0.",
       "difficulty": 3,
       "time_to_master": 30,
       "category": "Exponential",
       "examples": [
-        "Evaluate 7\u2070.",
-        "Simplify (3x)\u2070."
+        "Evaluate 7⁰.",
+        "Simplify (3x)⁰."
       ],
       "grade_level": "",
       "prerequisites": [
-        "EXP-43",
-        "EXP-42"
+        "algebra.exponential_functions.power_of_a_product",
+        "algebra.exponential_functions.power_of_a_power"
       ],
       "dependents": [
-        "EXP-45"
+        "algebra.exponential_functions.negative_integer_exponents"
       ],
       "related": []
     },
     {
-      "id": "EXP-45",
+      "id": "algebra.exponential_functions.negative_integer_exponents",
       "name": "Negative Integer Exponents",
-      "description": "a^{\u2212n}=1/a^n.",
+      "description": "a^{−n}=1/a^n.",
       "difficulty": 3,
       "time_to_master": 60,
       "category": "Exponential",
       "examples": [
-        "Rewrite 2^{\u22123}.",
-        "Simplify x^{\u22122} y^{\u22121}."
+        "Rewrite 2^{−3}.",
+        "Simplify x^{−2} y^{−1}."
       ],
       "grade_level": "",
       "prerequisites": [
-        "EXP-44"
+        "algebra.exponential_functions.zero_exponent"
       ],
       "dependents": [
-        "EXP-46"
+        "algebra.exponential_functions.fractional_exponents"
       ],
       "related": []
     },
     {
-      "id": "EXP-46",
+      "id": "algebra.exponential_functions.fractional_exponents",
       "name": "Fractional Exponents (Roots)",
-      "description": "a^{1/n}=\u207f\u221aa, a^{m/n}=\u207f\u221aa^m.",
+      "description": "a^{1/n}=ⁿ√a, a^{m/n}=ⁿ√a^m.",
       "difficulty": 3,
       "time_to_master": 60,
       "category": "Exponential",
       "examples": [
         "Evaluate 27^{1/3}.",
-        "Rewrite \u221a[4]{x\u00b3} as an exponent."
+        "Rewrite √[4]{x³} as an exponent."
       ],
       "grade_level": "",
       "prerequisites": [
-        "EXP-45"
+        "algebra.exponential_functions.negative_integer_exponents"
       ],
       "dependents": [
-        "EXP-47"
+        "algebra.exponential_functions.simplify_radical_expressions"
       ],
       "related": []
     },
     {
-      "id": "EXP-47",
+      "id": "algebra.exponential_functions.simplify_radical_expressions",
       "name": "Simplify Radical Expressions",
       "description": "Combine like radicals & rationalize.",
       "difficulty": 3,
       "time_to_master": 60,
       "category": "Exponential",
       "examples": [
-        "Simplify 3\u221a5 + 2\u221a5.",
-        "Rationalize 5/\u221a2."
+        "Simplify 3√5 + 2√5.",
+        "Rationalize 5/√2."
       ],
       "grade_level": "",
       "prerequisites": [
-        "EXP-46"
+        "algebra.exponential_functions.fractional_exponents"
       ],
       "dependents": [
-        "FN-65"
+        "algebra.function_tools.function_transformations"
       ],
       "related": []
     },
     {
-      "id": "EXP-48",
+      "id": "algebra.exponential_functions.scientific_notation",
       "name": "Scientific Notation",
-      "description": "Write and compute with a\u00d710^n.",
+      "description": "Write and compute with a×10^n.",
       "difficulty": 2,
       "time_to_master": 45,
       "category": "Exponential",
       "examples": [
         "Express 0.00032 in sci-notation.",
-        "(3\u00d710\u2075)(2\u00d710\u207b\u00b3)=?"
+        "(3×10⁵)(2×10⁻³)=?"
       ],
       "grade_level": "",
       "prerequisites": [
-        "EXP-41"
+        "algebra.exponential_functions.exponent_product_rule"
       ],
       "dependents": [],
       "related": []
     },
     {
-      "id": "POL-49",
+      "id": "algebra.polynomials.add_subtract_polynomials",
       "name": "Add/Subtract Polynomials",
       "description": "Combine like terms across polynomials.",
       "difficulty": 2,
       "time_to_master": 45,
       "category": "Polynomials",
       "examples": [
-        "(2x\u00b2+3x) + (x\u00b2\u22124x).",
-        "Subtract (3a\u00b2\u22122a+1) from (5a\u00b2+4)."
+        "(2x²+3x) + (x²−4x).",
+        "Subtract (3a²−2a+1) from (5a²+4)."
       ],
       "grade_level": "",
       "prerequisites": [
-        "AT-21"
+        "algebra.pre_algebra.evaluate_expression"
       ],
       "dependents": [
-        "Q-58"
+        "algebra.quadratics.completing_the_square"
       ],
       "related": []
     },
     {
-      "id": "POL-50",
-      "name": "Multiply Monomial\u00b7Polynomial",
+      "id": "algebra.polynomials.multiply_monomial_polynomial",
+      "name": "Multiply Monomial·Polynomial",
       "description": "Distribute a monomial across a polynomial.",
       "difficulty": 3,
       "time_to_master": 60,
       "category": "Polynomials",
       "examples": [
-        "3x(4x\u00b2\u22125x+2).",
-        "\u22122a\u00b2(6a\u22127)."
+        "3x(4x²−5x+2).",
+        "−2a²(6a−7)."
       ],
       "grade_level": "",
       "prerequisites": [
-        "EXP-41",
-        "AT-19"
+        "algebra.exponential_functions.exponent_product_rule",
+        "algebra.pre_algebra.distributive_property"
       ],
       "dependents": [
-        "POL-51"
+        "algebra.polynomials.binomial_product_foil"
       ],
       "related": []
     },
     {
-      "id": "POL-51",
+      "id": "algebra.polynomials.binomial_product_foil",
       "name": "Binomial Product (FOIL)",
       "description": "Multiply two binomials.",
       "difficulty": 3,
       "time_to_master": 60,
       "category": "Polynomials",
       "examples": [
-        "(x+5)(x\u22123).",
-        "(2a\u22127)(a+4)."
+        "(x+5)(x−3).",
+        "(2a−7)(a+4)."
       ],
       "grade_level": "",
       "prerequisites": [
-        "POL-50"
+        "algebra.polynomials.multiply_monomial_polynomial"
       ],
       "dependents": [
-        "POL-55"
+        "algebra.polynomials.special_products_diff_squares"
       ],
       "related": []
     },
     {
-      "id": "POL-52",
+      "id": "algebra.polynomials.factor_gcf",
       "name": "Factor GCF",
       "description": "Factor out greatest common factor.",
       "difficulty": 3,
       "time_to_master": 60,
       "category": "Polynomials",
       "examples": [
-        "Factor 12x\u00b2y+8xy.",
-        "Factor 6a\u00b3\u22129a\u00b2."
+        "Factor 12x²y+8xy.",
+        "Factor 6a³−9a²."
       ],
       "grade_level": "",
       "prerequisites": [
-        "NS-11",
-        "NS-12"
+        "algebra.number_sense.greatest_common_factor",
+        "algebra.number_sense.least_common_multiple"
       ],
       "dependents": [
-        "POL-53"
+        "algebra.polynomials.factor_trinomials_a_eq_1"
       ],
       "related": []
     },
     {
-      "id": "POL-53",
+      "id": "algebra.polynomials.factor_trinomials_a_eq_1",
       "name": "Factor Trinomials a=1",
-      "description": "Factor x\u00b2+bx+c.",
+      "description": "Factor x²+bx+c.",
       "difficulty": 3,
       "time_to_master": 75,
       "category": "Polynomials",
       "examples": [
-        "Factor x\u00b2+5x+6.",
-        "Factor x\u00b2\u2212x\u221212."
+        "Factor x²+5x+6.",
+        "Factor x²−x−12."
       ],
       "grade_level": "",
       "prerequisites": [
-        "POL-52"
+        "algebra.polynomials.factor_gcf"
       ],
       "dependents": [
-        "POL-54"
+        "algebra.polynomials.factor_trinomials_a_neq_1"
       ],
       "related": []
     },
     {
-      "id": "POL-54",
-      "name": "Factor Trinomials a\u22601",
-      "description": "Factor ax\u00b2+bx+c, a\u22601.",
+      "id": "algebra.polynomials.factor_trinomials_a_neq_1",
+      "name": "Factor Trinomials a≠1",
+      "description": "Factor ax²+bx+c, a≠1.",
       "difficulty": 4,
       "time_to_master": 90,
       "category": "Polynomials",
       "examples": [
-        "Factor 2x\u00b2+7x+3.",
-        "Factor 3x\u00b2\u221211x\u22124."
+        "Factor 2x²+7x+3.",
+        "Factor 3x²−11x−4."
       ],
       "grade_level": "",
       "prerequisites": [
-        "POL-53"
+        "algebra.polynomials.factor_trinomials_a_eq_1"
       ],
       "dependents": [
-        "Q-57"
+        "algebra.quadratics.vertex_from_standard_form"
       ],
       "related": []
     },
     {
-      "id": "POL-55",
+      "id": "algebra.polynomials.special_products_diff_squares",
       "name": "Special Products & Diff Squares",
-      "description": "Recognize (a\u00b1b)\u00b2 and a\u00b2\u2212b\u00b2.",
+      "description": "Recognize (a±b)² and a²−b².",
       "difficulty": 3,
       "time_to_master": 60,
       "category": "Polynomials",
       "examples": [
-        "Expand (3y\u22124)\u00b2.",
-        "Factor 25x\u00b2\u22129."
+        "Expand (3y−4)².",
+        "Factor 25x²−9."
       ],
       "grade_level": "",
       "prerequisites": [
-        "POL-51"
+        "algebra.polynomials.binomial_product_foil"
       ],
       "dependents": [
-        "POL-56"
+        "algebra.polynomials.polynomial_division_synthetic"
       ],
       "related": []
     },
     {
-      "id": "POL-56",
+      "id": "algebra.polynomials.polynomial_division_synthetic",
       "name": "Polynomial Division (Synthetic)",
-      "description": "Divide by x\u2212k and find remainder.",
+      "description": "Divide by x−k and find remainder.",
       "difficulty": 4,
       "time_to_master": 75,
       "category": "Polynomials",
       "examples": [
-        "Divide x\u00b3\u22122x\u00b2+5 by x\u22122.",
-        "Use synthetic division to find f(3) for f(x)=2x\u00b3+x\u00b2\u22125."
+        "Divide x³−2x²+5 by x−2.",
+        "Use synthetic division to find f(3) for f(x)=2x³+x²−5."
       ],
       "grade_level": "",
       "prerequisites": [
-        "POL-55"
+        "algebra.polynomials.special_products_diff_squares"
       ],
       "dependents": [
-        "Q-58"
+        "algebra.quadratics.completing_the_square"
       ],
       "related": []
     },
     {
-      "id": "Q-57",
+      "id": "algebra.quadratics.vertex_from_standard_form",
       "name": "Vertex from Standard Form",
-      "description": "Find vertex of y=ax\u00b2+bx+c.",
+      "description": "Find vertex of y=ax²+bx+c.",
       "difficulty": 4,
       "time_to_master": 60,
       "category": "Quadratic",
       "examples": [
-        "Vertex of y=2x\u00b2\u22128x+3.",
+        "Vertex of y=2x²−8x+3.",
         "Given vertex (h,k) compute axis of symmetry."
       ],
       "grade_level": "",
       "prerequisites": [
-        "POL-54"
+        "algebra.polynomials.factor_trinomials_a_neq_1"
       ],
       "dependents": [
-        "FN-65",
-        "Q-61"
+        "algebra.function_tools.function_transformations",
+        "algebra.quadratics.graph_parabola_vertex_form"
       ],
       "related": []
     },
     {
-      "id": "Q-58",
+      "id": "algebra.quadratics.completing_the_square",
       "name": "Completing the Square",
-      "description": "Rewrite ax\u00b2+bx+c into a(x\u2212h)\u00b2+k.",
+      "description": "Rewrite ax²+bx+c into a(x−h)²+k.",
       "difficulty": 4,
       "time_to_master": 90,
       "category": "Quadratic",
       "examples": [
-        "Complete square: x\u00b2+6x+5.",
-        "Rewrite 2x\u00b2\u22124x+7 in vertex form."
+        "Complete square: x²+6x+5.",
+        "Rewrite 2x²−4x+7 in vertex form."
       ],
       "grade_level": "",
       "prerequisites": [
-        "POL-49",
-        "POL-56"
+        "algebra.polynomials.add_subtract_polynomials",
+        "algebra.polynomials.polynomial_division_synthetic"
       ],
       "dependents": [
-        "Q-59"
+        "algebra.quadratics.quadratic_formula"
       ],
       "related": []
     },
     {
-      "id": "Q-59",
+      "id": "algebra.quadratics.quadratic_formula",
       "name": "Quadratic Formula",
-      "description": "Solve ax\u00b2+bx+c=0 using \u2212b\u00b1\u221a(b\u00b2\u22124ac)/2a.",
+      "description": "Solve ax²+bx+c=0 using −b±√(b²−4ac)/2a.",
       "difficulty": 4,
       "time_to_master": 75,
       "category": "Quadratic",
       "examples": [
-        "Solve 3x\u00b2+2x\u22121=0.",
-        "Find exact roots of x\u00b2\u22125x\u22126=0."
+        "Solve 3x²+2x−1=0.",
+        "Find exact roots of x²−5x−6=0."
       ],
       "grade_level": "",
       "prerequisites": [
-        "Q-58"
+        "algebra.quadratics.completing_the_square"
       ],
       "dependents": [
-        "Q-60"
+        "algebra.quadratics.discriminant_and_roots"
       ],
       "related": []
     },
     {
-      "id": "Q-60",
+      "id": "algebra.quadratics.discriminant_and_roots",
       "name": "Discriminant & Roots",
-      "description": "Analyze b\u00b2\u22124ac for number/type of roots.",
+      "description": "Analyze b²−4ac for number/type of roots.",
       "difficulty": 3,
       "time_to_master": 45,
       "category": "Quadratic",
       "examples": [
-        "Discriminant of 4x\u00b2+4x+1.",
-        "How many real roots does x\u00b2\u22127x+12 have?"
+        "Discriminant of 4x²+4x+1.",
+        "How many real roots does x²−7x+12 have?"
       ],
       "grade_level": "",
       "prerequisites": [
-        "Q-59"
+        "algebra.quadratics.quadratic_formula"
       ],
       "dependents": [
-        "Q-61"
+        "algebra.quadratics.graph_parabola_vertex_form"
       ],
       "related": []
     },
     {
-      "id": "Q-61",
+      "id": "algebra.quadratics.graph_parabola_vertex_form",
       "name": "Graph Parabola (Vertex Form)",
-      "description": "Graph y=a(x\u2212h)\u00b2+k quickly.",
+      "description": "Graph y=a(x−h)²+k quickly.",
       "difficulty": 3,
       "time_to_master": 60,
       "category": "Quadratic",
       "examples": [
-        "Graph y=\u2212(x+2)\u00b2+3.",
-        "Identify vertex and direction of y=2(x\u22121)\u00b2\u22124."
+        "Graph y=−(x+2)²+3.",
+        "Identify vertex and direction of y=2(x−1)²−4."
       ],
       "grade_level": "",
       "prerequisites": [
-        "Q-57",
-        "Q-60"
+        "algebra.quadratics.vertex_from_standard_form",
+        "algebra.quadratics.discriminant_and_roots"
       ],
       "dependents": [],
       "related": []
     },
     {
-      "id": "FN-62",
+      "id": "algebra.function_tools.function_notation",
       "name": "Function Notation",
       "description": "Use f(x) and evaluate.",
       "difficulty": 3,
       "time_to_master": 45,
       "category": "Function Tools",
       "examples": [
-        "If f(x)=2x\u00b2\u22123, find f(4).",
-        "Let g(x)=|x\u22125|. Evaluate g(1)."
+        "If f(x)=2x²−3, find f(4).",
+        "Let g(x)=|x−5|. Evaluate g(1)."
       ],
       "grade_level": "",
       "prerequisites": [
-        "EXP-41",
-        "LF-31"
+        "algebra.exponential_functions.exponent_product_rule",
+        "algebra.linear_functions.slope_intercept_form"
       ],
       "dependents": [
-        "FN-63"
+        "algebra.function_tools.domain_and_range"
       ],
       "related": []
     },
     {
-      "id": "FN-63",
+      "id": "algebra.function_tools.domain_and_range",
       "name": "Domain & Range",
       "description": "Find possible x (domain) and f(x) (range).",
       "difficulty": 3,
       "time_to_master": 60,
       "category": "Function Tools",
       "examples": [
-        "Domain of f(x)=1/(x\u22122).",
+        "Domain of f(x)=1/(x−2).",
         "Range of y=|x|."
       ],
       "grade_level": "",
       "prerequisites": [
-        "FN-62",
-        "LF-40"
+        "algebra.function_tools.function_notation",
+        "algebra.linear_functions.system_solution_classification"
       ],
       "dependents": [
-        "FN-64"
+        "algebra.function_tools.composition_of_functions"
       ],
       "related": []
     },
     {
-      "id": "FN-64",
+      "id": "algebra.function_tools.composition_of_functions",
       "name": "Composition of Functions",
-      "description": "Compute (f\u2218g)(x)=f(g(x)).",
+      "description": "Compute (f∘g)(x)=f(g(x)).",
       "difficulty": 3,
       "time_to_master": 75,
       "category": "Function Tools",
       "examples": [
-        "If f(x)=x+1, g(x)=x\u00b2, find (f\u2218g)(2).",
-        "Find (g\u2218f)(x) for same f,g."
+        "If f(x)=x+1, g(x)=x², find (f∘g)(2).",
+        "Find (g∘f)(x) for same f,g."
       ],
       "grade_level": "",
       "prerequisites": [
-        "FN-63"
+        "algebra.function_tools.domain_and_range"
       ],
       "dependents": [
-        "FN-65"
+        "algebra.function_tools.function_transformations"
       ],
       "related": []
     },
     {
-      "id": "FN-65",
+      "id": "algebra.function_tools.function_transformations",
       "name": "Function Transformations",
       "description": "Shifts, reflections, stretches of parent graphs.",
       "difficulty": 4,
       "time_to_master": 90,
       "category": "Function Tools",
       "examples": [
-        "Graph y=\u22122\u221a(x\u22123)+5 from y=\u221ax.",
-        "Describe transformation from y=x\u00b2 to y=(x\u22124)\u00b2\u22127."
+        "Graph y=−2√(x−3)+5 from y=√x.",
+        "Describe transformation from y=x² to y=(x−4)²−7."
       ],
       "grade_level": "",
       "prerequisites": [
-        "Q-57",
-        "FN-64",
-        "EXP-47"
+        "algebra.quadratics.vertex_from_standard_form",
+        "algebra.function_tools.composition_of_functions",
+        "algebra.exponential_functions.simplify_radical_expressions"
       ],
       "dependents": [],
       "related": []
     },
     {
-      "id": "basic_arithmetic",
+      "id": "algebra.number_sense.basic_arithmetic",
       "name": "Basic Arithmetic",
       "description": "Addition, subtraction, multiplication, division",
       "difficulty": 1,
@@ -1344,12 +1344,12 @@
       "grade_level": "",
       "prerequisites": [],
       "dependents": [
-        "integers"
+        "algebra.number_sense.integers"
       ],
       "related": []
     },
     {
-      "id": "integers",
+      "id": "algebra.number_sense.integers",
       "name": "Integers",
       "description": "Positive and negative whole numbers",
       "difficulty": 2,
@@ -1358,16 +1358,16 @@
       "examples": [],
       "grade_level": "",
       "prerequisites": [
-        "basic_arithmetic"
+        "algebra.number_sense.basic_arithmetic"
       ],
       "dependents": [
-        "fractions",
-        "algebra"
+        "algebra.number_sense.fractions",
+        "algebra.pre_algebra.basic_algebra"
       ],
       "related": []
     },
     {
-      "id": "fractions",
+      "id": "algebra.number_sense.fractions",
       "name": "Fractions",
       "description": "Parts of a whole number",
       "difficulty": 3,
@@ -1376,15 +1376,15 @@
       "examples": [],
       "grade_level": "",
       "prerequisites": [
-        "integers"
+        "algebra.number_sense.integers"
       ],
       "dependents": [
-        "decimals"
+        "algebra.number_sense.decimals"
       ],
       "related": []
     },
     {
-      "id": "decimals",
+      "id": "algebra.number_sense.decimals",
       "name": "Decimals",
       "description": "Numbers with decimal points",
       "difficulty": 3,
@@ -1393,15 +1393,15 @@
       "examples": [],
       "grade_level": "",
       "prerequisites": [
-        "fractions"
+        "algebra.number_sense.fractions"
       ],
       "dependents": [
-        "percentages"
+        "algebra.number_sense.percentages"
       ],
       "related": []
     },
     {
-      "id": "percentages",
+      "id": "algebra.number_sense.percentages",
       "name": "Percentages",
       "description": "Parts per hundred",
       "difficulty": 3,
@@ -1410,13 +1410,13 @@
       "examples": [],
       "grade_level": "",
       "prerequisites": [
-        "decimals"
+        "algebra.number_sense.decimals"
       ],
       "dependents": [],
       "related": []
     },
     {
-      "id": "algebra",
+      "id": "algebra.pre_algebra.basic_algebra",
       "name": "Basic Algebra",
       "description": "Variables and simple equations",
       "difficulty": 4,
@@ -1425,15 +1425,15 @@
       "examples": [],
       "grade_level": "",
       "prerequisites": [
-        "integers"
+        "algebra.number_sense.integers"
       ],
       "dependents": [
-        "linear_equations"
+        "algebra.linear_functions.linear_equations"
       ],
       "related": []
     },
     {
-      "id": "linear_equations",
+      "id": "algebra.linear_functions.linear_equations",
       "name": "Linear Equations",
       "description": "Equations with one variable",
       "difficulty": 4,
@@ -1442,15 +1442,15 @@
       "examples": [],
       "grade_level": "",
       "prerequisites": [
-        "algebra"
+        "algebra.pre_algebra.basic_algebra"
       ],
       "dependents": [
-        "quadratic_equations"
+        "algebra.quadratics.quadratic_equations"
       ],
       "related": []
     },
     {
-      "id": "quadratic_equations",
+      "id": "algebra.quadratics.quadratic_equations",
       "name": "Quadratic Equations",
       "description": "Second-degree polynomial equations",
       "difficulty": 5,
@@ -1459,7 +1459,7 @@
       "examples": [],
       "grade_level": "",
       "prerequisites": [
-        "linear_equations"
+        "algebra.linear_functions.linear_equations"
       ],
       "dependents": [],
       "related": []
@@ -1467,554 +1467,554 @@
   ],
   "relationships": [
     {
-      "source": "NS-01",
-      "target": "NS-02",
+      "source": "algebra.number_sense.counting_up_down",
+      "target": "algebra.number_sense.place_value_to_millions",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-01",
-      "target": "NS-03",
+      "source": "algebra.number_sense.counting_up_down",
+      "target": "algebra.number_sense.commutative_property",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-01",
-      "target": "NS-04",
+      "source": "algebra.number_sense.counting_up_down",
+      "target": "algebra.number_sense.associative_property",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-02",
-      "target": "NS-06",
+      "source": "algebra.number_sense.place_value_to_millions",
+      "target": "algebra.number_sense.multiplication_facts",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-02",
-      "target": "AT-17",
+      "source": "algebra.number_sense.place_value_to_millions",
+      "target": "algebra.pre_algebra.translate_expressions",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-03",
-      "target": "NS-05",
+      "source": "algebra.number_sense.commutative_property",
+      "target": "algebra.number_sense.identity_and_inverse_properties",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-04",
-      "target": "NS-05",
+      "source": "algebra.number_sense.associative_property",
+      "target": "algebra.number_sense.identity_and_inverse_properties",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-05",
-      "target": "NS-11",
+      "source": "algebra.number_sense.identity_and_inverse_properties",
+      "target": "algebra.number_sense.greatest_common_factor",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-05",
-      "target": "NS-12",
+      "source": "algebra.number_sense.identity_and_inverse_properties",
+      "target": "algebra.number_sense.least_common_multiple",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-06",
-      "target": "NS-07",
+      "source": "algebra.number_sense.multiplication_facts",
+      "target": "algebra.number_sense.division_facts",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-06",
-      "target": "NS-13",
+      "source": "algebra.number_sense.multiplication_facts",
+      "target": "algebra.number_sense.integer_addition_subtraction",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-06",
-      "target": "AT-19",
+      "source": "algebra.number_sense.multiplication_facts",
+      "target": "algebra.pre_algebra.distributive_property",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-07",
-      "target": "NS-08",
+      "source": "algebra.number_sense.division_facts",
+      "target": "algebra.number_sense.fractions_as_part_whole",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-08",
-      "target": "NS-09",
+      "source": "algebra.number_sense.fractions_as_part_whole",
+      "target": "algebra.number_sense.equivalent_fractions",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-09",
-      "target": "NS-10",
+      "source": "algebra.number_sense.equivalent_fractions",
+      "target": "algebra.number_sense.fraction_decimal_conversion",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-10",
-      "target": "AT-17",
+      "source": "algebra.number_sense.fraction_decimal_conversion",
+      "target": "algebra.pre_algebra.translate_expressions",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-11",
-      "target": "POL-52",
+      "source": "algebra.number_sense.greatest_common_factor",
+      "target": "algebra.polynomials.factor_gcf",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-12",
-      "target": "POL-52",
+      "source": "algebra.number_sense.least_common_multiple",
+      "target": "algebra.polynomials.factor_gcf",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-13",
-      "target": "NS-14",
+      "source": "algebra.number_sense.integer_addition_subtraction",
+      "target": "algebra.number_sense.integer_multiplication_division",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-13",
-      "target": "NS-15",
+      "source": "algebra.number_sense.integer_addition_subtraction",
+      "target": "algebra.number_sense.absolute_value",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-14",
-      "target": "NS-16",
+      "source": "algebra.number_sense.integer_multiplication_division",
+      "target": "algebra.number_sense.order_of_operations",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-14",
-      "target": "EXP-41",
+      "source": "algebra.number_sense.integer_multiplication_division",
+      "target": "algebra.exponential_functions.exponent_product_rule",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-15",
-      "target": "AT-22",
+      "source": "algebra.number_sense.absolute_value",
+      "target": "algebra.pre_algebra.one_step_equations_add_subtract",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-15",
-      "target": "AT-28",
+      "source": "algebra.number_sense.absolute_value",
+      "target": "algebra.pre_algebra.coordinate_plane_plotting",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "NS-16",
-      "target": "AT-24",
+      "source": "algebra.number_sense.order_of_operations",
+      "target": "algebra.pre_algebra.two_step_linear_equations",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-17",
-      "target": "AT-18",
+      "source": "algebra.pre_algebra.translate_expressions",
+      "target": "algebra.pre_algebra.identify_like_terms",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-18",
-      "target": "AT-21",
+      "source": "algebra.pre_algebra.identify_like_terms",
+      "target": "algebra.pre_algebra.evaluate_expression",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-19",
-      "target": "AT-21",
+      "source": "algebra.pre_algebra.distributive_property",
+      "target": "algebra.pre_algebra.evaluate_expression",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-19",
-      "target": "POL-50",
+      "source": "algebra.pre_algebra.distributive_property",
+      "target": "algebra.polynomials.multiply_monomial_polynomial",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-20",
-      "target": "AT-22",
+      "source": "algebra.pre_algebra.combine_like_terms",
+      "target": "algebra.pre_algebra.one_step_equations_add_subtract",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-20",
-      "target": "AT-23",
+      "source": "algebra.pre_algebra.combine_like_terms",
+      "target": "algebra.pre_algebra.one_step_equations_multiply_divide",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-21",
-      "target": "AT-20",
+      "source": "algebra.pre_algebra.evaluate_expression",
+      "target": "algebra.pre_algebra.combine_like_terms",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-21",
-      "target": "POL-49",
+      "source": "algebra.pre_algebra.evaluate_expression",
+      "target": "algebra.polynomials.add_subtract_polynomials",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-22",
-      "target": "AT-24",
+      "source": "algebra.pre_algebra.one_step_equations_add_subtract",
+      "target": "algebra.pre_algebra.two_step_linear_equations",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-22",
-      "target": "LF-35",
+      "source": "algebra.pre_algebra.one_step_equations_add_subtract",
+      "target": "algebra.linear_functions.graph_linear_inequality_1var",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-23",
-      "target": "AT-24",
+      "source": "algebra.pre_algebra.one_step_equations_multiply_divide",
+      "target": "algebra.pre_algebra.two_step_linear_equations",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-24",
-      "target": "AT-25",
+      "source": "algebra.pre_algebra.two_step_linear_equations",
+      "target": "algebra.pre_algebra.multi_step_linear_equations",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-25",
-      "target": "AT-26",
+      "source": "algebra.pre_algebra.multi_step_linear_equations",
+      "target": "algebra.pre_algebra.proportional_relationships",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-26",
-      "target": "AT-27",
+      "source": "algebra.pre_algebra.proportional_relationships",
+      "target": "algebra.pre_algebra.unit_rate_and_slope_concept",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-27",
-      "target": "LF-30",
+      "source": "algebra.pre_algebra.unit_rate_and_slope_concept",
+      "target": "algebra.linear_functions.slope_from_two_points",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-28",
-      "target": "AT-29",
+      "source": "algebra.pre_algebra.coordinate_plane_plotting",
+      "target": "algebra.pre_algebra.distance_formula",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-28",
-      "target": "LF-30",
+      "source": "algebra.pre_algebra.coordinate_plane_plotting",
+      "target": "algebra.linear_functions.slope_from_two_points",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "AT-29",
-      "target": "LF-30",
+      "source": "algebra.pre_algebra.distance_formula",
+      "target": "algebra.linear_functions.slope_from_two_points",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-30",
-      "target": "LF-31",
+      "source": "algebra.linear_functions.slope_from_two_points",
+      "target": "algebra.linear_functions.slope_intercept_form",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-30",
-      "target": "LF-32",
+      "source": "algebra.linear_functions.slope_from_two_points",
+      "target": "algebra.linear_functions.point_slope_form",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-31",
-      "target": "LF-33",
+      "source": "algebra.linear_functions.slope_intercept_form",
+      "target": "algebra.linear_functions.convert_linear_forms",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-31",
-      "target": "LF-35",
+      "source": "algebra.linear_functions.slope_intercept_form",
+      "target": "algebra.linear_functions.graph_linear_inequality_1var",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-31",
-      "target": "LF-36",
+      "source": "algebra.linear_functions.slope_intercept_form",
+      "target": "algebra.linear_functions.graph_linear_inequality_2var",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-31",
-      "target": "LF-37",
+      "source": "algebra.linear_functions.slope_intercept_form",
+      "target": "algebra.linear_functions.system_graphing",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-31",
-      "target": "FN-62",
+      "source": "algebra.linear_functions.slope_intercept_form",
+      "target": "algebra.function_tools.function_notation",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-32",
-      "target": "LF-33",
+      "source": "algebra.linear_functions.point_slope_form",
+      "target": "algebra.linear_functions.convert_linear_forms",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-33",
-      "target": "LF-34",
+      "source": "algebra.linear_functions.convert_linear_forms",
+      "target": "algebra.linear_functions.parallel_and_perpendicular_slopes",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-36",
-      "target": "LF-40",
+      "source": "algebra.linear_functions.graph_linear_inequality_2var",
+      "target": "algebra.linear_functions.system_solution_classification",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-37",
-      "target": "LF-38",
+      "source": "algebra.linear_functions.system_graphing",
+      "target": "algebra.linear_functions.system_substitution",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-37",
-      "target": "LF-39",
+      "source": "algebra.linear_functions.system_graphing",
+      "target": "algebra.linear_functions.system_elimination",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-38",
-      "target": "LF-40",
+      "source": "algebra.linear_functions.system_substitution",
+      "target": "algebra.linear_functions.system_solution_classification",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-39",
-      "target": "LF-40",
+      "source": "algebra.linear_functions.system_elimination",
+      "target": "algebra.linear_functions.system_solution_classification",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "LF-40",
-      "target": "FN-63",
+      "source": "algebra.linear_functions.system_solution_classification",
+      "target": "algebra.function_tools.domain_and_range",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "EXP-41",
-      "target": "EXP-42",
+      "source": "algebra.exponential_functions.exponent_product_rule",
+      "target": "algebra.exponential_functions.power_of_a_power",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "EXP-41",
-      "target": "EXP-43",
+      "source": "algebra.exponential_functions.exponent_product_rule",
+      "target": "algebra.exponential_functions.power_of_a_product",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "EXP-41",
-      "target": "EXP-48",
+      "source": "algebra.exponential_functions.exponent_product_rule",
+      "target": "algebra.exponential_functions.scientific_notation",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "EXP-41",
-      "target": "POL-50",
+      "source": "algebra.exponential_functions.exponent_product_rule",
+      "target": "algebra.polynomials.multiply_monomial_polynomial",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "EXP-41",
-      "target": "FN-62",
+      "source": "algebra.exponential_functions.exponent_product_rule",
+      "target": "algebra.function_tools.function_notation",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "EXP-42",
-      "target": "EXP-44",
+      "source": "algebra.exponential_functions.power_of_a_power",
+      "target": "algebra.exponential_functions.zero_exponent",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "EXP-43",
-      "target": "EXP-44",
+      "source": "algebra.exponential_functions.power_of_a_product",
+      "target": "algebra.exponential_functions.zero_exponent",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "EXP-44",
-      "target": "EXP-45",
+      "source": "algebra.exponential_functions.zero_exponent",
+      "target": "algebra.exponential_functions.negative_integer_exponents",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "EXP-45",
-      "target": "EXP-46",
+      "source": "algebra.exponential_functions.negative_integer_exponents",
+      "target": "algebra.exponential_functions.fractional_exponents",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "EXP-46",
-      "target": "EXP-47",
+      "source": "algebra.exponential_functions.fractional_exponents",
+      "target": "algebra.exponential_functions.simplify_radical_expressions",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "EXP-47",
-      "target": "FN-65",
+      "source": "algebra.exponential_functions.simplify_radical_expressions",
+      "target": "algebra.function_tools.function_transformations",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "POL-49",
-      "target": "Q-58",
+      "source": "algebra.polynomials.add_subtract_polynomials",
+      "target": "algebra.quadratics.completing_the_square",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "POL-50",
-      "target": "POL-51",
+      "source": "algebra.polynomials.multiply_monomial_polynomial",
+      "target": "algebra.polynomials.binomial_product_foil",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "POL-51",
-      "target": "POL-55",
+      "source": "algebra.polynomials.binomial_product_foil",
+      "target": "algebra.polynomials.special_products_diff_squares",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "POL-52",
-      "target": "POL-53",
+      "source": "algebra.polynomials.factor_gcf",
+      "target": "algebra.polynomials.factor_trinomials_a_eq_1",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "POL-53",
-      "target": "POL-54",
+      "source": "algebra.polynomials.factor_trinomials_a_eq_1",
+      "target": "algebra.polynomials.factor_trinomials_a_neq_1",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "POL-54",
-      "target": "Q-57",
+      "source": "algebra.polynomials.factor_trinomials_a_neq_1",
+      "target": "algebra.quadratics.vertex_from_standard_form",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "POL-55",
-      "target": "POL-56",
+      "source": "algebra.polynomials.special_products_diff_squares",
+      "target": "algebra.polynomials.polynomial_division_synthetic",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "POL-56",
-      "target": "Q-58",
+      "source": "algebra.polynomials.polynomial_division_synthetic",
+      "target": "algebra.quadratics.completing_the_square",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "Q-57",
-      "target": "Q-61",
+      "source": "algebra.quadratics.vertex_from_standard_form",
+      "target": "algebra.quadratics.graph_parabola_vertex_form",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "Q-57",
-      "target": "FN-65",
+      "source": "algebra.quadratics.vertex_from_standard_form",
+      "target": "algebra.function_tools.function_transformations",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "Q-58",
-      "target": "Q-59",
+      "source": "algebra.quadratics.completing_the_square",
+      "target": "algebra.quadratics.quadratic_formula",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "Q-59",
-      "target": "Q-60",
+      "source": "algebra.quadratics.quadratic_formula",
+      "target": "algebra.quadratics.discriminant_and_roots",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "Q-60",
-      "target": "Q-61",
+      "source": "algebra.quadratics.discriminant_and_roots",
+      "target": "algebra.quadratics.graph_parabola_vertex_form",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "FN-62",
-      "target": "FN-63",
+      "source": "algebra.function_tools.function_notation",
+      "target": "algebra.function_tools.domain_and_range",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "FN-63",
-      "target": "FN-64",
+      "source": "algebra.function_tools.domain_and_range",
+      "target": "algebra.function_tools.composition_of_functions",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "FN-64",
-      "target": "FN-65",
+      "source": "algebra.function_tools.composition_of_functions",
+      "target": "algebra.function_tools.function_transformations",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "basic_arithmetic",
-      "target": "integers",
+      "source": "algebra.number_sense.basic_arithmetic",
+      "target": "algebra.number_sense.integers",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "integers",
-      "target": "fractions",
+      "source": "algebra.number_sense.integers",
+      "target": "algebra.number_sense.fractions",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "integers",
-      "target": "algebra",
+      "source": "algebra.number_sense.integers",
+      "target": "algebra.pre_algebra.basic_algebra",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "fractions",
-      "target": "decimals",
+      "source": "algebra.number_sense.fractions",
+      "target": "algebra.number_sense.decimals",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "decimals",
-      "target": "percentages",
+      "source": "algebra.number_sense.decimals",
+      "target": "algebra.number_sense.percentages",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "algebra",
-      "target": "linear_equations",
+      "source": "algebra.pre_algebra.basic_algebra",
+      "target": "algebra.linear_functions.linear_equations",
       "type": "prerequisite",
       "strength": 0.8
     },
     {
-      "source": "linear_equations",
-      "target": "quadratic_equations",
+      "source": "algebra.linear_functions.linear_equations",
+      "target": "algebra.quadratics.quadratic_equations",
       "type": "prerequisite",
       "strength": 0.8
     }

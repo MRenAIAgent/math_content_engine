@@ -5,6 +5,7 @@ Command-line interface for Math Content Engine.
 
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -102,6 +103,14 @@ Examples:
         "--preferred-address",
         help="How the student prefers to be called (e.g., nickname, 'champ'). Falls back to --student-name"
     )
+    gen_parser.add_argument(
+        "--concept-id",
+        help="Concept ID for data service integration (e.g., 'AT-24')"
+    )
+    gen_parser.add_argument(
+        "--grade",
+        help="Grade level for data service integration (e.g., 'grade_8')"
+    )
 
     # Preview command
     preview_parser = subparsers.add_parser("preview", help="Preview generated code without rendering")
@@ -189,7 +198,27 @@ def cmd_generate(args) -> int:
         config.llm_provider = LLMProvider(args.provider)
 
     interest = getattr(args, "interest", None)
-    engine = MathContentEngine(config, interest=interest)
+
+    # Optionally create local VideoStorage
+    storage = None
+    db_path_str = os.getenv("MATH_ENGINE_DB_PATH")
+    if db_path_str:
+        from .api.storage import VideoStorage
+        storage = VideoStorage(Path(db_path_str))
+
+    # Optionally create TutorDataServiceWriter
+    tutor_writer = None
+    tutor_db_url = os.getenv("TUTOR_DATABASE_URL")
+    if tutor_db_url:
+        from .integration.tutor_writer import TutorDataServiceWriter
+        tutor_writer = TutorDataServiceWriter(database_url=tutor_db_url)
+
+    engine = MathContentEngine(
+        config,
+        interest=interest,
+        storage=storage,
+        tutor_writer=tutor_writer,
+    )
 
     # Build student profile if name or preferred address provided
     student_profile = None
@@ -201,6 +230,9 @@ def cmd_generate(args) -> int:
             preferred_address=preferred_address,
         )
 
+    concept_id = getattr(args, "concept_id", None)
+    grade = getattr(args, "grade", None)
+
     result = engine.generate(
         topic=args.topic,
         requirements=args.requirements,
@@ -208,6 +240,8 @@ def cmd_generate(args) -> int:
         output_filename=args.output,
         interest=interest,
         student_profile=student_profile,
+        concept_ids=[concept_id] if concept_id else None,
+        grade=grade,
     )
 
     if result.success:

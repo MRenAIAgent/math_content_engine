@@ -4,6 +4,7 @@ Main Math Content Engine - orchestrates LLM generation and Manim rendering.
 
 import logging
 import time
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING
@@ -17,6 +18,7 @@ from .personalization import ContentPersonalizer, StudentProfile, list_available
 
 if TYPE_CHECKING:
     from .api.storage import VideoStorage
+    from .integration.tutor_writer import TutorDataServiceWriter
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,9 @@ class AnimationResult:
     total_attempts: int
     error_message: Optional[str] = None
     render_time: float = 0.0
-    video_id: Optional[str] = None  # ID assigned when stored in database
+    video_id: Optional[str] = None  # ID assigned when stored in local database
+    tutor_video_id: Optional[str] = None  # UUID from agentic_math_tutor PostgreSQL
+    engine_video_id: Optional[str] = None  # Independent UUID for cross-store linking
 
 
 class MathContentEngine:
@@ -60,6 +64,7 @@ class MathContentEngine:
         config: Optional[Config] = None,
         interest: Optional[str] = None,
         storage: Optional["VideoStorage"] = None,
+        tutor_writer: Optional["TutorDataServiceWriter"] = None,
     ):
         """
         Initialize the Math Content Engine.
@@ -68,10 +73,12 @@ class MathContentEngine:
             config: Configuration object. If None, loads from environment.
             interest: Student interest for content personalization (e.g., "basketball", "gaming")
             storage: Optional VideoStorage instance for persisting video metadata
+            tutor_writer: Optional TutorDataServiceWriter for persisting to agentic_math_tutor PostgreSQL
         """
         self.config = config or Config.from_env()
         self.interest = interest
         self.storage = storage
+        self.tutor_writer = tutor_writer
 
         # Initialize components
         self.llm_client = create_llm_client(self.config)
@@ -129,6 +136,8 @@ class MathContentEngine:
         interest: Optional[str] = None,
         student_profile: Optional[StudentProfile] = None,
         save_to_storage: bool = True,
+        concept_ids: Optional[list] = None,
+        grade: Optional[str] = None,
     ) -> AnimationResult:
         """
         Generate a math animation from a topic description.
@@ -141,6 +150,8 @@ class MathContentEngine:
             interest: Optional interest override for personalization (e.g., "basketball")
             student_profile: Optional student profile for individual personalization
             save_to_storage: Whether to save video metadata to storage (if storage is configured)
+            concept_ids: Optional list of concept IDs this video covers (e.g., ["algebra.pre_algebra.two_step_equations"])
+            grade: Optional grade level (e.g., "grade_8")
 
         Returns:
             AnimationResult with success status, video path, and metadata
@@ -183,10 +194,11 @@ class MathContentEngine:
                 error_message=f"Code generation failed: {generation_result.validation.errors}",
             )
             # Save failed generation to storage if configured
-            if save_to_storage and self.storage:
+            if save_to_storage and (self.storage or self.tutor_writer):
                 result = self._save_to_storage(
                     result, topic, requirements, audience_level, interest,
-                    generation_time_ms, None
+                    generation_time_ms, None,
+                    concept_ids=concept_ids, grade=grade,
                 )
             return result
 
@@ -222,10 +234,11 @@ class MathContentEngine:
                     render_time=render_result.render_time,
                 )
                 # Save successful generation to storage if configured
-                if save_to_storage and self.storage:
+                if save_to_storage and (self.storage or self.tutor_writer):
                     result = self._save_to_storage(
                         result, topic, requirements, audience_level, interest,
-                        generation_time_ms, render_time_ms
+                        generation_time_ms, render_time_ms,
+                        concept_ids=concept_ids, grade=grade,
                     )
                 return result
 
@@ -262,10 +275,11 @@ class MathContentEngine:
             error_message=f"Rendering failed after {render_attempts} attempts: {error_msg}",
         )
         # Save failed generation to storage if configured
-        if save_to_storage and self.storage:
+        if save_to_storage and (self.storage or self.tutor_writer):
             result = self._save_to_storage(
                 result, topic, requirements, audience_level, interest,
-                generation_time_ms, render_time_ms
+                generation_time_ms, render_time_ms,
+                concept_ids=concept_ids, grade=grade,
             )
         return result
 
@@ -278,46 +292,78 @@ class MathContentEngine:
         interest: Optional[str],
         generation_time_ms: int,
         render_time_ms: Optional[int],
+        concept_ids: Optional[list] = None,
+        grade: Optional[str] = None,
     ) -> AnimationResult:
         """Save video metadata to storage and return updated result with video_id."""
-        if not self.storage:
-            return result
+        # Generate a stable engine_video_id for cross-store linking
+        engine_vid = str(uuid.uuid4())
+        result.engine_video_id = engine_vid
 
-        try:
-            from .api.models import VideoCreate, AnimationStyle as ApiAnimationStyle, VideoQuality
+        file_size_bytes = None
+        if result.video_path and result.video_path.exists():
+            file_size_bytes = result.video_path.stat().st_size
 
-            # Get file size if video exists
-            file_size_bytes = None
-            if result.video_path and result.video_path.exists():
-                file_size_bytes = result.video_path.stat().st_size
+        # --- 1. Save to local SQLite VideoStorage ---
+        if self.storage:
+            try:
+                from .api.models import VideoCreate, AnimationStyle as ApiAnimationStyle, VideoQuality
 
-            video_create = VideoCreate(
-                topic=topic,
-                scene_name=result.scene_name,
-                video_path=str(result.video_path) if result.video_path else "",
-                code=result.code,
-                requirements=requirements if requirements else None,
-                audience_level=audience_level,
-                interest=interest or self.interest,
-                style=ApiAnimationStyle(self.config.animation_style.value),
-                quality=VideoQuality(self.config.video_quality.value),
-                llm_provider=self.config.llm_provider.value,
-                llm_model=self.config.get_model(),
-                generation_attempts=result.generation_attempts,
-                render_attempts=result.render_attempts,
-                total_attempts=result.total_attempts,
-                generation_time_ms=generation_time_ms,
-                render_time_ms=render_time_ms,
-                file_size_bytes=file_size_bytes,
-                success=result.success,
-                error_message=result.error_message,
-            )
+                video_create = VideoCreate(
+                    topic=topic,
+                    scene_name=result.scene_name,
+                    video_path=str(result.video_path) if result.video_path else "",
+                    code=result.code,
+                    concept_ids=concept_ids or [],
+                    grade=grade,
+                    requirements=requirements if requirements else None,
+                    audience_level=audience_level,
+                    interest=interest or self.interest,
+                    style=ApiAnimationStyle(self.config.animation_style.value),
+                    quality=VideoQuality(self.config.video_quality.value),
+                    llm_provider=self.config.llm_provider.value,
+                    llm_model=self.config.get_model(),
+                    generation_attempts=result.generation_attempts,
+                    render_attempts=result.render_attempts,
+                    total_attempts=result.total_attempts,
+                    generation_time_ms=generation_time_ms,
+                    render_time_ms=render_time_ms,
+                    file_size_bytes=file_size_bytes,
+                    success=result.success,
+                    error_message=result.error_message,
+                )
 
-            metadata = self.storage.save(video_create)
-            result.video_id = metadata.id
-            logger.info(f"Saved video metadata with ID: {metadata.id}")
-        except Exception as e:
-            logger.warning(f"Failed to save video metadata: {e}")
+                metadata = self.storage.save(video_create)
+                result.video_id = metadata.id
+                logger.info(f"Saved video metadata with ID: {metadata.id}")
+            except Exception as e:
+                logger.warning(f"Failed to save video metadata to local storage: {e}")
+
+        # --- 2. Save to agentic_math_tutor PostgreSQL ---
+        if self.tutor_writer:
+            try:
+                first_concept = concept_ids[0] if concept_ids else topic.replace(" ", "_")[:50]
+                gen_time_seconds = (
+                    (generation_time_ms + (render_time_ms or 0)) / 1000.0
+                    if generation_time_ms
+                    else None
+                )
+                tutor_uuid = self.tutor_writer.write_video(
+                    concept_id=first_concept,
+                    interest=interest or self.interest,
+                    grade=grade,
+                    engine_video_id=engine_vid,
+                    manim_code=result.code,
+                    success=result.success,
+                    file_size_bytes=file_size_bytes,
+                    generation_time_seconds=gen_time_seconds,
+                    error_message=result.error_message,
+                )
+                if tutor_uuid:
+                    logger.info(f"Saved video to tutor PostgreSQL: {tutor_uuid}")
+                    result.tutor_video_id = tutor_uuid
+            except Exception as e:
+                logger.warning(f"Failed to save video to tutor PostgreSQL: {e}")
 
         return result
 

@@ -1,0 +1,3078 @@
+{
+  "name": "K-12 Algebra",
+  "concepts": [
+    {
+      "id": "NS-01",
+      "name": "Counting Up/Down",
+      "description": "Count forward or backward by 1s within 1,000.",
+      "difficulty": 1,
+      "time_to_master": 30,
+      "category": "Number Sense",
+      "examples": [
+        "Count from 345 up to 356.",
+        "Count backward from 120 down to 107."
+      ],
+      "grade_level": "",
+      "prerequisites": [],
+      "dependents": [
+        "NS-03",
+        "NS-04",
+        "NS-02"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "1s",
+        "backward",
+        "count",
+        "counting",
+        "forward",
+        "number",
+        "sense"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Counting"
+    },
+    {
+      "id": "NS-02",
+      "name": "Place Value to 1,000,000",
+      "description": "Identify the value of each digit up to the millions place.",
+      "difficulty": 1,
+      "time_to_master": 60,
+      "category": "Number Sense",
+      "examples": [
+        "What is the value of 7 in 275,412?",
+        "Write 603,000 in expanded form."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-01"
+      ],
+      "dependents": [
+        "NS-06"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "digit",
+        "identify",
+        "millions",
+        "number",
+        "place",
+        "sense",
+        "value"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Place Value"
+    },
+    {
+      "id": "NS-03",
+      "name": "Commutative Property",
+      "description": "Understand a+b=b+a and a×b=b×a.",
+      "difficulty": 1,
+      "time_to_master": 60,
+      "category": "Number Sense",
+      "examples": [
+        "Show that 5+9 = 9+5.",
+        "Is 3×7 equal to 7×3? Explain."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-01"
+      ],
+      "dependents": [
+        "NS-05"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "commutative",
+        "number",
+        "property",
+        "sense",
+        "understand"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Properties of Numbers"
+    },
+    {
+      "id": "NS-04",
+      "name": "Associative Property",
+      "description": "Understand (a+b)+c=a+(b+c) and (ab)c=a(bc).",
+      "difficulty": 1,
+      "time_to_master": 60,
+      "category": "Number Sense",
+      "examples": [
+        "Rewrite 2+(4+6) without parentheses.",
+        "Does (3×5)×2 equal 3×(5×2)?"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-01"
+      ],
+      "dependents": [
+        "NS-05"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "ab",
+        "associative",
+        "bc",
+        "number",
+        "property",
+        "sense",
+        "understand"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Properties of Numbers"
+    },
+    {
+      "id": "NS-05",
+      "name": "Identity & Inverse Properties",
+      "description": "Additive identity 0, multiplicative identity 1, and inverses.",
+      "difficulty": 1,
+      "time_to_master": 60,
+      "category": "Number Sense",
+      "examples": [
+        "Find the additive inverse of 8.",
+        "What is the multiplicative inverse of 4⁄5?"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-03",
+        "NS-04"
+      ],
+      "dependents": [
+        "NS-11",
+        "NS-12"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "additive",
+        "identity",
+        "inverse",
+        "inverses",
+        "multiplicative",
+        "number",
+        "properties",
+        "sense"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Properties of Numbers"
+    },
+    {
+      "id": "NS-06",
+      "name": "Multiplication Facts 0–12",
+      "description": "Recall single-digit products quickly.",
+      "difficulty": 2,
+      "time_to_master": 90,
+      "category": "Number Sense",
+      "examples": [
+        "Give 8×7 in under 3 seconds.",
+        "Complete the table: 9×__ = 63."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-02"
+      ],
+      "dependents": [
+        "AT-19",
+        "NS-07",
+        "NS-13"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "digit",
+        "facts",
+        "multiplication",
+        "number",
+        "products",
+        "quickly",
+        "recall",
+        "sense",
+        "single"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Operations"
+    },
+    {
+      "id": "NS-07",
+      "name": "Division Facts 0–12",
+      "description": "Recall single-digit division facts quickly.",
+      "difficulty": 2,
+      "time_to_master": 90,
+      "category": "Number Sense",
+      "examples": [
+        "What is 56 ÷ 8?",
+        "Complete: __ ÷ 9 = 6."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-06"
+      ],
+      "dependents": [
+        "NS-08"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "digit",
+        "division",
+        "facts",
+        "number",
+        "quickly",
+        "recall",
+        "sense",
+        "single"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Operations"
+    },
+    {
+      "id": "NS-08",
+      "name": "Fractions as Part–Whole",
+      "description": "Model and name simple fractions.",
+      "difficulty": 2,
+      "time_to_master": 120,
+      "category": "Number Sense",
+      "examples": [
+        "Shade 3⁄8 of a rectangle.",
+        "Write the fraction for 2 red marbles out of 5."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-07"
+      ],
+      "dependents": [
+        "NS-09"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "fractions",
+        "model",
+        "name",
+        "number",
+        "part",
+        "sense",
+        "simple",
+        "whole"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Fractions"
+    },
+    {
+      "id": "NS-09",
+      "name": "Equivalent Fractions",
+      "description": "Generate and recognize equal fractions.",
+      "difficulty": 2,
+      "time_to_master": 90,
+      "category": "Number Sense",
+      "examples": [
+        "Fill in: 3⁄5 = ___⁄15.",
+        "Are 4⁄6 and 2⁄3 equivalent?"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-08"
+      ],
+      "dependents": [
+        "NS-10"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "equal",
+        "equivalent",
+        "fractions",
+        "generate",
+        "number",
+        "recognize",
+        "sense"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Fractions"
+    },
+    {
+      "id": "NS-10",
+      "name": "Fraction-Decimal Conversion",
+      "description": "Convert terminating fractions to decimals and back.",
+      "difficulty": 2,
+      "time_to_master": 120,
+      "category": "Number Sense",
+      "examples": [
+        "Write 3⁄8 as a decimal (round to 0.001).",
+        "Express 0.75 as a fraction in simplest form."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-09"
+      ],
+      "dependents": [
+        "AT-17"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "back",
+        "conversion",
+        "convert",
+        "decimal",
+        "decimals",
+        "fraction",
+        "fractions",
+        "number",
+        "sense",
+        "terminating"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Fractions"
+    },
+    {
+      "id": "NS-11",
+      "name": "Greatest Common Factor",
+      "description": "Find GCF of two whole numbers ≤100.",
+      "difficulty": 2,
+      "time_to_master": 90,
+      "category": "Number Sense",
+      "examples": [
+        "Find GCF(18, 30).",
+        "What is the GCF of 48 and 64?"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-05"
+      ],
+      "dependents": [
+        "POL-52"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "common",
+        "factor",
+        "gcf",
+        "greatest",
+        "number",
+        "numbers",
+        "sense",
+        "two",
+        "whole"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Factors and Multiples"
+    },
+    {
+      "id": "NS-12",
+      "name": "Least Common Multiple",
+      "description": "Find LCM of two whole numbers ≤50.",
+      "difficulty": 2,
+      "time_to_master": 90,
+      "category": "Number Sense",
+      "examples": [
+        "Compute LCM(6, 15).",
+        "Find the LCM of 9 and 12."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-05"
+      ],
+      "dependents": [
+        "POL-52"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "common",
+        "lcm",
+        "least",
+        "multiple",
+        "number",
+        "numbers",
+        "sense",
+        "two",
+        "whole"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Factors and Multiples"
+    },
+    {
+      "id": "NS-13",
+      "name": "Integer Addition/Subtraction",
+      "description": "Add and subtract positive and negative integers.",
+      "difficulty": 2,
+      "time_to_master": 120,
+      "category": "Number Sense",
+      "examples": [
+        "Evaluate −7 + 12.",
+        "Find 9 − (−4)."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-06"
+      ],
+      "dependents": [
+        "NS-14",
+        "NS-15"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "add",
+        "addition",
+        "integer",
+        "integers",
+        "negative",
+        "number",
+        "positive",
+        "sense",
+        "subtract",
+        "subtraction"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Integers"
+    },
+    {
+      "id": "NS-14",
+      "name": "Integer Multiplication/Division",
+      "description": "Multiply and divide signed integers.",
+      "difficulty": 3,
+      "time_to_master": 120,
+      "category": "Number Sense",
+      "examples": [
+        "Compute (−6)(−3).",
+        "Evaluate −48 ÷ 6."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-13"
+      ],
+      "dependents": [
+        "EXP-41",
+        "NS-16"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "divide",
+        "division",
+        "integer",
+        "integers",
+        "multiplication",
+        "multiply",
+        "number",
+        "sense",
+        "signed"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Operations"
+    },
+    {
+      "id": "NS-15",
+      "name": "Absolute Value as Distance",
+      "description": "Interpret |a| as distance from 0 on the number line.",
+      "difficulty": 2,
+      "time_to_master": 60,
+      "category": "Number Sense",
+      "examples": [
+        "Find |−11|.",
+        "Which has greater absolute value: −5 or 4?"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-13"
+      ],
+      "dependents": [
+        "AT-22",
+        "AT-28"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "absolute",
+        "distance",
+        "interpret",
+        "line",
+        "number",
+        "sense",
+        "value"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Integers"
+    },
+    {
+      "id": "NS-16",
+      "name": "Order of Operations",
+      "description": "Apply PEMDAS to simplify numeric expressions.",
+      "difficulty": 3,
+      "time_to_master": 90,
+      "category": "Number Sense",
+      "examples": [
+        "Simplify 3+4×2.",
+        "Evaluate (5+3)²−6."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-14"
+      ],
+      "dependents": [
+        "AT-24"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "apply",
+        "expressions",
+        "number",
+        "numeric",
+        "operations",
+        "order",
+        "pemdas",
+        "sense",
+        "simplify"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Order of Operations"
+    },
+    {
+      "id": "AT-17",
+      "name": "Translate Expressions",
+      "description": "Convert word problems to algebraic expressions",
+      "difficulty": 2,
+      "time_to_master": 90,
+      "category": "Pre-Algebra",
+      "examples": [
+        "'5 more than x' → x + 5",
+        "'twice a number' → 2n"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-10"
+      ],
+      "dependents": [
+        "AT-18"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "algebraic",
+        "convert",
+        "expressions",
+        "pre",
+        "problems",
+        "translate",
+        "word"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Expressions"
+    },
+    {
+      "id": "AT-18",
+      "name": "Identify Like Terms",
+      "description": "Spot terms with identical variable part.",
+      "difficulty": 2,
+      "time_to_master": 60,
+      "category": "Pre-Algebra",
+      "examples": [
+        "Circle the like terms: 3x, 7, −2x, 4x.",
+        "How many like-term groups in 5y² − 4y + 3y² + 6?"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-17"
+      ],
+      "dependents": [
+        "AT-21"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "identical",
+        "identify",
+        "like",
+        "part",
+        "pre",
+        "spot",
+        "terms",
+        "variable"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Simplifying"
+    },
+    {
+      "id": "AT-19",
+      "name": "Distributive Property",
+      "description": "Expand a(b+c) and factor out common factor.",
+      "difficulty": 3,
+      "time_to_master": 90,
+      "category": "Pre-Algebra",
+      "examples": [
+        "Expand 3(2x−5).",
+        "Factor 15x+10."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-06"
+      ],
+      "dependents": [
+        "POL-50",
+        "AT-21"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "common",
+        "distributive",
+        "expand",
+        "factor",
+        "pre",
+        "property"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Simplifying"
+    },
+    {
+      "id": "AT-20",
+      "name": "Combine Like Terms",
+      "description": "Add/subtract coefficients of like terms.",
+      "difficulty": 3,
+      "time_to_master": 90,
+      "category": "Pre-Algebra",
+      "examples": [
+        "Simplify 4x + 7x − 3.",
+        "Combine: 5y² − 2y + 7y²."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-21"
+      ],
+      "dependents": [
+        "AT-22",
+        "AT-23"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "add",
+        "algebra",
+        "coefficients",
+        "combine",
+        "like",
+        "pre",
+        "subtract",
+        "terms"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Simplifying"
+    },
+    {
+      "id": "AT-21",
+      "name": "Evaluate Expression",
+      "description": "Substitute values and calculate algebraic expressions",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "Pre-Algebra",
+      "examples": [
+        "If x = 3, then 2x + 5 = 11",
+        "Evaluate 3a - b when a = 4, b = 2"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-18",
+        "AT-19"
+      ],
+      "dependents": [
+        "POL-49",
+        "AT-20"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "algebraic",
+        "calculate",
+        "evaluate",
+        "expression",
+        "expressions",
+        "pre",
+        "substitute",
+        "values"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Expressions"
+    },
+    {
+      "id": "AT-22",
+      "name": "One-Step Equations (+/−)",
+      "description": "Solve x±a=b.",
+      "difficulty": 2,
+      "time_to_master": 90,
+      "category": "Pre-Algebra",
+      "examples": [
+        "Solve x−7=12.",
+        "Find m+5=−2."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-20",
+        "NS-15"
+      ],
+      "dependents": [
+        "AT-24",
+        "LF-35"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "equations",
+        "one",
+        "pre",
+        "solve",
+        "step"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Equations"
+    },
+    {
+      "id": "AT-23",
+      "name": "One-Step Equations (×/÷)",
+      "description": "Solve ax=b and x/a=b.",
+      "difficulty": 2,
+      "time_to_master": 90,
+      "category": "Pre-Algebra",
+      "examples": [
+        "Solve 4p=28.",
+        "Find x/5 = −3."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-20"
+      ],
+      "dependents": [
+        "AT-24"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "ax",
+        "equations",
+        "one",
+        "pre",
+        "solve",
+        "step"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Equations"
+    },
+    {
+      "id": "AT-24",
+      "name": "Two-Step Linear Equations",
+      "description": "Solve ax+b=c.",
+      "difficulty": 3,
+      "time_to_master": 120,
+      "category": "Pre-Algebra",
+      "examples": [
+        "Solve 3x+4=19.",
+        "Find y/2 −7 =5."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-22",
+        "AT-23",
+        "NS-16"
+      ],
+      "dependents": [
+        "AT-25"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "ax",
+        "equations",
+        "linear",
+        "pre",
+        "solve",
+        "step",
+        "two"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Equations"
+    },
+    {
+      "id": "AT-25",
+      "name": "Multi-Step Linear Equations",
+      "description": "Equations requiring distribution, combining terms, etc.",
+      "difficulty": 4,
+      "time_to_master": 150,
+      "category": "Pre-Algebra",
+      "examples": [
+        "Solve 2(3x−1)=4x+10.",
+        "Find k−4−2k=11."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-24"
+      ],
+      "dependents": [
+        "AT-26"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "combining",
+        "distribution",
+        "equations",
+        "etc",
+        "linear",
+        "multi",
+        "pre",
+        "requiring",
+        "step",
+        "terms"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Equations"
+    },
+    {
+      "id": "AT-26",
+      "name": "Proportional Relationships & k",
+      "description": "y = kx relationships and constant of proportionality",
+      "difficulty": 4,
+      "time_to_master": 75,
+      "category": "Pre-Algebra",
+      "examples": [
+        "y = 3x has k = 3",
+        "Distance = rate × time"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-25"
+      ],
+      "dependents": [
+        "AT-27"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "constant",
+        "kx",
+        "pre",
+        "proportional",
+        "proportionality",
+        "relationships"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Ratios and Proportions"
+    },
+    {
+      "id": "AT-27",
+      "name": "Unit Rate & Slope Concept",
+      "description": "Interpret slope as rate of change.",
+      "difficulty": 3,
+      "time_to_master": 90,
+      "category": "Pre-Algebra",
+      "examples": [
+        "You travel 180 km in 3 h. Unit rate?",
+        "From the graph find slope as rise/run."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-26"
+      ],
+      "dependents": [
+        "LF-30"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "change",
+        "concept",
+        "interpret",
+        "pre",
+        "rate",
+        "slope",
+        "unit"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Ratios and Proportions"
+    },
+    {
+      "id": "AT-28",
+      "name": "Coordinate Plane Plotting",
+      "description": "Plot ordered pairs in four quadrants.",
+      "difficulty": 2,
+      "time_to_master": 90,
+      "category": "Pre-Algebra",
+      "examples": [
+        "Plot (−3,4).",
+        "Which quadrant is (5,−2)?"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-15"
+      ],
+      "dependents": [
+        "LF-30",
+        "AT-29"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "coordinate",
+        "four",
+        "ordered",
+        "pairs",
+        "plane",
+        "plot",
+        "plotting",
+        "pre",
+        "quadrants"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Graphing"
+    },
+    {
+      "id": "AT-29",
+      "name": "Distance Formula",
+      "description": "Find distance between two plane points.",
+      "difficulty": 3,
+      "time_to_master": 120,
+      "category": "Pre-Algebra",
+      "examples": [
+        "Distance between (2,3) and (7,11).",
+        "Is segment AB of length √40? A(1,2) B(5,8)"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-28"
+      ],
+      "dependents": [
+        "LF-30"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "distance",
+        "formula",
+        "plane",
+        "points",
+        "pre",
+        "two"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Graphing"
+    },
+    {
+      "id": "LF-30",
+      "name": "Slope from Two Points",
+      "description": "Compute m = (y₂−y₁)/(x₂−x₁).",
+      "difficulty": 3,
+      "time_to_master": 90,
+      "category": "Linear",
+      "examples": [
+        "Slope through (3,−1) and (9,5).",
+        "Find slope of a horizontal line."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-27",
+        "AT-28",
+        "AT-29"
+      ],
+      "dependents": [
+        "LF-32",
+        "LF-31"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "compute",
+        "linear",
+        "points",
+        "slope",
+        "two"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Slope"
+    },
+    {
+      "id": "LF-31",
+      "name": "Slope-Intercept Form",
+      "description": "Write/graph y=mx+b.",
+      "difficulty": 3,
+      "time_to_master": 120,
+      "category": "Linear",
+      "examples": [
+        "Graph y=−2x+3.",
+        "Write equation with m=4, b=−7."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "LF-30"
+      ],
+      "dependents": [
+        "LF-35",
+        "FN-62",
+        "LF-37",
+        "LF-33",
+        "LF-36"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "form",
+        "graph",
+        "intercept",
+        "linear",
+        "mx",
+        "slope",
+        "write"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Slope"
+    },
+    {
+      "id": "LF-32",
+      "name": "Point-Slope Form",
+      "description": "Use y−y₁=m(x−x₁).",
+      "difficulty": 3,
+      "time_to_master": 120,
+      "category": "Linear",
+      "examples": [
+        "Equation through (4,5) slope 2.",
+        "Convert y−3=3(x+1) to slope-intercept."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "LF-30"
+      ],
+      "dependents": [
+        "LF-33"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "form",
+        "linear",
+        "point",
+        "slope"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Slope"
+    },
+    {
+      "id": "LF-33",
+      "name": "Convert Linear Forms",
+      "description": "Switch between standard, slope-intercept, point-slope.",
+      "difficulty": 3,
+      "time_to_master": 120,
+      "category": "Linear",
+      "examples": [
+        "Convert 2x−3y=6 to y=mx+b.",
+        "Write Ax+By=C from y=½x−4."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "LF-32",
+        "LF-31"
+      ],
+      "dependents": [
+        "LF-34"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "convert",
+        "forms",
+        "intercept",
+        "linear",
+        "point",
+        "slope",
+        "standard",
+        "switch"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Slope"
+    },
+    {
+      "id": "LF-34",
+      "name": "Parallel & Perpendicular Slopes",
+      "description": "Identify/produce lines with given relationships.",
+      "difficulty": 3,
+      "time_to_master": 120,
+      "category": "Linear",
+      "examples": [
+        "Line l: y=3x−2. Give slope of line parallel to l.",
+        "Equation of line through (2,1) perpendicular to y=−¼x+5."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "LF-33"
+      ],
+      "dependents": [],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "identify",
+        "linear",
+        "lines",
+        "parallel",
+        "perpendicular",
+        "produce",
+        "relationships",
+        "slopes"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Slope"
+    },
+    {
+      "id": "LF-35",
+      "name": "Graph Linear Inequality (1-var)",
+      "description": "Graph solutions to x > 3, x ≤ -2 on number line",
+      "difficulty": 3,
+      "time_to_master": 45,
+      "category": "Linear",
+      "examples": [
+        "x > 3: open circle, arrow right",
+        "x ≤ -2: closed circle, arrow left"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-22",
+        "LF-31"
+      ],
+      "dependents": [],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "graph",
+        "inequality",
+        "line",
+        "linear",
+        "number",
+        "solutions",
+        "var"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Inequalities"
+    },
+    {
+      "id": "LF-36",
+      "name": "Graph Linear Inequality (2-var)",
+      "description": "Shade half-plane solution.",
+      "difficulty": 3,
+      "time_to_master": 120,
+      "category": "Linear",
+      "examples": [
+        "Graph y<−½x+4.",
+        "Is (3,0) a solution of 2x−y≥5?"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "LF-31"
+      ],
+      "dependents": [
+        "LF-40"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "graph",
+        "half",
+        "inequality",
+        "linear",
+        "plane",
+        "shade",
+        "solution",
+        "var"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Inequalities"
+    },
+    {
+      "id": "LF-37",
+      "name": "System – Graphing",
+      "description": "Solve a linear system by intersecting lines.",
+      "difficulty": 3,
+      "time_to_master": 120,
+      "category": "Linear",
+      "examples": [
+        "Graph and solve y=2x+1 and y=−x+7.",
+        "Estimate intersection of y=0.5x−4 and y=3x+2."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "LF-31"
+      ],
+      "dependents": [
+        "LF-38",
+        "LF-39"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "graphing",
+        "intersecting",
+        "linear",
+        "lines",
+        "solve",
+        "system"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Graphing"
+    },
+    {
+      "id": "LF-38",
+      "name": "System – Substitution",
+      "description": "Solve 2-eq system using substitution.",
+      "difficulty": 3,
+      "time_to_master": 120,
+      "category": "Linear",
+      "examples": [
+        "Solve y=4x−5 and 2x+y=7.",
+        "System: x=3y−2, 2x−y=8."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "LF-37"
+      ],
+      "dependents": [
+        "LF-40"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "eq",
+        "linear",
+        "solve",
+        "substitution",
+        "system"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Systems of Equations"
+    },
+    {
+      "id": "LF-39",
+      "name": "System – Elimination",
+      "description": "Solve using addition/elimination.",
+      "difficulty": 3,
+      "time_to_master": 120,
+      "category": "Linear",
+      "examples": [
+        "Solve 3x+2y=22 and 5x−2y=18.",
+        "System: 4a−b=9, 6a+3b=33."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "LF-37"
+      ],
+      "dependents": [
+        "LF-40"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "addition",
+        "elimination",
+        "linear",
+        "solve",
+        "system"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Systems of Equations"
+    },
+    {
+      "id": "LF-40",
+      "name": "System – Solution Classification",
+      "description": "Decide one, none, or infinitely many solutions.",
+      "difficulty": 3,
+      "time_to_master": 90,
+      "category": "Linear",
+      "examples": [
+        "Classify 2x−3y=6 and 4x−6y=12.",
+        "Give example of inconsistent system."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "LF-36",
+        "LF-38",
+        "LF-39"
+      ],
+      "dependents": [
+        "FN-63"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "classification",
+        "decide",
+        "infinitely",
+        "linear",
+        "many",
+        "none",
+        "one",
+        "solution",
+        "solutions",
+        "system"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Systems of Equations"
+    },
+    {
+      "id": "EXP-41",
+      "name": "Exponent Product Rule",
+      "description": "a^m · a^n = a^{m+n}.",
+      "difficulty": 3,
+      "time_to_master": 45,
+      "category": "Exponential",
+      "examples": [
+        "Simplify x³·x⁵.",
+        "Compute 2⁴·2³."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-14"
+      ],
+      "dependents": [
+        "EXP-43",
+        "EXP-48",
+        "POL-50",
+        "FN-62",
+        "EXP-42"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "exponent",
+        "exponential",
+        "product",
+        "rule"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Exponent Rules"
+    },
+    {
+      "id": "EXP-42",
+      "name": "Power of a Power",
+      "description": "(a^m)^n = a^{mn}.",
+      "difficulty": 3,
+      "time_to_master": 45,
+      "category": "Exponential",
+      "examples": [
+        "Simplify (x²)³.",
+        "Evaluate (3²)⁴."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "EXP-41"
+      ],
+      "dependents": [
+        "EXP-44"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "exponential",
+        "mn",
+        "power"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Exponent Rules"
+    },
+    {
+      "id": "EXP-43",
+      "name": "Power of a Product",
+      "description": "(ab)^n = a^n b^n.",
+      "difficulty": 3,
+      "time_to_master": 45,
+      "category": "Exponential",
+      "examples": [
+        "Rewrite (2x)³.",
+        "Expand (5ab)²."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "EXP-41"
+      ],
+      "dependents": [
+        "EXP-44"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "ab",
+        "exponential",
+        "power",
+        "product"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Exponent Rules"
+    },
+    {
+      "id": "EXP-44",
+      "name": "Zero Exponent",
+      "description": "a^0 = 1 for a≠0.",
+      "difficulty": 3,
+      "time_to_master": 30,
+      "category": "Exponential",
+      "examples": [
+        "Evaluate 7⁰.",
+        "Simplify (3x)⁰."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "EXP-43",
+        "EXP-42"
+      ],
+      "dependents": [
+        "EXP-45"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "exponent",
+        "exponential",
+        "zero"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Exponent Rules"
+    },
+    {
+      "id": "EXP-45",
+      "name": "Negative Integer Exponents",
+      "description": "a^{−n}=1/a^n.",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "Exponential",
+      "examples": [
+        "Rewrite 2^{−3}.",
+        "Simplify x^{−2} y^{−1}."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "EXP-44"
+      ],
+      "dependents": [
+        "EXP-46"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "exponential",
+        "exponents",
+        "integer",
+        "negative"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": null
+    },
+    {
+      "id": "EXP-46",
+      "name": "Fractional Exponents (Roots)",
+      "description": "a^{1/n}=ⁿ√a, a^{m/n}=ⁿ√a^m.",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "Exponential",
+      "examples": [
+        "Evaluate 27^{1/3}.",
+        "Rewrite √[4]{x³} as an exponent."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "EXP-45"
+      ],
+      "dependents": [
+        "EXP-47"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "exponential",
+        "exponents",
+        "fractional",
+        "roots"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Radicals"
+    },
+    {
+      "id": "EXP-47",
+      "name": "Simplify Radical Expressions",
+      "description": "Combine like radicals & rationalize.",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "Exponential",
+      "examples": [
+        "Simplify 3√5 + 2√5.",
+        "Rationalize 5/√2."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "EXP-46"
+      ],
+      "dependents": [
+        "FN-65"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "combine",
+        "exponential",
+        "expressions",
+        "like",
+        "radical",
+        "radicals",
+        "rationalize",
+        "simplify"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Radicals"
+    },
+    {
+      "id": "EXP-48",
+      "name": "Scientific Notation",
+      "description": "Write and compute with a×10^n.",
+      "difficulty": 2,
+      "time_to_master": 45,
+      "category": "Exponential",
+      "examples": [
+        "Express 0.00032 in sci-notation.",
+        "(3×10⁵)(2×10⁻³)=?"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "EXP-41"
+      ],
+      "dependents": [],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "compute",
+        "exponential",
+        "notation",
+        "scientific",
+        "write"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Scientific Notation"
+    },
+    {
+      "id": "POL-49",
+      "name": "Add/Subtract Polynomials",
+      "description": "Combine like terms across polynomials.",
+      "difficulty": 2,
+      "time_to_master": 45,
+      "category": "Polynomials",
+      "examples": [
+        "(2x²+3x) + (x²−4x).",
+        "Subtract (3a²−2a+1) from (5a²+4)."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "AT-21"
+      ],
+      "dependents": [
+        "Q-58"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "across",
+        "add",
+        "combine",
+        "like",
+        "polynomials",
+        "subtract",
+        "terms"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Polynomial Operations"
+    },
+    {
+      "id": "POL-50",
+      "name": "Multiply Monomial·Polynomial",
+      "description": "Distribute a monomial across a polynomial.",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "Polynomials",
+      "examples": [
+        "3x(4x²−5x+2).",
+        "−2a²(6a−7)."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "EXP-41",
+        "AT-19"
+      ],
+      "dependents": [
+        "POL-51"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "across",
+        "distribute",
+        "monomial",
+        "multiply",
+        "polynomial",
+        "polynomials"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Polynomial Operations"
+    },
+    {
+      "id": "POL-51",
+      "name": "Binomial Product (FOIL)",
+      "description": "Multiply two binomials.",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "Polynomials",
+      "examples": [
+        "(x+5)(x−3).",
+        "(2a−7)(a+4)."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "POL-50"
+      ],
+      "dependents": [
+        "POL-55"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "binomial",
+        "binomials",
+        "foil",
+        "multiply",
+        "polynomials",
+        "product",
+        "two"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Polynomial Operations"
+    },
+    {
+      "id": "POL-52",
+      "name": "Factor GCF",
+      "description": "Factor out greatest common factor.",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "Polynomials",
+      "examples": [
+        "Factor 12x²y+8xy.",
+        "Factor 6a³−9a²."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "NS-11",
+        "NS-12"
+      ],
+      "dependents": [
+        "POL-53"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "common",
+        "factor",
+        "gcf",
+        "greatest",
+        "polynomials"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Factoring"
+    },
+    {
+      "id": "POL-53",
+      "name": "Factor Trinomials a=1",
+      "description": "Factor x²+bx+c.",
+      "difficulty": 3,
+      "time_to_master": 75,
+      "category": "Polynomials",
+      "examples": [
+        "Factor x²+5x+6.",
+        "Factor x²−x−12."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "POL-52"
+      ],
+      "dependents": [
+        "POL-54"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "bx",
+        "factor",
+        "polynomials",
+        "trinomials"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Factoring"
+    },
+    {
+      "id": "POL-54",
+      "name": "Factor Trinomials a≠1",
+      "description": "Factor ax²+bx+c, a≠1.",
+      "difficulty": 4,
+      "time_to_master": 90,
+      "category": "Polynomials",
+      "examples": [
+        "Factor 2x²+7x+3.",
+        "Factor 3x²−11x−4."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "POL-53"
+      ],
+      "dependents": [
+        "Q-57"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "ax",
+        "bx",
+        "factor",
+        "polynomials",
+        "trinomials"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Factoring"
+    },
+    {
+      "id": "POL-55",
+      "name": "Special Products & Diff Squares",
+      "description": "Recognize (a±b)² and a²−b².",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "Polynomials",
+      "examples": [
+        "Expand (3y−4)².",
+        "Factor 25x²−9."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "POL-51"
+      ],
+      "dependents": [
+        "POL-56"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "diff",
+        "polynomials",
+        "products",
+        "recognize",
+        "special",
+        "squares"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Special Products"
+    },
+    {
+      "id": "POL-56",
+      "name": "Polynomial Division (Synthetic)",
+      "description": "Divide by x−k and find remainder.",
+      "difficulty": 4,
+      "time_to_master": 75,
+      "category": "Polynomials",
+      "examples": [
+        "Divide x³−2x²+5 by x−2.",
+        "Use synthetic division to find f(3) for f(x)=2x³+x²−5."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "POL-55"
+      ],
+      "dependents": [
+        "Q-58"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "divide",
+        "division",
+        "polynomial",
+        "polynomials",
+        "remainder",
+        "synthetic"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Polynomial Division"
+    },
+    {
+      "id": "Q-57",
+      "name": "Vertex from Standard Form",
+      "description": "Find vertex of y=ax²+bx+c.",
+      "difficulty": 4,
+      "time_to_master": 60,
+      "category": "Quadratic",
+      "examples": [
+        "Vertex of y=2x²−8x+3.",
+        "Given vertex (h,k) compute axis of symmetry."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "POL-54"
+      ],
+      "dependents": [
+        "FN-65",
+        "Q-61"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "ax",
+        "bx",
+        "form",
+        "quadratic",
+        "standard",
+        "vertex"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Vertex Form"
+    },
+    {
+      "id": "Q-58",
+      "name": "Completing the Square",
+      "description": "Rewrite ax²+bx+c into a(x−h)²+k.",
+      "difficulty": 4,
+      "time_to_master": 90,
+      "category": "Quadratic",
+      "examples": [
+        "Complete square: x²+6x+5.",
+        "Rewrite 2x²−4x+7 in vertex form."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "POL-49",
+        "POL-56"
+      ],
+      "dependents": [
+        "Q-59"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "ax",
+        "bx",
+        "completing",
+        "quadratic",
+        "rewrite",
+        "square"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Completing the Square"
+    },
+    {
+      "id": "Q-59",
+      "name": "Quadratic Formula",
+      "description": "Solve ax²+bx+c=0 using −b±√(b²−4ac)/2a.",
+      "difficulty": 4,
+      "time_to_master": 75,
+      "category": "Quadratic",
+      "examples": [
+        "Solve 3x²+2x−1=0.",
+        "Find exact roots of x²−5x−6=0."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "Q-58"
+      ],
+      "dependents": [
+        "Q-60"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "2a",
+        "4ac",
+        "ax",
+        "bx",
+        "formula",
+        "quadratic",
+        "solve"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Quadratic Formula"
+    },
+    {
+      "id": "Q-60",
+      "name": "Discriminant & Roots",
+      "description": "Analyze b²−4ac for number/type of roots.",
+      "difficulty": 3,
+      "time_to_master": 45,
+      "category": "Quadratic",
+      "examples": [
+        "Discriminant of 4x²+4x+1.",
+        "How many real roots does x²−7x+12 have?"
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "Q-59"
+      ],
+      "dependents": [
+        "Q-61"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "4ac",
+        "analyze",
+        "discriminant",
+        "number",
+        "quadratic",
+        "roots",
+        "type"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Discriminant"
+    },
+    {
+      "id": "Q-61",
+      "name": "Graph Parabola (Vertex Form)",
+      "description": "Graph y=a(x−h)²+k quickly.",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "Quadratic",
+      "examples": [
+        "Graph y=−(x+2)²+3.",
+        "Identify vertex and direction of y=2(x−1)²−4."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "Q-57",
+        "Q-60"
+      ],
+      "dependents": [],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "form",
+        "graph",
+        "parabola",
+        "quadratic",
+        "quickly",
+        "vertex"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Vertex Form"
+    },
+    {
+      "id": "FN-62",
+      "name": "Function Notation",
+      "description": "Use f(x) and evaluate.",
+      "difficulty": 3,
+      "time_to_master": 45,
+      "category": "Function Tools",
+      "examples": [
+        "If f(x)=2x²−3, find f(4).",
+        "Let g(x)=|x−5|. Evaluate g(1)."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "EXP-41",
+        "LF-31"
+      ],
+      "dependents": [
+        "FN-63"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "evaluate",
+        "function",
+        "notation",
+        "tools"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Function Basics"
+    },
+    {
+      "id": "FN-63",
+      "name": "Domain & Range",
+      "description": "Find possible x (domain) and f(x) (range).",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "Function Tools",
+      "examples": [
+        "Domain of f(x)=1/(x−2).",
+        "Range of y=|x|."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "FN-62",
+        "LF-40"
+      ],
+      "dependents": [
+        "FN-64"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "domain",
+        "function",
+        "possible",
+        "range",
+        "tools"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Domain and Range"
+    },
+    {
+      "id": "FN-64",
+      "name": "Composition of Functions",
+      "description": "Compute (f∘g)(x)=f(g(x)).",
+      "difficulty": 3,
+      "time_to_master": 75,
+      "category": "Function Tools",
+      "examples": [
+        "If f(x)=x+1, g(x)=x², find (f∘g)(2).",
+        "Find (g∘f)(x) for same f,g."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "FN-63"
+      ],
+      "dependents": [
+        "FN-65"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "composition",
+        "compute",
+        "function",
+        "functions",
+        "tools"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Function Composition"
+    },
+    {
+      "id": "FN-65",
+      "name": "Function Transformations",
+      "description": "Shifts, reflections, stretches of parent graphs.",
+      "difficulty": 4,
+      "time_to_master": 90,
+      "category": "Function Tools",
+      "examples": [
+        "Graph y=−2√(x−3)+5 from y=√x.",
+        "Describe transformation from y=x² to y=(x−4)²−7."
+      ],
+      "grade_level": "",
+      "prerequisites": [
+        "Q-57",
+        "FN-64",
+        "EXP-47"
+      ],
+      "dependents": [],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "function",
+        "graphs",
+        "parent",
+        "reflections",
+        "shifts",
+        "stretches",
+        "tools",
+        "transformations"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": "Transformations"
+    },
+    {
+      "id": "basic_arithmetic",
+      "name": "Basic Arithmetic",
+      "description": "Addition, subtraction, multiplication, division",
+      "difficulty": 1,
+      "time_to_master": 60,
+      "category": "",
+      "examples": [],
+      "grade_level": "",
+      "prerequisites": [],
+      "dependents": [
+        "integers"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "addition",
+        "arithmetic",
+        "basic",
+        "division",
+        "multiplication",
+        "subtraction"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": null,
+      "legacy_mapping": {
+        "note": "Legacy concept - maps to foundational Number Sense concepts (NS-01 through NS-07)",
+        "related_structured_ids": [
+          "NS-01",
+          "NS-06",
+          "NS-07"
+        ]
+      }
+    },
+    {
+      "id": "integers",
+      "name": "Integers",
+      "description": "Positive and negative whole numbers",
+      "difficulty": 2,
+      "time_to_master": 60,
+      "category": "",
+      "examples": [],
+      "grade_level": "",
+      "prerequisites": [
+        "basic_arithmetic"
+      ],
+      "dependents": [
+        "fractions",
+        "algebra"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "integers",
+        "negative",
+        "numbers",
+        "positive",
+        "whole"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": null,
+      "legacy_mapping": {
+        "note": "Legacy concept - maps to Integer operations (NS-13, NS-14)",
+        "related_structured_ids": [
+          "NS-13",
+          "NS-14"
+        ]
+      }
+    },
+    {
+      "id": "fractions",
+      "name": "Fractions",
+      "description": "Parts of a whole number",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "",
+      "examples": [],
+      "grade_level": "",
+      "prerequisites": [
+        "integers"
+      ],
+      "dependents": [
+        "decimals"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "fractions",
+        "number",
+        "parts",
+        "whole"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": null,
+      "legacy_mapping": {
+        "note": "Legacy concept - maps to Fraction concepts (NS-08, NS-09)",
+        "related_structured_ids": [
+          "NS-08",
+          "NS-09"
+        ]
+      }
+    },
+    {
+      "id": "decimals",
+      "name": "Decimals",
+      "description": "Numbers with decimal points",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "",
+      "examples": [],
+      "grade_level": "",
+      "prerequisites": [
+        "fractions"
+      ],
+      "dependents": [
+        "percentages"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "decimal",
+        "decimals",
+        "numbers",
+        "points"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": null,
+      "legacy_mapping": {
+        "note": "Legacy concept - maps to Fraction-Decimal Conversion (NS-10)",
+        "related_structured_ids": [
+          "NS-10"
+        ]
+      }
+    },
+    {
+      "id": "percentages",
+      "name": "Percentages",
+      "description": "Parts per hundred",
+      "difficulty": 3,
+      "time_to_master": 60,
+      "category": "",
+      "examples": [],
+      "grade_level": "",
+      "prerequisites": [
+        "decimals"
+      ],
+      "dependents": [],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "hundred",
+        "parts",
+        "per",
+        "percentages"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": null,
+      "legacy_mapping": {
+        "note": "Legacy concept - no direct structured equivalent; relates to decimal/fraction conversion",
+        "related_structured_ids": [
+          "NS-10"
+        ]
+      }
+    },
+    {
+      "id": "algebra",
+      "name": "Basic Algebra",
+      "description": "Variables and simple equations",
+      "difficulty": 4,
+      "time_to_master": 60,
+      "category": "",
+      "examples": [],
+      "grade_level": "",
+      "prerequisites": [
+        "integers"
+      ],
+      "dependents": [
+        "linear_equations"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "algebra",
+        "basic",
+        "equations",
+        "simple",
+        "variables"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": null,
+      "legacy_mapping": {
+        "note": "Legacy concept - maps to Pre-Algebra expression concepts (AT-17, AT-18, AT-21)",
+        "related_structured_ids": [
+          "AT-17",
+          "AT-18",
+          "AT-21"
+        ]
+      }
+    },
+    {
+      "id": "linear_equations",
+      "name": "Linear Equations",
+      "description": "Equations with one variable",
+      "difficulty": 4,
+      "time_to_master": 60,
+      "category": "",
+      "examples": [],
+      "grade_level": "",
+      "prerequisites": [
+        "algebra"
+      ],
+      "dependents": [
+        "quadratic_equations"
+      ],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "equations",
+        "linear",
+        "one",
+        "variable"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": null,
+      "legacy_mapping": {
+        "note": "Legacy concept - maps to Linear equation concepts (AT-22 through AT-25, LF-30 through LF-40)",
+        "related_structured_ids": [
+          "AT-22",
+          "AT-24",
+          "AT-25",
+          "LF-30",
+          "LF-31"
+        ]
+      }
+    },
+    {
+      "id": "quadratic_equations",
+      "name": "Quadratic Equations",
+      "description": "Second-degree polynomial equations",
+      "difficulty": 5,
+      "time_to_master": 60,
+      "category": "",
+      "examples": [],
+      "grade_level": "",
+      "prerequisites": [
+        "linear_equations"
+      ],
+      "dependents": [],
+      "related": [],
+      "grade_levels": [],
+      "keywords": [
+        "degree",
+        "equations",
+        "polynomial",
+        "quadratic",
+        "second"
+      ],
+      "learning_objectives": [],
+      "common_misconceptions": [],
+      "subcategory": null,
+      "legacy_mapping": {
+        "note": "Legacy concept - maps to Quadratic concepts (Q-57 through Q-61)",
+        "related_structured_ids": [
+          "Q-57",
+          "Q-58",
+          "Q-59",
+          "Q-60",
+          "Q-61"
+        ]
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "source": "NS-01",
+      "target": "NS-02",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-01",
+      "target": "NS-03",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-01",
+      "target": "NS-04",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-02",
+      "target": "NS-06",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-02",
+      "target": "AT-17",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-03",
+      "target": "NS-05",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-04",
+      "target": "NS-05",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-05",
+      "target": "NS-11",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-05",
+      "target": "NS-12",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-06",
+      "target": "NS-07",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-06",
+      "target": "NS-13",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-06",
+      "target": "AT-19",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-07",
+      "target": "NS-08",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-08",
+      "target": "NS-09",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-09",
+      "target": "NS-10",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-10",
+      "target": "AT-17",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-11",
+      "target": "POL-52",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-12",
+      "target": "POL-52",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-13",
+      "target": "NS-14",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-13",
+      "target": "NS-15",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-14",
+      "target": "NS-16",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-14",
+      "target": "EXP-41",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-15",
+      "target": "AT-22",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-15",
+      "target": "AT-28",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "NS-16",
+      "target": "AT-24",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-17",
+      "target": "AT-18",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-18",
+      "target": "AT-21",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-19",
+      "target": "AT-21",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-19",
+      "target": "POL-50",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-20",
+      "target": "AT-22",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-20",
+      "target": "AT-23",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-21",
+      "target": "AT-20",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-21",
+      "target": "POL-49",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-22",
+      "target": "AT-24",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-22",
+      "target": "LF-35",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-23",
+      "target": "AT-24",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-24",
+      "target": "AT-25",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-25",
+      "target": "AT-26",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-26",
+      "target": "AT-27",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-27",
+      "target": "LF-30",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-28",
+      "target": "AT-29",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-28",
+      "target": "LF-30",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "AT-29",
+      "target": "LF-30",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-30",
+      "target": "LF-31",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-30",
+      "target": "LF-32",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-31",
+      "target": "LF-33",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-31",
+      "target": "LF-35",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-31",
+      "target": "LF-36",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-31",
+      "target": "LF-37",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-31",
+      "target": "FN-62",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-32",
+      "target": "LF-33",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-33",
+      "target": "LF-34",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-36",
+      "target": "LF-40",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-37",
+      "target": "LF-38",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-37",
+      "target": "LF-39",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-38",
+      "target": "LF-40",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-39",
+      "target": "LF-40",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "LF-40",
+      "target": "FN-63",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "EXP-41",
+      "target": "EXP-42",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "EXP-41",
+      "target": "EXP-43",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "EXP-41",
+      "target": "EXP-48",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "EXP-41",
+      "target": "POL-50",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "EXP-41",
+      "target": "FN-62",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "EXP-42",
+      "target": "EXP-44",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "EXP-43",
+      "target": "EXP-44",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "EXP-44",
+      "target": "EXP-45",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "EXP-45",
+      "target": "EXP-46",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "EXP-46",
+      "target": "EXP-47",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "EXP-47",
+      "target": "FN-65",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "POL-49",
+      "target": "Q-58",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "POL-50",
+      "target": "POL-51",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "POL-51",
+      "target": "POL-55",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "POL-52",
+      "target": "POL-53",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "POL-53",
+      "target": "POL-54",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "POL-54",
+      "target": "Q-57",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "POL-55",
+      "target": "POL-56",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "POL-56",
+      "target": "Q-58",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "Q-57",
+      "target": "Q-61",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "Q-57",
+      "target": "FN-65",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "Q-58",
+      "target": "Q-59",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "Q-59",
+      "target": "Q-60",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "Q-60",
+      "target": "Q-61",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "FN-62",
+      "target": "FN-63",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "FN-63",
+      "target": "FN-64",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "FN-64",
+      "target": "FN-65",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "basic_arithmetic",
+      "target": "integers",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "integers",
+      "target": "fractions",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "integers",
+      "target": "algebra",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "fractions",
+      "target": "decimals",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "decimals",
+      "target": "percentages",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "algebra",
+      "target": "linear_equations",
+      "type": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "source": "linear_equations",
+      "target": "quadratic_equations",
+      "type": "prerequisite",
+      "strength": 0.8
+    }
+  ],
+  "metadata": {
+    "enrichment_version": "1.0",
+    "legacy_concept_ids": [
+      "basic_arithmetic",
+      "integers",
+      "fractions",
+      "decimals",
+      "percentages",
+      "algebra",
+      "linear_equations",
+      "quadratic_equations"
+    ],
+    "legacy_concept_mapping": {
+      "basic_arithmetic": {
+        "note": "Legacy concept - maps to foundational Number Sense concepts (NS-01 through NS-07)",
+        "related_structured_ids": [
+          "NS-01",
+          "NS-06",
+          "NS-07"
+        ]
+      },
+      "integers": {
+        "note": "Legacy concept - maps to Integer operations (NS-13, NS-14)",
+        "related_structured_ids": [
+          "NS-13",
+          "NS-14"
+        ]
+      },
+      "fractions": {
+        "note": "Legacy concept - maps to Fraction concepts (NS-08, NS-09)",
+        "related_structured_ids": [
+          "NS-08",
+          "NS-09"
+        ]
+      },
+      "decimals": {
+        "note": "Legacy concept - maps to Fraction-Decimal Conversion (NS-10)",
+        "related_structured_ids": [
+          "NS-10"
+        ]
+      },
+      "percentages": {
+        "note": "Legacy concept - no direct structured equivalent; relates to decimal/fraction conversion",
+        "related_structured_ids": [
+          "NS-10"
+        ]
+      },
+      "algebra": {
+        "note": "Legacy concept - maps to Pre-Algebra expression concepts (AT-17, AT-18, AT-21)",
+        "related_structured_ids": [
+          "AT-17",
+          "AT-18",
+          "AT-21"
+        ]
+      },
+      "linear_equations": {
+        "note": "Legacy concept - maps to Linear equation concepts (AT-22 through AT-25, LF-30 through LF-40)",
+        "related_structured_ids": [
+          "AT-22",
+          "AT-24",
+          "AT-25",
+          "LF-30",
+          "LF-31"
+        ]
+      },
+      "quadratic_equations": {
+        "note": "Legacy concept - maps to Quadratic concepts (Q-57 through Q-61)",
+        "related_structured_ids": [
+          "Q-57",
+          "Q-58",
+          "Q-59",
+          "Q-60",
+          "Q-61"
+        ]
+      }
+    }
+  }
+}

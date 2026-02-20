@@ -61,22 +61,29 @@ def check_data_service_status() -> dict:
     if writer is None:
         return {"postgres_available": False, "neo4j_available": False, "message": "TutorDataServiceWriter not available"}
 
-    # Check PostgreSQL
+    # Check PostgreSQL — run asyncpg in a separate thread to avoid
+    # "event loop already running" when called from a FastAPI async route.
     try:
         import asyncio
         import asyncpg
+        import concurrent.futures
 
-        loop = writer._get_or_create_event_loop()
-
-        async def _pg_ping():
-            conn = await asyncpg.connect(writer.database_url)
+        def _pg_ping_sync():
+            loop = asyncio.new_event_loop()
             try:
-                await conn.fetchval("SELECT 1")
+                async def _inner():
+                    c = await asyncpg.connect(writer.database_url, timeout=3)
+                    try:
+                        await c.fetchval("SELECT 1")
+                    finally:
+                        await c.close()
+                loop.run_until_complete(_inner())
                 return True
             finally:
-                await conn.close()
+                loop.close()
 
-        pg_ok = loop.run_until_complete(_pg_ping())
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            pg_ok = pool.submit(_pg_ping_sync).result(timeout=5)
         message_parts.append("PostgreSQL: connected")
     except Exception as exc:
         message_parts.append(f"PostgreSQL: unavailable ({exc})")

@@ -179,6 +179,51 @@ class PlaygroundConfig(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Prompt persistence (GCS)
+# ---------------------------------------------------------------------------
+
+
+class StagePrompts(BaseModel):
+    """System + user prompts for a single pipeline stage."""
+
+    system_prompt: str = ""
+    user_prompt: str = ""
+
+
+class PromptSaveRequest(BaseModel):
+    """Request body for saving the current prompt session to GCS."""
+
+    prompts: Dict[str, StagePrompts] = Field(
+        ...,
+        description="Prompts keyed by stage: personalize, extract_concepts, generate_animation",
+    )
+    settings: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="topic, interest, animation_style, audience_level, temperature, max_tokens",
+    )
+    student_settings: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="student_name, preferred_address, grade_level, city, state, etc.",
+    )
+    notes: str = Field("", description="Optional notes about this version")
+
+
+class PromptSaveResponse(BaseModel):
+    """Response after a successful save."""
+
+    saved_at: str
+    path: str
+
+
+class PromptHistoryItem(BaseModel):
+    """One entry in the saved-prompt history list."""
+
+    timestamp: str
+    path: str
+    size: Optional[int] = None
+
+
+# ---------------------------------------------------------------------------
 # Upload
 # ---------------------------------------------------------------------------
 

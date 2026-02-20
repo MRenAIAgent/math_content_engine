@@ -18,7 +18,7 @@ class TestConfig:
 
         assert config.llm_provider == LLMProvider.CLAUDE
         assert config.max_retries == 5
-        assert config.temperature == 0.7
+        assert config.temperature == 0.0
         assert config.video_quality == VideoQuality.MEDIUM
         assert config.output_format == "mp4"
 

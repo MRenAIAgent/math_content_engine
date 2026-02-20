@@ -35,11 +35,19 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Runtime dependencies only (no build-essential)
+# texlive packages are required by Manim for MathTex/LaTeX rendering
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     libcairo2 \
     libpango-1.0-0 \
     curl \
+    texlive-latex-base \
+    texlive-fonts-recommended \
+    texlive-latex-extra \
+    texlive-fonts-extra \
+    texlive-science \
+    dvisvgm \
+    cm-super \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy installed packages from builder

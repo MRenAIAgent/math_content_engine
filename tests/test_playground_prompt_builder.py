@@ -11,7 +11,6 @@ import pytest
 from math_content_engine.api.playground.prompt_builder import (
     _build_personalization_user_prompt,
     _PERSONALIZATION_SYSTEM_PROMPT,
-    _StubLLMClient,
     preview_animation_prompts,
     preview_concept_extraction_prompts,
     preview_personalization_prompts,
@@ -80,8 +79,8 @@ class TestPersonalizationPromptPreview:
     def test_user_prompt_has_transformation_rules(self):
         result = preview_personalization_prompts(SAMPLE_TEXTBOOK, "basketball")
 
-        assert "TRANSFORMATION RULES" in result.user_prompt
-        assert "Keep ALL Math Content Intact" in result.user_prompt
+        assert "HOW TO TRANSFORM THE CONTENT" in result.user_prompt
+        assert "Keep ALL Math Intact" in result.user_prompt
 
     def test_user_prompt_has_famous_figures(self):
         result = preview_personalization_prompts(SAMPLE_TEXTBOOK, "basketball")
@@ -147,11 +146,12 @@ class TestConceptExtractionPromptPreview:
         assert isinstance(result, PromptPreview)
         assert result.stage == "extract_concepts"
 
-    def test_system_prompt_has_concept_list(self):
+    def test_system_prompt_has_extraction_instructions(self):
         result = preview_concept_extraction_prompts(SAMPLE_TEXTBOOK)
 
-        # System prompt should contain concept IDs from the knowledge graph
-        assert "AT-" in result.system_prompt or "concept" in result.system_prompt.lower()
+        # System prompt should contain extraction instructions (no knowledge graph)
+        assert "extract" in result.system_prompt.lower() or "concept" in result.system_prompt.lower()
+        assert "concepts" in result.system_prompt.lower()
 
     def test_user_prompt_contains_content(self):
         result = preview_concept_extraction_prompts(SAMPLE_TEXTBOOK)
@@ -262,33 +262,6 @@ class TestAnimationPromptPreview:
 
         assert result.stage == "generate_animation"
         assert "Algebra Basics" in result.user_prompt
-
-
-# ---------------------------------------------------------------------------
-# StubLLMClient
-# ---------------------------------------------------------------------------
-
-
-class TestStubLLMClient:
-    """Test that _StubLLMClient behaves correctly."""
-
-    def test_init_succeeds(self):
-        client = _StubLLMClient()
-
-        assert client.api_key == "stub"
-        assert client.model == "stub"
-
-    def test_generate_raises(self):
-        client = _StubLLMClient()
-
-        with pytest.raises(RuntimeError, match="should never be called"):
-            client.generate("test prompt")
-
-    def test_generate_with_retry_raises(self):
-        client = _StubLLMClient()
-
-        with pytest.raises(RuntimeError, match="should never be called"):
-            client.generate_with_retry("test prompt")
 
 
 # ---------------------------------------------------------------------------

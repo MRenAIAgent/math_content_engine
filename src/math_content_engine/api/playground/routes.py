@@ -15,8 +15,11 @@ from .models import (
     DataServiceStatus,
     InterestDetail,
     PlaygroundConfig,
+    PromptHistoryItem,
     PromptPreview,
     PromptPreviewRequest,
+    PromptSaveRequest,
+    PromptSaveResponse,
     StageExecuteRequest,
     StageResult,
     TaskStatusResponse,
@@ -162,6 +165,62 @@ async def preview_prompts(req: PromptPreviewRequest) -> PromptPreview:
         )
 
     raise HTTPException(400, f"Unknown stage: {req.stage}")
+
+
+# ---------------------------------------------------------------------------
+# Prompt persistence (GCS)
+# ---------------------------------------------------------------------------
+
+def _get_prompt_storage():
+    """Lazy singleton for GCS prompt storage."""
+    import os
+
+    bucket = os.getenv("PROMPT_STORAGE_BUCKET")
+    if not bucket:
+        return None
+    from ...storage.prompt_storage import GCSPromptStorage
+
+    project = os.getenv("GCP_PROJECT_ID", os.getenv("GOOGLE_CLOUD_PROJECT"))
+    return GCSPromptStorage(bucket_name=bucket, project_id=project)
+
+
+@router.post("/prompts/save", response_model=PromptSaveResponse)
+async def save_prompts(req: PromptSaveRequest) -> PromptSaveResponse:
+    """Save the current prompt session to GCS."""
+    storage = _get_prompt_storage()
+    if storage is None:
+        raise HTTPException(
+            503, "Prompt storage not configured (set PROMPT_STORAGE_BUCKET)"
+        )
+    data = req.model_dump(mode="json")
+    result = storage.save(data)
+    return PromptSaveResponse(**result)
+
+
+@router.get("/prompts/latest")
+async def load_latest_prompts() -> dict:
+    """Load the most recently saved prompt session."""
+    storage = _get_prompt_storage()
+    if storage is None:
+        raise HTTPException(
+            503, "Prompt storage not configured (set PROMPT_STORAGE_BUCKET)"
+        )
+    data = storage.load_latest()
+    if data is None:
+        raise HTTPException(404, "No saved prompts found")
+    return data
+
+
+@router.get("/prompts/history", response_model=list[PromptHistoryItem])
+async def list_prompt_history(limit: int = 20) -> list[PromptHistoryItem]:
+    """List saved prompt versions, newest first."""
+    storage = _get_prompt_storage()
+    if storage is None:
+        raise HTTPException(
+            503, "Prompt storage not configured (set PROMPT_STORAGE_BUCKET)"
+        )
+    items = storage.list_history(limit=limit)
+    return [PromptHistoryItem(**item) for item in items]
 
 
 # ---------------------------------------------------------------------------

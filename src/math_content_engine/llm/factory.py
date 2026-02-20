@@ -35,5 +35,24 @@ def create_llm_client(config: Config) -> BaseLLMClient:
             temperature=config.temperature,
             max_tokens=config.max_tokens,
         )
+    elif config.llm_provider == LLMProvider.GEMINI:
+        from .gemini import GeminiClient
+
+        return GeminiClient(
+            model=config.gemini_model,
+            temperature=config.temperature,
+            max_tokens=config.max_tokens,
+            project_id=config.gcp_project_id,
+            location=config.gcp_location,
+        )
+    elif config.llm_provider == LLMProvider.DEEPSEEK:
+        from .deepseek import DeepSeekClient
+
+        return DeepSeekClient(
+            api_key=config.deepseek_api_key,
+            model=config.deepseek_model,
+            temperature=config.temperature,
+            max_tokens=config.max_tokens,
+        )
     else:
         raise ValueError(f"Unsupported LLM provider: {config.llm_provider}")

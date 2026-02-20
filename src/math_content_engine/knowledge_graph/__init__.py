@@ -17,8 +17,7 @@ from .algebra import (
 from .concept_extractor import (
     ConceptExtractor,
     ConceptExtractionResult,
-    MatchedConcept,
-    NewConcept,
+    ExtractedConcept,
 )
 
 __all__ = [
@@ -29,7 +28,6 @@ __all__ = [
     # Concept extraction
     "ConceptExtractor",
     "ConceptExtractionResult",
-    "MatchedConcept",
-    "NewConcept",
+    "ExtractedConcept",
 ]
 

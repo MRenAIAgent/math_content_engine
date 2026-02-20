@@ -187,13 +187,16 @@ def run_concept_extraction(
     system_prompt_override: Optional[str] = None,
     user_prompt_override: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Extract concepts from markdown content via LLM + knowledge graph.
+    """Extract concepts from markdown content via LLM.
 
-    Returns a dict with ``matched_concepts``, ``new_concepts``, ``summary``,
-    etc.
+    Purely extracts concepts from textbook content — no predefined
+    knowledge graph is used.
+
+    Returns a dict with ``concepts``, ``summary``, etc.
     """
     start = time.time()
     llm_client = create_llm_client(config)
+    extractor = ConceptExtractor(llm_client=llm_client)
 
     if system_prompt_override or user_prompt_override:
         # Custom prompts — call LLM directly and parse result
@@ -202,24 +205,14 @@ def run_concept_extraction(
         usr_prompt = user_prompt_override or preview.user_prompt
 
         response = llm_client.generate(prompt=usr_prompt, system_prompt=sys_prompt)
-
-        # Parse using the extractor's static parser
-        extractor = ConceptExtractor(llm_client=llm_client)
         result = extractor._parse_llm_response(response.content)
 
-        # Filter by confidence and validate IDs
-        result.matched_concepts = [
-            c for c in result.matched_concepts if c.confidence >= 0.7
+        # Filter by confidence
+        result.concepts = [
+            c for c in result.concepts if c.confidence >= 0.7
         ]
-        validated = [
-            c
-            for c in result.matched_concepts
-            if c.concept_id in extractor.concept_index
-        ]
-        result.matched_concepts = validated
     else:
         # Standard flow
-        extractor = ConceptExtractor(llm_client=llm_client)
         result = extractor.extract_concepts(markdown_content)
         preview = preview_concept_extraction_prompts(markdown_content, config)
         sys_prompt = preview.system_prompt

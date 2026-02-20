@@ -38,6 +38,10 @@ from math_content_engine.personalization import (
 )
 from math_content_engine.llm import create_llm_client
 from math_content_engine.config import Config
+from math_content_engine.api.playground.prompt_builder import (
+    _build_personalization_user_prompt,
+    _PERSONALIZATION_SYSTEM_PROMPT,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -51,109 +55,13 @@ def create_personalization_prompt(
     textbook_content: str,
     interest_name: str,
 ) -> str:
+    """Create the LLM prompt for personalizing textbook content.
+
+    Delegates to the shared prompt builder in
+    ``math_content_engine.api.playground.prompt_builder`` so the CLI script
+    and the playground UI always use the same prompt.
     """
-    Create the LLM prompt for personalizing textbook content.
-
-    Args:
-        textbook_content: The original textbook markdown content
-        interest_name: The interest to personalize for
-
-    Returns:
-        The full prompt for the LLM
-    """
-    profile = get_interest_profile(interest_name)
-    if not profile:
-        raise ValueError(f"Unknown interest: {interest_name}")
-
-    # Build rich context from the interest profile
-    fun_facts = "\n".join(f"- {fact}" for fact in profile.fun_facts[:5])
-    cultural_refs = "\n".join(f"- {ref}" for ref in getattr(profile, 'cultural_references', [])[:4])
-    historical = "\n".join(f"- {fact}" for fact in getattr(profile, 'historical_trivia', [])[:3])
-    quotes = "\n".join(f'- "{quote}"' for quote in getattr(profile, 'motivational_quotes', [])[:2])
-    scenarios = "\n".join(f"- {s}" for s in profile.example_scenarios[:6])
-    figures = ", ".join(profile.famous_figures[:8])
-
-    prompt = f'''You are an expert math textbook author who specializes in creating engaging,
-personalized educational content. Your task is to transform a generic math textbook chapter
-into a personalized version themed around {profile.display_name}.
-
-## PERSONALIZATION GUIDELINES
-
-### About {profile.display_name}
-{profile.context_intro}
-
-### Basic Knowledge (use this to ensure accuracy)
-{profile.basic_knowledge if profile.basic_knowledge else "Use common knowledge about " + profile.name}
-
-### Famous Figures to Reference
-{figures}
-
-### Example Scenarios for Word Problems (adapt math problems to these themes)
-{scenarios}
-
-### Fun Facts to Sprinkle Throughout (pick 2-3 to include)
-{fun_facts}
-
-### Cultural References & Iconic Moments (use sparingly for engagement)
-{cultural_refs if cultural_refs else "Use current pop culture references related to " + profile.name}
-
-### Historical Context (for depth and interest)
-{historical if historical else "Include relevant historical facts about " + profile.name}
-
-### Motivational Quotes (use for chapter intro or conclusion)
-{quotes if quotes else "Use inspiring quotes from notable figures in " + profile.name}
-
-### Visual Theme
-- Colors: {profile.visual_themes.get('primary_colors', 'Use thematic colors')}
-- Imagery: {profile.visual_themes.get('imagery', 'Use relevant imagery')}
-
-## TRANSFORMATION RULES
-
-1. **Keep ALL Math Content Intact**: Every equation, formula, property, and mathematical concept
-   must remain exactly the same. Only change the CONTEXT and EXAMPLES around the math.
-
-2. **Replace Generic Examples**: Transform word problems to use {profile.name} scenarios.
-   - Original: "If x + 5 = 12, find x"
-   - Personalized: "If Curry has scored x three-pointers plus 5 free throws for 12 total points, find x"
-
-3. **Use Domain Terminology**: Replace generic terms with {profile.name}-specific language.
-   - "number" -> "score", "points", "stats" (for sports)
-   - "unknown" -> "mystery damage", "hidden XP" (for gaming)
-
-4. **Add Engaging Elements**:
-   - Include 2-3 fun facts as "Did You Know?" boxes
-   - Reference famous {profile.name} figures in examples
-   - Add a motivational quote at the start or end
-   - Include cultural references students will recognize
-
-5. **Maintain Educational Quality**:
-   - Keep learning objectives clear
-   - Preserve step-by-step solution methods
-   - Include practice problems with the same difficulty
-   - Add real-world {profile.name} applications
-
-6. **Format the Output**:
-   - Use markdown formatting
-   - Add an appropriate emoji to the title (e.g., 🏀 for basketball)
-   - Include themed section headers
-   - Mark fun facts and special content clearly
-
-## ORIGINAL TEXTBOOK CONTENT TO TRANSFORM
-
-```markdown
-{textbook_content}
-```
-
-## YOUR TASK
-
-Transform the above textbook content into a {profile.display_name}-themed version.
-Keep all mathematical content identical but change all examples, contexts, and
-word problems to use {profile.name} themes.
-
-Output ONLY the transformed markdown content - no explanations or commentary.
-Start with the chapter title.
-'''
-    return prompt
+    return _build_personalization_user_prompt(textbook_content, interest_name)
 
 
 def personalize_textbook(
@@ -188,7 +96,7 @@ def personalize_textbook(
     logger.info("Sending to LLM for personalization...")
     response = llm_client.generate(
         prompt=prompt,
-        system_prompt="You are an expert educational content creator specializing in personalized math textbooks.",
+        system_prompt=_PERSONALIZATION_SYSTEM_PROMPT,
         max_tokens=8000,
     )
 

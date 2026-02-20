@@ -8,8 +8,7 @@ import pytest
 from math_content_engine.knowledge_graph.concept_extractor import (
     ConceptExtractor,
     ConceptExtractionResult,
-    MatchedConcept,
-    NewConcept,
+    ExtractedConcept,
 )
 
 
@@ -17,79 +16,43 @@ from math_content_engine.knowledge_graph.concept_extractor import (
 # Fixtures
 # ---------------------------------------------------------------------------
 
-SAMPLE_GRAPH = {
-    "name": "Test Graph",
-    "concepts": [
-        {
-            "id": "AT-24",
-            "name": "Two-Step Linear Equations",
-            "description": "Solve ax+b=c.",
-            "difficulty": 3,
-            "category": "Pre-Algebra",
-            "prerequisites": ["AT-22"],
-            "dependents": ["AT-25"],
-            "examples": ["Solve 2x+3=7"],
-            "grade_level": "",
-            "related": [],
-            "time_to_master": 120,
-        },
-        {
-            "id": "LF-30",
-            "name": "Slope of a Line",
-            "description": "Calculate rise/run.",
-            "difficulty": 3,
-            "category": "Linear",
-            "prerequisites": [],
-            "dependents": [],
-            "examples": ["Find slope between (1,2) and (3,6)"],
-            "grade_level": "",
-            "related": [],
-            "time_to_master": 90,
-        },
-        {
-            "id": "NS-01",
-            "name": "Counting Up/Down",
-            "description": "Count forward or backward by 1s.",
-            "difficulty": 1,
-            "category": "Number Sense",
-            "prerequisites": [],
-            "dependents": [],
-            "examples": ["Count from 1 to 10"],
-            "grade_level": "",
-            "related": [],
-            "time_to_master": 30,
-        },
-    ],
-    "relationships": [],
-}
-
 
 VALID_LLM_RESPONSE = json.dumps(
     {
-        "matched_concepts": [
+        "concepts": [
             {
-                "concept_id": "AT-24",
+                "concept_id": "algebra.pre_algebra.two_step_equations",
                 "name": "Two-Step Linear Equations",
+                "description": "Solve ax+b=c using inverse operations.",
+                "category": "pre_algebra",
+                "difficulty": 3,
                 "confidence": 0.95,
                 "evidence": "Solve 2x + 3 = 7 example in section 2.1",
+                "prerequisites": ["algebra.pre_algebra.one_step_equations"],
+                "examples": ["2x+3=7"],
             },
             {
-                "concept_id": "LF-30",
+                "concept_id": "algebra.linear_functions.slope",
                 "name": "Slope of a Line",
+                "description": "Calculate rise/run between two points.",
+                "category": "linear_functions",
+                "difficulty": 3,
                 "confidence": 0.8,
                 "evidence": "Finding slope between two points",
+                "prerequisites": [],
+                "examples": ["Find slope between (1,2) and (3,6)"],
             },
-        ],
-        "new_concepts": [
             {
-                "suggested_id": "LF-41",
+                "concept_id": "algebra.linear_functions.point_slope_form",
                 "name": "Point-Slope Form",
                 "description": "Write equation using point and slope.",
-                "category": "Linear",
+                "category": "linear_functions",
                 "difficulty": 3,
-                "prerequisites": ["LF-30"],
-                "examples": ["Write y-2=3(x-1)"],
-            }
+                "confidence": 0.85,
+                "evidence": "y-2=3(x-1) example",
+                "prerequisites": ["algebra.linear_functions.slope"],
+                "examples": ["y-2=3(x-1)"],
+            },
         ],
         "summary": "Chapter covers linear equations and slope basics.",
     }
@@ -98,44 +61,27 @@ VALID_LLM_RESPONSE = json.dumps(
 
 LOW_CONFIDENCE_RESPONSE = json.dumps(
     {
-        "matched_concepts": [
+        "concepts": [
             {
-                "concept_id": "AT-24",
+                "concept_id": "algebra.pre_algebra.two_step_equations",
                 "name": "Two-Step Linear Equations",
+                "description": "Solving equations with two steps.",
+                "category": "pre_algebra",
+                "difficulty": 3,
                 "confidence": 0.95,
                 "evidence": "Direct equation solving",
             },
             {
-                "concept_id": "NS-01",
+                "concept_id": "algebra.number_sense.counting",
                 "name": "Counting Up/Down",
+                "description": "Count forward or backward.",
+                "category": "number_sense",
+                "difficulty": 1,
                 "confidence": 0.3,
                 "evidence": "Vaguely mentioned counting",
             },
         ],
-        "new_concepts": [],
         "summary": "Mostly linear equations.",
-    }
-)
-
-
-INVALID_ID_RESPONSE = json.dumps(
-    {
-        "matched_concepts": [
-            {
-                "concept_id": "FAKE-99",
-                "name": "Not Real",
-                "confidence": 0.9,
-                "evidence": "Does not exist",
-            },
-            {
-                "concept_id": "AT-24",
-                "name": "Two-Step Linear Equations",
-                "confidence": 0.9,
-                "evidence": "Real concept",
-            },
-        ],
-        "new_concepts": [],
-        "summary": "Test invalid IDs.",
     }
 )
 
@@ -144,7 +90,7 @@ def _make_extractor(llm_response: str) -> ConceptExtractor:
     """Create a ConceptExtractor with mocked LLM returning given response."""
     mock_client = MagicMock()
     mock_client.generate.return_value = MagicMock(content=llm_response)
-    return ConceptExtractor(llm_client=mock_client, graph=SAMPLE_GRAPH)
+    return ConceptExtractor(llm_client=mock_client)
 
 
 # ---------------------------------------------------------------------------
@@ -153,24 +99,23 @@ def _make_extractor(llm_response: str) -> ConceptExtractor:
 
 
 class TestParseValidResponse:
-    def test_matched_concepts(self):
+    def test_extracted_concepts(self):
         extractor = _make_extractor(VALID_LLM_RESPONSE)
         result = extractor.extract_concepts("some math content")
 
-        assert len(result.matched_concepts) == 2
-        assert result.matched_concepts[0].concept_id == "AT-24"
-        assert result.matched_concepts[0].confidence == 0.95
-        assert result.matched_concepts[1].concept_id == "LF-30"
+        assert len(result.concepts) == 3
+        assert result.concepts[0].concept_id == "algebra.pre_algebra.two_step_equations"
+        assert result.concepts[0].confidence == 0.95
+        assert result.concepts[1].concept_id == "algebra.linear_functions.slope"
 
-    def test_new_concepts(self):
+    def test_concept_details(self):
         extractor = _make_extractor(VALID_LLM_RESPONSE)
         result = extractor.extract_concepts("some math content")
 
-        assert len(result.new_concepts) == 1
-        assert result.new_concepts[0].suggested_id == "LF-41"
-        assert result.new_concepts[0].name == "Point-Slope Form"
-        assert result.new_concepts[0].category == "Linear"
-        assert result.new_concepts[0].prerequisites == ["LF-30"]
+        c = result.concepts[2]
+        assert c.name == "Point-Slope Form"
+        assert c.category == "linear_functions"
+        assert c.prerequisites == ["algebra.linear_functions.slope"]
 
     def test_summary(self):
         extractor = _make_extractor(VALID_LLM_RESPONSE)
@@ -191,8 +136,7 @@ class TestMalformedResponse:
         result = extractor.extract_concepts("some content")
 
         assert result.error is not None
-        assert len(result.matched_concepts) == 0
-        assert len(result.new_concepts) == 0
+        assert len(result.concepts) == 0
 
     def test_empty_response(self):
         extractor = _make_extractor("")
@@ -203,7 +147,7 @@ class TestMalformedResponse:
     def test_llm_exception(self):
         mock_client = MagicMock()
         mock_client.generate.side_effect = RuntimeError("API down")
-        extractor = ConceptExtractor(llm_client=mock_client, graph=SAMPLE_GRAPH)
+        extractor = ConceptExtractor(llm_client=mock_client)
 
         result = extractor.extract_concepts("some content")
         assert result.error is not None
@@ -221,89 +165,101 @@ class TestConfidenceThreshold:
         extractor = _make_extractor(LOW_CONFIDENCE_RESPONSE)
         result = extractor.extract_concepts("some content")
 
-        assert len(result.matched_concepts) == 1
-        assert result.matched_concepts[0].concept_id == "AT-24"
+        assert len(result.concepts) == 1
+        assert result.concepts[0].concept_id == "algebra.pre_algebra.two_step_equations"
 
     def test_low_threshold_keeps_all(self):
         extractor = _make_extractor(LOW_CONFIDENCE_RESPONSE)
         result = extractor.extract_concepts("some content", confidence_threshold=0.1)
 
-        assert len(result.matched_concepts) == 2
+        assert len(result.concepts) == 2
 
     def test_high_threshold_filters_more(self):
         extractor = _make_extractor(VALID_LLM_RESPONSE)
         result = extractor.extract_concepts("some content", confidence_threshold=0.9)
 
-        assert len(result.matched_concepts) == 1
-        assert result.matched_concepts[0].concept_id == "AT-24"
-
-
-class TestConceptIdValidation:
-    def test_invalid_ids_rejected(self):
-        extractor = _make_extractor(INVALID_ID_RESPONSE)
-        result = extractor.extract_concepts("some content")
-
-        assert len(result.matched_concepts) == 1
-        assert result.matched_concepts[0].concept_id == "AT-24"
-
-    def test_all_valid_ids_kept(self):
-        extractor = _make_extractor(VALID_LLM_RESPONSE)
-        result = extractor.extract_concepts("some content")
-
-        ids = {c.concept_id for c in result.matched_concepts}
-        assert ids == {"AT-24", "LF-30"}
+        assert len(result.concepts) == 1
+        assert result.concepts[0].concept_id == "algebra.pre_algebra.two_step_equations"
 
 
 class TestSerialization:
     def test_to_dict(self):
         result = ConceptExtractionResult(
-            matched_concepts=[
-                MatchedConcept("AT-24", "Test", 0.9, "evidence"),
-            ],
-            new_concepts=[
-                NewConcept("LF-41", "New", "desc", "Linear", 3, ["AT-24"], ["ex"]),
+            concepts=[
+                ExtractedConcept(
+                    concept_id="algebra.pre_algebra.two_step",
+                    name="Test",
+                    description="desc",
+                    category="pre_algebra",
+                    difficulty=3,
+                    confidence=0.9,
+                    evidence="evidence",
+                    prerequisites=["AT-24"],
+                    examples=["ex"],
+                ),
             ],
             summary="test summary",
         )
         d = result.to_dict()
 
-        assert len(d["matched_concepts"]) == 1
-        assert d["matched_concepts"][0]["concept_id"] == "AT-24"
-        assert len(d["new_concepts"]) == 1
-        assert d["new_concepts"][0]["suggested_id"] == "LF-41"
+        assert len(d["concepts"]) == 1
+        assert d["concepts"][0]["concept_id"] == "algebra.pre_algebra.two_step"
+        assert d["concepts"][0]["confidence"] == 0.9
         assert d["summary"] == "test summary"
         assert d["error"] is None
 
     def test_to_dict_roundtrip(self):
         result = ConceptExtractionResult(
-            matched_concepts=[
-                MatchedConcept("AT-24", "Test", 0.9, "evidence"),
+            concepts=[
+                ExtractedConcept(
+                    concept_id="algebra.pre_algebra.two_step",
+                    name="Test",
+                    description="desc",
+                    category="pre_algebra",
+                    difficulty=3,
+                    confidence=0.9,
+                    evidence="evidence",
+                ),
             ],
-            new_concepts=[],
             summary="test",
         )
         serialized = json.dumps(result.to_dict())
         loaded = json.loads(serialized)
 
-        assert loaded["matched_concepts"][0]["concept_id"] == "AT-24"
+        assert loaded["concepts"][0]["concept_id"] == "algebra.pre_algebra.two_step"
 
 
 class TestDisplay:
     def test_display_with_concepts(self):
         result = ConceptExtractionResult(
-            matched_concepts=[
-                MatchedConcept("AT-24", "Two-Step Equations", 0.95, "section 2.1"),
-            ],
-            new_concepts=[
-                NewConcept("LF-41", "Point-Slope", "desc", "Linear", 3, ["LF-30"], []),
+            concepts=[
+                ExtractedConcept(
+                    concept_id="algebra.pre_algebra.two_step",
+                    name="Two-Step Equations",
+                    description="Solve two-step equations",
+                    category="pre_algebra",
+                    difficulty=3,
+                    confidence=0.95,
+                    evidence="section 2.1",
+                ),
+                ExtractedConcept(
+                    concept_id="algebra.linear_functions.point_slope",
+                    name="Point-Slope Form",
+                    description="Write equation using point and slope",
+                    category="linear_functions",
+                    difficulty=3,
+                    confidence=0.85,
+                    evidence="example problem",
+                    prerequisites=["algebra.linear_functions.slope"],
+                ),
             ],
             summary="Linear algebra basics",
         )
         output = result.display()
 
-        assert "AT-24" in output
+        assert "two_step" in output
         assert "95%" in output
-        assert "LF-41" in output
+        assert "point_slope" in output
         assert "Point-Slope" in output
         assert "Linear algebra basics" in output
 
@@ -321,39 +277,19 @@ class TestDisplay:
         assert "Error: Something broke" in output
 
 
-class TestBuildConceptListPrompt:
-    def test_all_concepts_listed(self):
-        extractor = _make_extractor(VALID_LLM_RESPONSE)
-        prompt = extractor._build_concept_list_prompt()
-
-        assert "AT-24" in prompt
-        assert "LF-30" in prompt
-        assert "NS-01" in prompt
-        assert "Two-Step Linear Equations" in prompt
-        assert "Pre-Algebra" in prompt
-
-
 class TestEdgeCases:
-    def test_non_numeric_confidence_defaults_to_zero(self):
+    def test_non_numeric_confidence_defaults(self):
         """LLM returns non-numeric confidence value."""
         bad_response = json.dumps({
-            "matched_concepts": [
+            "concepts": [
                 {
-                    "concept_id": "AT-24",
+                    "concept_id": "algebra.pre_algebra.two_step",
                     "name": "Test",
-                    "confidence": "high",
-                    "evidence": "test",
-                }
-            ],
-            "new_concepts": [
-                {
-                    "suggested_id": "LF-41",
-                    "name": "New",
                     "description": "desc",
-                    "category": "Linear",
+                    "category": "pre_algebra",
+                    "confidence": "high",
                     "difficulty": "hard",
-                    "prerequisites": [],
-                    "examples": [],
+                    "evidence": "test",
                 }
             ],
             "summary": "test",
@@ -361,10 +297,9 @@ class TestEdgeCases:
         extractor = _make_extractor(bad_response)
         result = extractor.extract_concepts("some content", confidence_threshold=0.0)
 
-        assert len(result.matched_concepts) == 1
-        assert result.matched_concepts[0].confidence == 0.0
-        assert len(result.new_concepts) == 1
-        assert result.new_concepts[0].difficulty == 3  # default
+        assert len(result.concepts) == 1
+        assert result.concepts[0].confidence == 0.0
+        assert result.concepts[0].difficulty == 3  # default
 
     def test_large_content_truncated(self):
         """Content over 15K chars is truncated before sending to LLM."""
@@ -374,24 +309,72 @@ class TestEdgeCases:
 
         # Should still work (LLM mock returns valid response)
         assert result.error is None
-        assert len(result.matched_concepts) == 2
+        assert len(result.concepts) == 3
 
     def test_concepts_with_missing_optional_fields(self):
         """LLM omits optional fields in response."""
         minimal_response = json.dumps({
-            "matched_concepts": [
-                {"concept_id": "AT-24", "name": "Test", "confidence": 0.9}
-            ],
-            "new_concepts": [
+            "concepts": [
                 {"name": "Minimal Concept"}
             ],
             "summary": "minimal",
         })
         extractor = _make_extractor(minimal_response)
-        result = extractor.extract_concepts("content")
+        result = extractor.extract_concepts("content", confidence_threshold=0.0)
 
-        assert len(result.matched_concepts) == 1
-        assert result.matched_concepts[0].evidence == ""
-        assert len(result.new_concepts) == 1
-        assert result.new_concepts[0].suggested_id == ""
-        assert result.new_concepts[0].difficulty == 3
+        assert len(result.concepts) == 1
+        assert result.concepts[0].concept_id == ""
+        assert result.concepts[0].difficulty == 3
+        assert result.concepts[0].confidence == 0.8  # default
+
+    def test_legacy_format_matched_and_new_concepts(self):
+        """Parser handles old matched_concepts + new_concepts format."""
+        legacy_response = json.dumps({
+            "matched_concepts": [
+                {
+                    "concept_id": "AT-24",
+                    "name": "Two-Step Equations",
+                    "confidence": 0.95,
+                    "evidence": "section 2.1",
+                },
+            ],
+            "new_concepts": [
+                {
+                    "suggested_id": "LF-41",
+                    "name": "Point-Slope Form",
+                    "description": "Write equation using point and slope",
+                    "category": "Linear",
+                    "difficulty": 3,
+                },
+            ],
+            "summary": "Linear algebra basics",
+        })
+        extractor = _make_extractor(legacy_response)
+        result = extractor.extract_concepts("content", confidence_threshold=0.0)
+
+        assert len(result.concepts) == 2
+        assert result.concepts[0].concept_id == "AT-24"
+        assert result.concepts[0].confidence == 0.95
+        assert result.concepts[1].concept_id == "LF-41"
+        assert result.concepts[1].name == "Point-Slope Form"
+        assert result.summary == "Linear algebra basics"
+
+    def test_legacy_format_only_matched(self):
+        """Parser handles old format with only matched_concepts."""
+        legacy_response = json.dumps({
+            "matched_concepts": [
+                {
+                    "concept_id": "AT-24",
+                    "name": "Two-Step Equations",
+                    "confidence": 0.9,
+                    "evidence": "test",
+                },
+            ],
+            "new_concepts": [],
+            "summary": "test",
+        })
+        extractor = _make_extractor(legacy_response)
+        result = extractor.extract_concepts("content", confidence_threshold=0.0)
+
+        assert len(result.concepts) == 1
+        assert result.concepts[0].concept_id == "AT-24"

@@ -56,6 +56,9 @@ class Config:
     openai_api_key: Optional[str] = field(default_factory=lambda:
         os.getenv("OPENAI_API_KEY")
     )
+    deepseek_api_key: Optional[str] = field(default_factory=lambda:
+        os.getenv("DEEPSEEK_API_KEY")
+    )
 
     # Mathpix API Keys (for PDF parsing)
     mathpix_app_id: Optional[str] = field(default_factory=lambda:
@@ -72,13 +75,27 @@ class Config:
     openai_model: str = field(default_factory=lambda:
         os.getenv("MATH_ENGINE_OPENAI_MODEL", "gpt-4o")
     )
+    gemini_model: str = field(default_factory=lambda:
+        os.getenv("MATH_ENGINE_GEMINI_MODEL", "gemini-2.0-flash")
+    )
+    deepseek_model: str = field(default_factory=lambda:
+        os.getenv("MATH_ENGINE_DEEPSEEK_MODEL", "deepseek-reasoner")
+    )
+
+    # GCP / Vertex AI Settings (for Gemini provider)
+    gcp_project_id: Optional[str] = field(default_factory=lambda:
+        os.getenv("GCP_PROJECT_ID", os.getenv("GOOGLE_CLOUD_PROJECT"))
+    )
+    gcp_location: str = field(default_factory=lambda:
+        os.getenv("GCP_LOCATION", "us-central1")
+    )
 
     # Generation Settings
     max_retries: int = field(default_factory=lambda:
         int(os.getenv("MATH_ENGINE_MAX_RETRIES", "5"))
     )
     temperature: float = field(default_factory=lambda:
-        float(os.getenv("MATH_ENGINE_TEMPERATURE", "0.7"))
+        float(os.getenv("MATH_ENGINE_TEMPERATURE", "0"))
     )
     max_tokens: int = field(default_factory=lambda:
         int(os.getenv("MATH_ENGINE_MAX_TOKENS", "4096"))
@@ -173,6 +190,13 @@ class Config:
             raise ValueError(
                 "OPENAI_API_KEY environment variable is required when using OpenAI"
             )
+        if self.llm_provider == LLMProvider.DEEPSEEK and not self.deepseek_api_key:
+            raise ValueError(
+                "DEEPSEEK_API_KEY environment variable is required when using DeepSeek"
+            )
+        # Gemini uses Application Default Credentials — no API key needed.
+        # On Cloud Run it uses the service account automatically.
+        # Locally it uses `gcloud auth application-default login`.
 
         # Validate TTS API key for ElevenLabs
         if self.tts_provider == TTSProvider.ELEVENLABS and not self.elevenlabs_api_key:
@@ -188,17 +212,26 @@ class Config:
         
         return cls()
 
-    def get_api_key(self) -> str:
+    def get_api_key(self) -> Optional[str]:
         """Get the API key for the configured LLM provider."""
         if self.llm_provider == LLMProvider.CLAUDE:
             return self.anthropic_api_key
-        return self.openai_api_key
+        if self.llm_provider == LLMProvider.OPENAI:
+            return self.openai_api_key
+        if self.llm_provider == LLMProvider.DEEPSEEK:
+            return self.deepseek_api_key
+        # Gemini uses ADC, no API key
+        return None
 
     def get_model(self) -> str:
         """Get the model name for the configured LLM provider."""
         if self.llm_provider == LLMProvider.CLAUDE:
             return self.claude_model
-        return self.openai_model
+        if self.llm_provider == LLMProvider.OPENAI:
+            return self.openai_model
+        if self.llm_provider == LLMProvider.DEEPSEEK:
+            return self.deepseek_model
+        return self.gemini_model
 
     def get_tts_config(self):
         """

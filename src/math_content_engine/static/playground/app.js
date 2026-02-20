@@ -14,7 +14,7 @@ const state = {
     config: {},
     // LLM settings (user-tunable)
     llmSettings: {
-        temperature: 0.7,
+        temperature: 0,
         maxTokens: 4096,
     },
     // Global student & engagement settings
@@ -44,6 +44,8 @@ const state = {
     },
     // Extracted concepts for batch generation
     extractedConcepts: [],
+    // Hash of the textbook content used for the last extraction (for caching)
+    extractedContentHash: null,
     // Batch generation results: { conceptName: { code, scene_name, video_filename, status } }
     batchResults: {},
     // Pipeline status tracking
@@ -57,6 +59,15 @@ const state = {
     // Run history
     history: [],
 };
+
+/** Simple string hash for content-change detection (not crypto). */
+function simpleHash(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+        h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+    }
+    return h;
+}
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -74,6 +85,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             },
         });
     }
+    // Auto-load the latest saved prompts from cloud storage
+    await loadLatestPrompts();
 });
 
 async function loadConfig() {
@@ -87,7 +100,7 @@ async function loadConfig() {
         document.getElementById("config-model").textContent =
             state.config.model || "";
 
-        state.llmSettings.temperature = state.config.temperature || 0.7;
+        state.llmSettings.temperature = state.config.temperature ?? 0;
         state.llmSettings.maxTokens = state.config.max_tokens || 4096;
         initLLMSettingsUI();
 
@@ -112,13 +125,8 @@ function toggleSection(stage) {
         chevron.classList.toggle("expanded", !isVisible);
     }
 
-    // Auto-load prompts when opening a section with prompt editors
-    if (!isVisible && ["personalize", "extract_concepts", "generate_animation"].includes(stage)) {
-        const sysEl = document.getElementById(`prompt-${stage}-system`);
-        if (sysEl && !sysEl.value) {
-            previewPrompts(stage);
-        }
-    }
+    // Prompts are loaded on page init via loadLatestPrompts() — no need to
+    // lazy-load on section toggle anymore.
 }
 
 // ---------------------------------------------------------------------------
@@ -351,8 +359,8 @@ async function onFileUpload() {
         });
 
         if (!resp.ok) {
-            const err = await resp.json();
-            showToast(err.detail || "Upload failed", "error");
+            const errMsg = await safeParseError(resp);
+            showToast(errMsg, "error");
             return;
         }
 
@@ -386,20 +394,17 @@ function renderConceptChecklist(concepts) {
     state.extractedConcepts = concepts;
     const area = document.getElementById("concept-selector-area");
     const checklist = document.getElementById("concept-checklist");
-    const batchBtn = document.getElementById("btn-batch-generate");
 
     if (!concepts || concepts.length === 0) {
         area.style.display = "none";
-        batchBtn.style.display = "none";
         return;
     }
 
     area.style.display = "block";
-    batchBtn.style.display = "inline-flex";
 
     let html = "";
     for (const c of concepts) {
-        const id = c.concept_id || c.suggested_id || c.name;
+        const id = c.concept_id || c.name;
         const name = c.name || id;
         const confidence = c.confidence ? Math.round(c.confidence * 100) : null;
         html += `<div class="concept-check-item">
@@ -438,8 +443,8 @@ async function previewPrompts(stage) {
             body: JSON.stringify(body),
         });
         if (!resp.ok) {
-            const err = await resp.json();
-            showToast(err.detail || "Failed to preview prompts", "error");
+            const errMsg = await safeParseError(resp);
+            showToast(errMsg, "error");
             return;
         }
         const data = await resp.json();
@@ -480,9 +485,9 @@ function buildPreviewRequest(stage) {
         }
         req.textbook_content = state.textbookContent;
     } else if (stage === "generate_animation") {
-        const topic = document.getElementById("anim-topic").value;
+        const topic = getSelectedConcepts()[0] || "";
         if (!topic) {
-            showToast("Enter a topic", "error");
+            showToast("Select at least one concept to generate animation", "error");
             return null;
         }
         req.topic = topic;
@@ -511,6 +516,16 @@ function resetPrompt(stage, type) {
 // ---------------------------------------------------------------------------
 
 async function executeStage(stage) {
+    // If concepts were already extracted for this textbook, reuse them
+    if (stage === "extract_concepts" && state.outputs.concepts && state.textbookContent) {
+        const currentHash = simpleHash(state.textbookContent);
+        if (currentHash === state.extractedContentHash) {
+            showToast("Concepts already extracted — showing cached results", "info");
+            handleStageResult(stage, state.outputs.concepts);
+            return;
+        }
+    }
+
     const body = buildExecuteRequest(stage);
     if (!body) return;
 
@@ -524,8 +539,8 @@ async function executeStage(stage) {
             body: JSON.stringify(body),
         });
         if (!resp.ok) {
-            const err = await resp.json();
-            showToast(err.detail || "Execution failed", "error");
+            const errMsg = await safeParseError(resp);
+            showToast(errMsg, "error");
             setStageLoading(stage, false);
             updatePipelineStatus(stage, "stale");
             return;
@@ -581,12 +596,14 @@ function buildExecuteRequest(stage) {
         }
         req.textbook_content = state.textbookContent;
     } else if (stage === "generate_animation") {
-        const topic = document.getElementById("anim-topic").value;
+        // Topic comes from _conceptName (set by caller) or first selected concept
+        const topic = req._conceptName || getSelectedConcepts()[0] || "";
         if (!topic) {
-            showToast("Enter a topic", "error");
+            showToast("Select at least one concept to generate animation", "error");
             return null;
         }
         req.topic = topic;
+        delete req._conceptName;
         req.requirements = document.getElementById("anim-requirements").value || "";
         req.animation_style = document.getElementById("anim-style").value;
         req.audience_level = document.getElementById("anim-audience").value;
@@ -598,9 +615,20 @@ function buildExecuteRequest(stage) {
     return req;
 }
 
-/** Execute a single animation (manual topic entry). */
-function executeSingleAnimation() {
-    executeStage("generate_animation");
+/** Execute animation generation for all selected concepts. */
+function executeSelectedConceptAnimations() {
+    const selected = getSelectedConcepts();
+    if (selected.length === 0) {
+        showToast("Select at least one concept to generate animation", "error");
+        return;
+    }
+    if (selected.length === 1) {
+        // Single concept — use SSE streaming path
+        executeStage("generate_animation");
+    } else {
+        // Multiple concepts — use batch path
+        executeBatchAnimations();
+    }
 }
 
 async function executeRender() {
@@ -630,8 +658,8 @@ async function executeRender() {
             body: JSON.stringify(body),
         });
         if (!resp.ok) {
-            const err = await resp.json();
-            showToast(err.detail || "Render failed", "error");
+            const errMsg = await safeParseError(resp);
+            showToast(errMsg, "error");
             setStageLoading("render", false);
             updatePipelineStatus("render", "stale");
             return;
@@ -656,8 +684,8 @@ async function executeBatchAnimations() {
         return;
     }
 
-    const batchBtn = document.getElementById("btn-batch-generate");
-    batchBtn.disabled = true;
+    const execBtn = document.getElementById("btn-exec-generate_animation");
+    if (execBtn) execBtn.disabled = true;
     updatePipelineStatus("generate_animation", "running");
 
     state.batchResults = {};
@@ -689,7 +717,7 @@ async function executeBatchAnimations() {
         }
     }
 
-    batchBtn.disabled = false;
+    if (execBtn) execBtn.disabled = false;
     updatePipelineStatus("generate_animation", "completed");
 
     // Show batch render button
@@ -725,8 +753,8 @@ async function generateSingleConceptAnimation(conceptName) {
     });
 
     if (!resp.ok) {
-        const err = await resp.json();
-        throw new Error(err.detail || "Generation failed");
+        const errMsg = await safeParseError(resp);
+        throw new Error(errMsg);
     }
 
     const { task_id } = await resp.json();
@@ -910,6 +938,7 @@ async function renderAllBatchResults() {
 
 function connectSSE(taskId, stage) {
     const es = new EventSource(`${API}/tasks/${taskId}/stream`);
+    let gotResult = false;
 
     es.addEventListener("progress", (e) => {
         const progressEl = document.getElementById(`progress-text-${stage}`);
@@ -917,19 +946,32 @@ function connectSSE(taskId, stage) {
     });
 
     es.addEventListener("result", (e) => {
+        console.log(`[SSE] result event for ${stage}:`, e.data?.substring?.(0, 200));
+        gotResult = true;
+        // Parse JSON first, then handle result separately so errors in
+        // handleStageResult don't get swallowed by the JSON try/catch
+        let result;
         try {
-            const result = JSON.parse(e.data);
+            result = JSON.parse(e.data);
+        } catch (parseErr) {
+            console.warn(`[SSE] JSON parse failed for ${stage}:`, parseErr.message);
+            result = e.data;
+        }
+        console.log(`[SSE] parsed result for ${stage}, type=${typeof result}, keys=${result && typeof result === "object" ? Object.keys(result) : "N/A"}`);
+        try {
             handleStageResult(stage, result);
-        } catch {
-            handleStageResult(stage, e.data);
+        } catch (handleErr) {
+            console.error(`[SSE] handleStageResult error for ${stage}:`, handleErr);
         }
     });
 
     es.addEventListener("error", (e) => {
+        console.warn(`[SSE] error event for ${stage}:`, e.data);
         showToast(`Stage failed: ${e.data || "Unknown error"}`, "error");
     });
 
     es.addEventListener("completed", () => {
+        console.log(`[SSE] completed event for ${stage}, gotResult=${gotResult}`);
         es.close();
         setStageLoading(stage, false);
     });
@@ -948,18 +990,29 @@ function connectSSE(taskId, stage) {
     });
 
     es.onerror = () => {
+        console.warn(`[SSE] connection error for ${stage}, gotResult=${gotResult}`);
         es.close();
-        pollTaskStatus(taskId, stage);
+        // Only fall back to polling if we haven't received the result yet
+        if (!gotResult) {
+            pollTaskStatus(taskId, stage);
+        } else {
+            // We already got the result via SSE, just clean up
+            setStageLoading(stage, false);
+        }
     };
 }
 
 async function pollTaskStatus(taskId, stage) {
+    console.log(`[poll] starting poll for ${stage}, task=${taskId}`);
     const maxPolls = 120;
     for (let i = 0; i < maxPolls; i++) {
         await sleep(2000);
         try {
             const resp = await fetch(`${API}/tasks/${taskId}`);
-            if (!resp.ok) break;
+            if (!resp.ok) {
+                console.warn(`[poll] non-ok response for ${stage}: HTTP ${resp.status}`);
+                break;
+            }
             const data = await resp.json();
 
             if (data.progress) {
@@ -968,16 +1021,19 @@ async function pollTaskStatus(taskId, stage) {
             }
 
             if (data.status === "completed" && data.result) {
+                console.log(`[poll] completed for ${stage}, result keys:`, Object.keys(data.result.output || {}));
                 handleStageResult(stage, data.result.output);
                 setStageLoading(stage, false);
                 return;
             } else if (data.status === "failed") {
+                console.error(`[poll] failed for ${stage}:`, data.result?.error);
                 showToast(data.result?.error || "Task failed", "error");
                 setStageLoading(stage, false);
                 updatePipelineStatus(stage, "stale");
                 return;
             }
-        } catch {
+        } catch (err) {
+            console.error(`[poll] exception for ${stage}:`, err.message);
             break;
         }
     }
@@ -991,6 +1047,7 @@ async function pollTaskStatus(taskId, stage) {
 // ---------------------------------------------------------------------------
 
 function handleStageResult(stage, result) {
+    console.log(`[handleStageResult] stage=${stage}, type=${typeof result}, keys=${result && typeof result === "object" ? Object.keys(result).join(",") : "N/A"}`);
     updatePipelineStatus(stage, "completed");
 
     if (stage === "extract_concepts") {
@@ -1008,55 +1065,98 @@ function handleStageResult(stage, result) {
 }
 
 function showConceptsOutput(result) {
+    console.log(`[showConceptsOutput] called, result type=${typeof result}`);
+
+    // Record the content hash so we can skip re-extraction for the same content
+    if (state.textbookContent) {
+        state.extractedContentHash = simpleHash(state.textbookContent);
+    }
+
+    // If result is a string (SSE parse failed), try to parse it
+    if (typeof result === "string") {
+        console.warn("[showConceptsOutput] result is a string, attempting to parse");
+        try {
+            result = JSON.parse(result);
+        } catch {
+            console.error("[showConceptsOutput] failed to parse string result");
+        }
+    }
+
     state.outputs.concepts = result;
     const el = document.getElementById("output-extract_concepts");
     const card = document.getElementById("output-card-extract_concepts");
+
+    if (!el || !card) {
+        console.error("[showConceptsOutput] DOM elements not found", { el: !!el, card: !!card });
+        return;
+    }
+
     card.style.display = "block";
 
-    let html = "";
-    const allConcepts = [];
+    // Ensure the section body is expanded so the output is visible
+    const body = document.getElementById("body-extract_concepts");
+    if (body && !body.classList.contains("visible")) {
+        body.classList.add("visible");
+        const chevron = document.getElementById("chevron-extract_concepts");
+        if (chevron) chevron.classList.add("expanded");
+    }
 
-    if (result.matched_concepts && result.matched_concepts.length > 0) {
-        html += '<div class="concept-tree"><div class="concept-group">';
-        html += `<div class="concept-group-title">Matched Concepts (${result.matched_concepts.length})</div>`;
-        for (const c of result.matched_concepts) {
-            html += `<div class="concept-item">
-                <span class="concept-id">${esc(c.concept_id)}</span>
-                <span>${esc(c.name)}</span>
-                <span class="confidence">${Math.round((c.confidence || 0) * 100)}%</span>
-            </div>`;
-            allConcepts.push(c);
+    try {
+        let html = "";
+        // Support both new format (concepts) and legacy format (matched_concepts + new_concepts)
+        let allConcepts = (result && result.concepts) || [];
+        if (allConcepts.length === 0 && result) {
+            const matched = (result.matched_concepts || []).map(c => ({...c, concept_id: c.concept_id || ""}));
+            const newC = (result.new_concepts || []).map(c => ({...c, concept_id: c.suggested_id || c.concept_id || ""}));
+            allConcepts = matched.concat(newC);
         }
-        html += "</div>";
 
-        if (result.new_concepts && result.new_concepts.length > 0) {
-            html += '<div class="concept-group">';
-            html += `<div class="concept-group-title">New Concepts (${result.new_concepts.length})</div>`;
-            for (const c of result.new_concepts) {
+        console.log(`[showConceptsOutput] allConcepts.length=${allConcepts.length}`);
+
+        if (allConcepts.length > 0) {
+            html += '<div class="concept-tree"><div class="concept-group">';
+            html += `<div class="concept-group-title">Extracted Concepts (${allConcepts.length})</div>`;
+            for (const c of allConcepts) {
+                const confidence = c.confidence ? Math.round(c.confidence * 100) : null;
                 html += `<div class="concept-item">
-                    <span class="concept-id">${esc(c.suggested_id)}</span>
-                    <span>${esc(c.name)} - ${esc(c.description || "")}</span>
+                    <span class="concept-id">${esc(c.concept_id || "")}</span>
+                    <span>${esc(c.name)}${c.description ? " — " + esc(c.description) : ""}</span>
+                    ${confidence !== null ? `<span class="confidence">${confidence}%</span>` : ""}
                 </div>`;
-                allConcepts.push({ ...c, concept_id: c.suggested_id });
             }
-            html += "</div>";
+            html += "</div></div>";
+        } else {
+            // Show raw JSON as fallback so user can see what was returned
+            const rawPreview = typeof result === "object" ? JSON.stringify(result, null, 2).substring(0, 1000) : String(result).substring(0, 1000);
+            html = `<div style="color: var(--text-muted)">No concepts array found in response.</div>
+                    <pre style="margin-top:8px; font-size:12px; color:var(--text-secondary); white-space:pre-wrap; word-break:break-all;">${esc(rawPreview)}</pre>`;
+            console.warn("[showConceptsOutput] No concepts found. Result keys:", result ? Object.keys(result) : "null");
         }
-        html += "</div>";
-    } else {
-        html = '<div style="color: var(--text-muted)">No concepts found</div>';
+
+        if (result && result.summary) {
+            html += `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--text-secondary)">
+                <strong>Summary:</strong> ${esc(result.summary)}
+            </div>`;
+        }
+
+        el.innerHTML = html;
+        showStats("extract_concepts", result || {});
+
+        // Populate concept checklist in Stage 4 for batch generation
+        renderConceptChecklist(allConcepts);
+
+    } catch (renderErr) {
+        // If rendering fails for any reason, show the raw JSON as fallback
+        console.error("[showConceptsOutput] render error:", renderErr);
+        const rawStr = typeof result === "object" ? JSON.stringify(result, null, 2) : String(result);
+        el.innerHTML = `<div style="color: #f44336; margin-bottom: 8px;">⚠️ Error rendering concepts: ${esc(renderErr.message)}</div>
+                        <pre style="font-size: 12px; white-space: pre-wrap; word-break: break-all; max-height: 400px; overflow: auto;">${esc(rawStr.substring(0, 3000))}</pre>`;
     }
 
-    if (result.summary) {
-        html += `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--text-secondary)">
-            <strong>Summary:</strong> ${esc(result.summary)}
-        </div>`;
-    }
-
-    el.innerHTML = html;
-    showStats("extract_concepts", result);
-
-    // Populate concept checklist in Stage 4 for batch generation
-    renderConceptChecklist(allConcepts);
+    // Scroll the output card into view so the user can see the results
+    setTimeout(() => {
+        card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 100);
 }
 
 function showPersonalizedOutput(result) {
@@ -1072,6 +1172,10 @@ function showPersonalizedOutput(result) {
         el.textContent = content;
     }
     showStats("personalize", result);
+
+    setTimeout(() => {
+        card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 100);
 }
 
 function showAnimationOutput(result) {
@@ -1234,6 +1338,40 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Safely extract an error message from a response that may not be JSON.
+ * Cloud Run IAM auth can return HTML error pages (401/403) when the
+ * session expires. This avoids the "Unexpected token '<'" crash.
+ */
+async function safeParseError(resp) {
+    const status = resp.status;
+    try {
+        const text = await resp.text();
+        // Try to parse as JSON first
+        try {
+            const json = JSON.parse(text);
+            return json.detail || json.message || json.error || `HTTP ${status}`;
+        } catch {
+            // Not JSON — likely an HTML error page from Cloud Run / IAP
+        }
+
+        // Check for common HTTP auth errors
+        if (status === 401 || status === 403) {
+            showAuthExpiredBanner();
+            return `Authentication expired (HTTP ${status}). Please refresh the page and sign in again.`;
+        }
+        if (status === 502 || status === 503) {
+            return `Service temporarily unavailable (HTTP ${status}). The server may be starting up — try again in a few seconds.`;
+        }
+
+        // Generic fallback with truncated body
+        const preview = text.slice(0, 100).replace(/<[^>]*>/g, "").trim();
+        return `HTTP ${status}: ${preview || "Unknown error"}`;
+    } catch {
+        return `HTTP ${status}: Failed to read error response`;
+    }
+}
+
 // ---------------------------------------------------------------------------
 // LLM Settings
 // ---------------------------------------------------------------------------
@@ -1289,6 +1427,233 @@ function updateLLMSettingsSummary() {
     if (el) {
         el.textContent = `temp=${state.llmSettings.temperature.toFixed(2)}, tokens=${state.llmSettings.maxTokens.toLocaleString()}`;
     }
+}
+
+// ---------------------------------------------------------------------------
+// Prompt Persistence (Save / Load from GCS)
+// ---------------------------------------------------------------------------
+
+async function savePrompts() {
+    const statusEl = document.getElementById("save-status");
+    const btn = document.querySelector(".btn-save");
+
+    // Collect prompts from all 3 stages
+    const stages = ["personalize", "extract_concepts", "generate_animation"];
+    const prompts = {};
+    for (const stage of stages) {
+        const sysEl = document.getElementById(`prompt-${stage}-system`);
+        const usrEl = document.getElementById(`prompt-${stage}-user`);
+        prompts[stage] = {
+            system_prompt: sysEl ? sysEl.value : "",
+            user_prompt: usrEl ? usrEl.value : "",
+        };
+    }
+
+    // Collect settings
+    const settings = {
+        interest: state.studentSettings.interest,
+        animation_style: document.getElementById("anim-style")?.value || "dark",
+        audience_level: document.getElementById("anim-audience")?.value || "high school",
+        temperature: state.llmSettings.temperature,
+        max_tokens: state.llmSettings.maxTokens,
+    };
+
+    const student_settings = { ...state.studentSettings };
+
+    // Show saving status
+    if (statusEl) statusEl.textContent = "Saving...";
+    if (btn) btn.disabled = true;
+
+    try {
+        const resp = await fetch(`${API}/prompts/save`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompts, settings, student_settings, notes: "" }),
+        });
+
+        if (!resp.ok) {
+            const errMsg = await safeParseError(resp);
+            throw new Error(errMsg);
+        }
+
+        const data = await resp.json();
+        if (statusEl) {
+            statusEl.textContent = `Saved ${new Date(data.saved_at).toLocaleTimeString()}`;
+            setTimeout(() => { statusEl.textContent = ""; }, 5000);
+        }
+        showToast("Prompts saved to cloud", "success");
+    } catch (err) {
+        if (statusEl) {
+            statusEl.textContent = "Save failed";
+            setTimeout(() => { statusEl.textContent = ""; }, 5000);
+        }
+        showToast(`Save failed: ${err.message}`, "error");
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function loadLatestPrompts() {
+    try {
+        const resp = await fetch(`${API}/prompts/latest`);
+        if (resp.status === 404 || resp.status === 503) {
+            // No saved prompts yet — load defaults from template
+            await loadDefaultPromptsFromTemplate();
+            return;
+        }
+        if (resp.status === 401 || resp.status === 403) {
+            // Auth expired — silently skip loading saved prompts
+            console.warn("Auth expired loading saved prompts (HTTP " + resp.status + ")");
+            return;
+        }
+        if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+
+        // Restore prompts into textareas AND sync state.defaultPrompts
+        // so that buildExecuteRequest doesn't mistakenly send prompt_override
+        // when the user hasn't actually edited the prompts.
+        const stages = ["personalize", "extract_concepts", "generate_animation"];
+        for (const stage of stages) {
+            const saved = data.prompts?.[stage];
+            if (!saved) continue;
+
+            const sysEl = document.getElementById(`prompt-${stage}-system`);
+            const usrEl = document.getElementById(`prompt-${stage}-user`);
+            if (sysEl && saved.system_prompt) sysEl.value = saved.system_prompt;
+            if (usrEl && saved.user_prompt) usrEl.value = saved.user_prompt;
+
+            // Keep defaultPrompts in sync so unchanged prompts don't trigger override
+            state.defaultPrompts[stage] = {
+                system: saved.system_prompt || "",
+                user: saved.user_prompt || "",
+            };
+        }
+
+        // Restore settings
+        if (data.settings) {
+            const s = data.settings;
+            if (s.animation_style) {
+                const styleEl = document.getElementById("anim-style");
+                if (styleEl) styleEl.value = s.animation_style;
+            }
+            if (s.audience_level) {
+                const audEl = document.getElementById("anim-audience");
+                if (audEl) audEl.value = s.audience_level;
+            }
+            if (s.temperature !== undefined) {
+                state.llmSettings.temperature = s.temperature;
+                const tempSlider = document.getElementById("llm-temperature");
+                const tempDisplay = document.getElementById("llm-temperature-value");
+                if (tempSlider) tempSlider.value = s.temperature;
+                if (tempDisplay) tempDisplay.textContent = s.temperature.toFixed(2);
+            }
+            if (s.max_tokens !== undefined) {
+                state.llmSettings.maxTokens = s.max_tokens;
+                const maxTokensEl = document.getElementById("llm-max-tokens");
+                if (maxTokensEl) maxTokensEl.value = String(s.max_tokens);
+            }
+            updateLLMSettingsSummary();
+        }
+
+        // Restore student settings
+        if (data.student_settings) {
+            const ss = data.student_settings;
+            const fieldMap = {
+                interest: "global-interest",
+                studentName: "global-student-name",
+                preferredAddress: "global-preferred-address",
+                gradeLevel: "global-grade-level",
+                city: "global-city",
+                state: "global-state",
+                favoriteFigure: "global-favorite-figure",
+                favoriteTeam: "global-favorite-team",
+            };
+            for (const [key, elId] of Object.entries(fieldMap)) {
+                if (ss[key]) {
+                    const el = document.getElementById(elId);
+                    if (el) el.value = ss[key];
+                    state.studentSettings[key] = ss[key];
+                }
+            }
+            updateStudentSettingsSummary();
+        }
+
+        const statusEl = document.getElementById("save-status");
+        if (statusEl && data.saved_at) {
+            statusEl.textContent = `Loaded ${new Date(data.saved_at).toLocaleTimeString()}`;
+            setTimeout(() => { statusEl.textContent = ""; }, 4000);
+        }
+    } catch (err) {
+        // Could not load saved prompts — load defaults from template
+        console.log("Could not load saved prompts:", err.message);
+        await loadDefaultPromptsFromTemplate();
+    }
+}
+
+/**
+ * Load default prompts from the backend template for stages that don't
+ * have saved prompts yet.  Uses minimal placeholder content so the
+ * system prompts (which are static) get populated.
+ */
+async function loadDefaultPromptsFromTemplate() {
+    const stages = [
+        { stage: "extract_concepts", body: { stage: "extract_concepts", textbook_content: "(textbook content will be inserted here)" } },
+        { stage: "personalize", body: { stage: "personalize", textbook_content: "(textbook content)", interest: "(student interest)" } },
+        { stage: "generate_animation", body: { stage: "generate_animation", topic: "(concept)", animation_style: "dark", audience_level: "high school" } },
+    ];
+
+    for (const { stage, body } of stages) {
+        const sysEl = document.getElementById(`prompt-${stage}-system`);
+        if (sysEl && sysEl.value) continue; // Already loaded — skip
+
+        try {
+            const resp = await fetch(`${API}/prompts/preview`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            if (!resp.ok) continue;
+            const data = await resp.json();
+
+            if (sysEl) sysEl.value = data.system_prompt;
+            const usrEl = document.getElementById(`prompt-${stage}-user`);
+            if (usrEl) usrEl.value = data.user_prompt;
+
+            state.defaultPrompts[stage] = {
+                system: data.system_prompt,
+                user: data.user_prompt,
+            };
+        } catch {
+            // Ignore errors loading individual stage defaults
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Auth expired banner
+// ---------------------------------------------------------------------------
+
+function showAuthExpiredBanner() {
+    // Only show once
+    if (document.getElementById("auth-expired-banner")) return;
+
+    const banner = document.createElement("div");
+    banner.id = "auth-expired-banner";
+    banner.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+        background: #dc3545; color: white; padding: 12px 20px;
+        text-align: center; font-size: 14px; font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    `;
+    banner.innerHTML = `
+        ⚠️ Your session has expired. Please
+        <a href="javascript:location.reload()" style="color: white; text-decoration: underline; font-weight: bold;">refresh the page</a>
+        to sign in again.
+    `;
+    document.body.prepend(banner);
 }
 
 // ---------------------------------------------------------------------------

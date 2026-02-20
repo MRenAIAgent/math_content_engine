@@ -15,9 +15,8 @@ from ...generator.prompts import build_generation_prompt, get_system_prompt
 from ...knowledge_graph.concept_extractor import (
     CONCEPT_EXTRACTOR_SYSTEM_PROMPT,
     MAX_CONTENT_CHARS,
-    ConceptExtractor,
 )
-from ...llm.base import BaseLLMClient, LLMResponse
+from ...llm.base import BaseLLMClient
 from ...personalization import ContentPersonalizer, get_interest_profile
 from .models import PromptPreview
 
@@ -29,8 +28,12 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _PERSONALIZATION_SYSTEM_PROMPT = (
-    "You are an expert educational content creator "
-    "specializing in personalized math textbooks."
+    "You are an expert educational content creator who specializes in making math "
+    "textbooks irresistibly engaging for middle school and high school students. "
+    "You have deep domain expertise in every interest topic you personalize for — "
+    "you know the rules, the culture, the lingo, and the real-world numbers. "
+    "You never make up facts or use unrealistic numbers. Every example you create "
+    "could actually happen in real life."
 )
 
 
@@ -38,11 +41,13 @@ def _build_personalization_user_prompt(
     textbook_content: str,
     interest_name: str,
 ) -> str:
-    """Replicate the personalization prompt from
-    ``scripts/generate_personalized_textbook.py::create_personalization_prompt``.
+    """Build the personalization prompt using InterestProfile data.
 
-    Uses the same ``InterestProfile`` data — just avoids importing from
-    ``scripts/``.
+    The prompt is designed to produce output that:
+    - Uses realistic, factually accurate examples grounded in the topic
+    - Speaks directly to middle/high schoolers in 2nd person ("you")
+    - Follows the real-world rules and common sense of the topic
+    - Keeps all math content intact while making the context engaging
     """
     profile = get_interest_profile(interest_name)
     if not profile:
@@ -61,31 +66,112 @@ def _build_personalization_user_prompt(
     scenarios = "\n".join(f"- {s}" for s in profile.example_scenarios[:6])
     figures = ", ".join(profile.famous_figures[:8])
 
-    return f"""You are an expert math textbook author who specializes in creating engaging,
-personalized educational content. Your task is to transform a generic math textbook chapter
-into a personalized version themed around {profile.display_name}.
+    # Build verified stats section
+    verified_stats_str = ""
+    if getattr(profile, "verified_stats", None):
+        stats_lines = "\n".join(
+            f"- {k}: {v}" for k, v in list(profile.verified_stats.items())[:8]
+        )
+        verified_stats_str = f"""
+### Verified Real-World Data (use these exact numbers, never make up stats)
+{stats_lines}
+"""
 
-## PERSONALIZATION GUIDELINES
+    # Build second-person scenarios section
+    second_person_str = ""
+    if getattr(profile, "second_person_scenarios", None):
+        sp_lines = "\n".join(
+            f"- {s}" for s in profile.second_person_scenarios[:4]
+        )
+        second_person_str = f"""
+### Example Problems Written in 2nd Person (model your word problems after these)
+{sp_lines}
+"""
+
+    # Build trending section
+    trending_str = ""
+    if getattr(profile, "trending_now", None):
+        tr_lines = "\n".join(f"- {t}" for t in profile.trending_now[:3])
+        trending_str = f"""
+### Current/Trending References ({getattr(profile, 'current_season', 'current')})
+{tr_lines}
+"""
+
+    # Build terminology mapping
+    terminology_str = ""
+    if profile.terminology:
+        term_lines = "\n".join(
+            f"- {math_term} = {domain_term}"
+            for math_term, domain_term in list(profile.terminology.items())[:6]
+        )
+        terminology_str = f"""
+### Math-to-{profile.display_name} Vocabulary (use these naturally)
+{term_lines}
+"""
+
+    return f"""Transform the math textbook content below into a {profile.display_name}-themed
+version that middle school and high school students will genuinely enjoy reading.
+
+## WHO YOU ARE WRITING FOR
+
+Your readers are 11-18 year old students who are passionate about {profile.name}.
+They know the rules, the players, the culture. If you get a detail wrong — like
+saying a basketball three-pointer is worth 2 points, or that a soccer game has
+4 quarters — they will immediately notice and lose trust. Write like someone who
+is a genuine {profile.name} fan AND a great math teacher.
+
+## DOMAIN KNOWLEDGE — READ THIS CAREFULLY
+
+You MUST follow these rules about {profile.display_name} when creating examples.
+Getting these wrong makes the content feel fake and kills engagement.
+
+{profile.basic_knowledge if profile.basic_knowledge else "Use common knowledge about " + profile.name + ". Be factually accurate."}
+{verified_stats_str}
+## CRITICAL RULES FOR REALISTIC EXAMPLES
+
+1. **Numbers must be realistic.** Every number in a word problem should be something
+   that could actually happen in real {profile.name}. If you're writing about a
+   basketball player's points, use numbers between 0-60 (not 200). If you're
+   writing about game scores, use realistic ranges. If you're writing about money,
+   use real-world prices. A student who knows {profile.name} should read your
+   example and think "yeah, that could happen."
+
+2. **Scenarios must make sense.** Don't just swap in {profile.name} words — the
+   entire scenario must logically work. If the math requires dividing something
+   into 7 equal groups, find a {profile.name} scenario where dividing into 7
+   actually makes sense (not "7 quarters of a basketball game" because there
+   are only 4).
+
+3. **Use 2nd person ("you") as the default voice.** Say "You scored 24 points..."
+   not "A player scored 24 points..." Make the student the protagonist of the
+   story. They are the player, the coach, the team owner, the analyst.
+
+4. **Reference real people and real events.** Use the famous figures listed below
+   by name. Reference real stats. Kids love seeing names they recognize.
+
+5. **Match the vibe.** Middle schoolers and high schoolers want content that feels
+   like it was written by someone who actually follows {profile.name}, not a
+   textbook author who googled it. Use the right slang and cultural references
+   naturally — don't force them.
+
+## REFERENCE MATERIAL
 
 ### About {profile.display_name}
 {profile.context_intro}
 
-### Basic Knowledge (use this to ensure accuracy)
-{profile.basic_knowledge if profile.basic_knowledge else "Use common knowledge about " + profile.name}
-
 ### Famous Figures to Reference
 {figures}
-
-### Example Scenarios for Word Problems (adapt math problems to these themes)
+{terminology_str}
+### Example Scenarios for Word Problems (adapt to the math being taught)
 {scenarios}
-
-### Fun Facts to Sprinkle Throughout (pick 2-3 to include)
+{second_person_str}{trending_str}
+### Fun Facts (include 2-3 as "{profile.display_name} Fact!" callout boxes)
 {fun_facts}
 
-### Cultural References & Iconic Moments (use sparingly for engagement)
+### Cultural References & Iconic Moments (use naturally for engagement)
 {cultural_refs if cultural_refs else "Use current pop culture references related to " + profile.name}
 
-### Historical Context (for depth and interest)
+### Historical Context
 {historical if historical else "Include relevant historical facts about " + profile.name}
 
 ### Motivational Quotes (use for chapter intro or conclusion)
@@ -95,36 +181,33 @@ into a personalized version themed around {profile.display_name}.
 - Colors: {profile.visual_themes.get('primary_colors', 'Use thematic colors')}
 - Imagery: {profile.visual_themes.get('imagery', 'Use relevant imagery')}
 
-## TRANSFORMATION RULES
+## HOW TO TRANSFORM THE CONTENT
 
-1. **Keep ALL Math Content Intact**: Every equation, formula, property, and mathematical concept
-   must remain exactly the same. Only change the CONTEXT and EXAMPLES around the math.
+1. **Keep ALL Math Intact**: Every equation, formula, property, theorem, and
+   mathematical concept must remain exactly the same. You are changing CONTEXT
+   and EXAMPLES only — never the underlying math.
 
-2. **Replace Generic Examples**: Transform word problems to use {profile.name} scenarios.
-   - Original: "If x + 5 = 12, find x"
-   - Personalized: "If Curry has scored x three-pointers plus 5 free throws for 12 total points, find x"
+2. **Replace Every Generic Example** with a {profile.name} scenario that:
+   - Uses realistic numbers that match the domain
+   - Makes logical sense for {profile.name}
+   - Addresses the student as "you" where possible
+   - References real people, teams, or events
 
-3. **Use Domain Terminology**: Replace generic terms with {profile.name}-specific language.
-   - "number" -> "score", "points", "stats" (for sports)
-   - "unknown" -> "mystery damage", "hidden XP" (for gaming)
+3. **Rewrite Word Problems Completely** — don't just swap a few nouns.
+   The entire problem should feel like it naturally belongs in {profile.name}.
+   The math stays the same but the story should be new and engaging.
 
 4. **Add Engaging Elements**:
-   - Include 2-3 fun facts as "Did You Know?" boxes
-   - Reference famous {profile.name} figures in examples
-   - Add a motivational quote at the start or end
-   - Include cultural references students will recognize
+   - 2-3 "{profile.display_name} Fact!" callout boxes with fun facts
+   - A motivational quote at the chapter start or end
+   - Cultural references students will recognize and enjoy
+   - "Think About It" challenge questions that connect math to {profile.name}
 
-5. **Maintain Educational Quality**:
-   - Keep learning objectives clear
-   - Preserve step-by-step solution methods
-   - Include practice problems with the same difficulty
-   - Add real-world {profile.name} applications
-
-6. **Format the Output**:
-   - Use markdown formatting
-   - Add an appropriate emoji to the title
-   - Include themed section headers
-   - Mark fun facts and special content clearly
+5. **Format for Readability**:
+   - Use markdown with clear headers
+   - Add an emoji to the title
+   - Use themed section headers
+   - Keep step-by-step solutions clear and easy to follow
 
 ## ORIGINAL TEXTBOOK CONTENT TO TRANSFORM
 
@@ -132,14 +215,10 @@ into a personalized version themed around {profile.display_name}.
 {textbook_content}
 ```
 
-## YOUR TASK
+## OUTPUT
 
-Transform the above textbook content into a {profile.display_name}-themed version.
-Keep all mathematical content identical but change all examples, contexts, and
-word problems to use {profile.name} themes.
-
-Output ONLY the transformed markdown content - no explanations or commentary.
-Start with the chapter title.
+Write the complete transformed chapter. Output ONLY the markdown content — no
+commentary or explanation. Start with the chapter title.
 """
 
 
@@ -166,23 +245,17 @@ def preview_concept_extraction_prompts(
 ) -> PromptPreview:
     """Build concept extraction prompts without executing them.
 
-    Instantiates a lightweight ``ConceptExtractor`` to populate the concept
-    list portion of the system prompt.
+    The system prompt instructs the LLM to purely extract concepts from
+    the textbook content — no predefined knowledge graph is used.
     """
-    # We need a minimal LLM client just to construct the extractor (it never
-    # calls generate). Use a stub so we don't need real API keys for preview.
-    stub_client = _StubLLMClient()
-    extractor = ConceptExtractor(llm_client=stub_client)
-
-    concept_list = extractor._build_concept_list_prompt()
-    system_prompt = CONCEPT_EXTRACTOR_SYSTEM_PROMPT.format(concept_list=concept_list)
+    system_prompt = CONCEPT_EXTRACTOR_SYSTEM_PROMPT
 
     truncated = markdown_content[:MAX_CONTENT_CHARS]
     if len(markdown_content) > MAX_CONTENT_CHARS:
         truncated += "\n\n[Content truncated for analysis]"
 
     user_prompt = (
-        "Analyze this math textbook content and identify concepts:\n\n"
+        "Analyze this math textbook content and extract all mathematical concepts:\n\n"
         f"{truncated}"
     )
 
@@ -309,24 +382,3 @@ def preview_animation_prompts(
     )
 
 
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
-
-
-class _StubLLMClient(BaseLLMClient):
-    """Minimal LLM client stub — used only to construct a ConceptExtractor
-    for prompt preview (no API call is ever made)."""
-
-    def __init__(self) -> None:
-        # Skip the parent __init__ validation (it checks for API keys)
-        self.api_key = "stub"
-        self.model = "stub"
-        self.temperature = 0.0
-        self.max_tokens = 0
-
-    def generate(self, prompt: str, system_prompt: Optional[str] = None, **kwargs) -> LLMResponse:  # type: ignore[override]
-        raise RuntimeError("StubLLMClient.generate() should never be called")
-
-    def generate_with_retry(self, prompt: str, system_prompt: Optional[str] = None, error_context: Optional[str] = None) -> LLMResponse:
-        raise RuntimeError("StubLLMClient.generate_with_retry() should never be called")

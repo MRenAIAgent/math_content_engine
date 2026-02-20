@@ -7,9 +7,11 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from .routes import router, set_storage
 from .storage import VideoStorage
@@ -77,6 +79,19 @@ def create_app(
     from .playground import playground_router
 
     app.include_router(playground_router)
+
+    # Disable browser caching for playground static files so code updates
+    # take effect immediately (JS/CSS are small — no perf concern).
+    class NoCachePlaygroundMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request: Request, call_next):
+            response = await call_next(request)
+            if request.url.path.startswith("/playground"):
+                response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+                response.headers["Pragma"] = "no-cache"
+                response.headers["Expires"] = "0"
+            return response
+
+    app.add_middleware(NoCachePlaygroundMiddleware)
 
     # Serve playground frontend as static files
     static_dir = Path(__file__).parent.parent / "static" / "playground"

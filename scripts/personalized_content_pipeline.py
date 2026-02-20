@@ -421,8 +421,7 @@ def run_pipeline(
 
         manifest_steps["extract_concepts"] = {
             "input": str(textbook_path),
-            "matched": len(concept_result.matched_concepts),
-            "new": len(concept_result.new_concepts),
+            "total": len(concept_result.concepts),
             "output": str(concepts_json),
         }
 
@@ -527,10 +526,9 @@ def print_summary(results: List[PipelineResult]):
 
         if r.markdown_path:
             print(f"  Parsed MD:    {r.markdown_path}")
-        if r.concept_extraction and r.concept_extraction.matched_concepts:
-            matched = len(r.concept_extraction.matched_concepts)
-            new = len(r.concept_extraction.new_concepts)
-            print(f"  Concepts:     {matched} matched, {new} new")
+        if r.concept_extraction and r.concept_extraction.concepts:
+            total = len(r.concept_extraction.concepts)
+            print(f"  Concepts:     {total} extracted")
         if r.personalized_textbook_path:
             print(f"  Textbook:     {r.personalized_textbook_path}")
         if r.animations_generated > 0:

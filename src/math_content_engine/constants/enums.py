@@ -12,6 +12,8 @@ class LLMProvider(Enum):
     """Supported LLM providers."""
     CLAUDE = "claude"
     OPENAI = "openai"
+    GEMINI = "gemini"
+    DEEPSEEK = "deepseek"
 
 
 class VideoQuality(Enum):

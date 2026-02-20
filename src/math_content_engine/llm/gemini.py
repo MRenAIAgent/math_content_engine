@@ -70,6 +70,8 @@ class GeminiClient(BaseLLMClient):
         system_prompt: Optional[str] = None,
         max_tokens: Optional[int] = None,
         temperature: Optional[float] = None,
+        *,
+        json_mode: bool = False,
     ) -> LLMResponse:
         """Generate a response using Gemini via Vertex AI.
 
@@ -78,8 +80,13 @@ class GeminiClient(BaseLLMClient):
             system_prompt: Optional system instruction
             max_tokens: Override the default max_tokens if provided
             temperature: Override the default temperature if provided
+            json_mode: Accepted for API compatibility; Gemini support via
+                GenerationConfig.response_mime_type can be added later.
         """
         from vertexai.generative_models import GenerationConfig
+
+        # json_mode accepted for API compatibility; Gemini support via
+        # GenerationConfig.response_mime_type can be added later.
 
         model = self._get_model(system_instruction=system_prompt)
 

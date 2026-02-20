@@ -12,6 +12,7 @@ from typing import List, Optional
 from ..integration.schemas import ExerciseDTO, MasteryContextDTO
 from ..llm.base import BaseLLMClient
 from ..personalization.theme_mapper import theme_to_interest
+from ..utils.json_repair import parse_json_with_repair
 
 logger = logging.getLogger(__name__)
 
@@ -233,7 +234,7 @@ def _extract_json_from_response(response: str) -> dict:
             raise ValueError("No JSON found in response")
 
     try:
-        return json.loads(json_str)
+        return parse_json_with_repair(json_str)
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON: {e}")
 
@@ -378,7 +379,7 @@ class ExerciseGenerator:
         while attempt <= self.max_retries:
             try:
                 if attempt == 1:
-                    response = self.llm_client.generate(prompt, self.system_prompt)
+                    response = self.llm_client.generate(prompt, self.system_prompt, json_mode=True)
                 else:
                     error_context = self._build_error_context(last_error)
                     response = self.llm_client.generate_with_retry(

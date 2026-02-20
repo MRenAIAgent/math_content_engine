@@ -37,6 +37,8 @@ class DeepSeekClient(BaseLLMClient):
         system_prompt: Optional[str] = None,
         max_tokens: Optional[int] = None,
         temperature: Optional[float] = None,
+        *,
+        json_mode: bool = False,
     ) -> LLMResponse:
         """Generate a response using DeepSeek.
 
@@ -45,6 +47,9 @@ class DeepSeekClient(BaseLLMClient):
             system_prompt: Optional system prompt
             max_tokens: Override the default max_tokens if provided
             temperature: Override the default temperature if provided
+            json_mode: Request structured JSON output via response_format.
+                Only applies to deepseek-chat; deepseek-reasoner does not
+                support response_format.
 
         Note:
             deepseek-reasoner does NOT support the `temperature` parameter
@@ -72,6 +77,10 @@ class DeepSeekClient(BaseLLMClient):
         }
         if not is_reasoner:
             kwargs["temperature"] = temperature if temperature is not None else self.temperature
+
+        # deepseek-chat supports response_format; deepseek-reasoner does not.
+        if json_mode and not is_reasoner:
+            kwargs["response_format"] = {"type": "json_object"}
 
         response = self.client.chat.completions.create(**kwargs)
 

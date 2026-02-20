@@ -8,6 +8,7 @@ from typing import Optional
 
 from ..llm.base import BaseLLMClient
 from ..llm.factory import create_llm_client
+from ..utils.json_repair import parse_json_with_repair
 from .base import ManimTemplate, ParseResult
 from .registry import TemplateRegistry, get_registry
 
@@ -132,6 +133,7 @@ class QuestionParserAgent:
             response = self.llm_client.generate(
                 prompt=user_prompt,
                 system_prompt=system_prompt,
+                json_mode=True,
             )
 
             # Parse JSON response
@@ -160,7 +162,7 @@ class QuestionParserAgent:
                     error_message="No JSON found in LLM response",
                 )
 
-            data = json.loads(json_match.group())
+            data = parse_json_with_repair(json_match.group())
 
             template_id = data.get("template_id")
             if not template_id:

@@ -35,13 +35,17 @@ class BaseLLMClient(ABC):
         self.max_tokens = max_tokens
 
     @abstractmethod
-    def generate(self, prompt: str, system_prompt: Optional[str] = None) -> LLMResponse:
+    def generate(self, prompt: str, system_prompt: Optional[str] = None, *, json_mode: bool = False) -> LLMResponse:
         """
         Generate a response from the LLM.
 
         Args:
             prompt: User prompt to send
             system_prompt: Optional system prompt for context
+            json_mode: When True, request structured JSON output from the
+                provider (e.g. ``response_format={"type": "json_object"}``
+                for OpenAI / DeepSeek-chat).  Providers that do not support
+                it accept the flag silently as a no-op.
 
         Returns:
             LLMResponse with generated content

@@ -13,16 +13,11 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from ..llm.base import BaseLLMClient
+from ..utils.json_repair import parse_json_with_repair
 
 logger = logging.getLogger(__name__)
 
 MAX_CONTENT_CHARS = 15000
-
-
-def _escape_ctrl(m: re.Match) -> str:
-    """``re.sub`` callback: escape bare control characters inside a JSON
-    string value (newlines, tabs, etc.) so the JSON parser won't choke."""
-    return m.group(0).replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
 
 CONCEPT_EXTRACTOR_SYSTEM_PROMPT = """You are a math curriculum analyst. Your job is to analyze \
 math textbook content and extract all mathematical concepts that are taught or referenced.
@@ -194,6 +189,7 @@ class ConceptExtractor:
             response = self.llm_client.generate(
                 prompt=user_prompt,
                 system_prompt=system_prompt,
+                json_mode=True,
             )
             result = self._parse_llm_response(response.content)
         except Exception as e:
@@ -230,59 +226,6 @@ class ConceptExtractor:
         except (ValueError, TypeError):
             return default
 
-    @staticmethod
-    def _repair_json(raw: str) -> dict:
-        """Best-effort repair of malformed JSON from LLMs.
-
-        Only called when ``json.loads`` fails on the raw string.  Applies
-        a sequence of lightweight fixups that handle the most common LLM
-        mistakes (trailing / missing commas, unescaped control chars,
-        truncated output) without pulling in a heavy third-party library.
-
-        Raises ``json.JSONDecodeError`` if repair still fails.
-        """
-        s = raw
-
-        # 1. Remove trailing commas before } or ]  (e.g.  , } → } )
-        s = re.sub(r",\s*([}\]])", r"\1", s)
-
-        # 2. Insert missing commas between } { or } " or ] { patterns
-        #    e.g.  } { → }, {   or  } "key" → }, "key"
-        s = re.sub(r"(\})\s*(\{)", r"\1, \2", s)
-        s = re.sub(r"(\})\s*(\")", r"\1, \2", s)
-        s = re.sub(r"(\])\s*(\{)", r"\1, \2", s)
-
-        # 3. Fix unescaped newlines / tabs inside string values
-        #    Walk through and escape bare control chars within quoted strings.
-        #    (Only the simple cases — not a full parser.)
-        s = re.sub(r'(?<=": ")(.*?)(?="[,\s}\]])', _escape_ctrl, s, flags=re.DOTALL)
-
-        # 4. If the JSON is truncated (e.g. max-tokens hit), try to close it.
-        #    Count unmatched braces/brackets and append closers.
-        open_braces = s.count("{") - s.count("}")
-        open_brackets = s.count("[") - s.count("]")
-        if open_braces > 0 or open_brackets > 0:
-            # Strip any trailing partial key/value and comma
-            s = re.sub(r",?\s*\"[^\"]*$", "", s)
-            s = s.rstrip().rstrip(",")
-            # If we still have unmatched braces, try removing the last
-            # incomplete object from an array (everything after the last
-            # complete }, in the innermost array).
-            still_open = s.count("{") - s.count("}")
-            if still_open > 0:
-                last_complete = s.rfind("},")
-                if last_complete != -1:
-                    # Keep everything up to and including the last }, then
-                    # re-count and close.
-                    s = s[: last_complete + 1]
-                    s = s.rstrip().rstrip(",")
-            open_braces = s.count("{") - s.count("}")
-            open_brackets = s.count("[") - s.count("]")
-            s += "]" * max(open_brackets, 0)
-            s += "}" * max(open_braces, 0)
-
-        return json.loads(s)
-
     def _parse_llm_response(self, content: str) -> ConceptExtractionResult:
         """Parse LLM JSON response into ConceptExtractionResult.
 
@@ -305,21 +248,7 @@ class ConceptExtractor:
 
             raw_json = json_match.group()
 
-            # First try: strict parse (works for Claude, Gemini, etc.)
-            try:
-                data = json.loads(raw_json)
-            except json.JSONDecodeError as first_err:
-                # Second try: repair common LLM mistakes and re-parse
-                logger.info(
-                    f"Strict JSON parse failed ({first_err}), "
-                    "attempting repair…"
-                )
-                try:
-                    data = self._repair_json(raw_json)
-                    logger.info("JSON repair succeeded")
-                except json.JSONDecodeError:
-                    # Repair also failed — raise the original error
-                    raise first_err
+            data = parse_json_with_repair(raw_json)
 
             # --- New format: flat "concepts" list ---
             raw_concepts = data.get("concepts", [])

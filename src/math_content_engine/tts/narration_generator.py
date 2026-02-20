@@ -5,9 +5,13 @@ Generates teacher-quality narration scripts for math animations
 using Claude or OpenAI.
 """
 
+import json
 import logging
+import re
 from dataclasses import dataclass
 from typing import List, Optional
+
+from ..utils.json_repair import parse_json_with_repair
 
 logger = logging.getLogger(__name__)
 
@@ -256,7 +260,7 @@ class NarrationScriptGenerator:
 
         logger.info(f"Generating narration for: {topic}")
 
-        response = self.llm_client.generate(prompt, NARRATION_SYSTEM_PROMPT)
+        response = self.llm_client.generate(prompt, NARRATION_SYSTEM_PROMPT, json_mode=True)
 
         # Parse the JSON response
         cues = self._parse_response(response.content)
@@ -280,9 +284,6 @@ class NarrationScriptGenerator:
 
     def _parse_response(self, content: str) -> List[NarrationCueGenerated]:
         """Parse LLM response into narration cues."""
-        import json
-        import re
-
         # Try to extract JSON from response
         # Look for JSON array pattern
         json_match = re.search(r'\[[\s\S]*\]', content)
@@ -291,7 +292,7 @@ class NarrationScriptGenerator:
             return []
 
         try:
-            data = json.loads(json_match.group())
+            data = parse_json_with_repair(json_match.group())
             cues = []
             for item in data:
                 cues.append(NarrationCueGenerated(

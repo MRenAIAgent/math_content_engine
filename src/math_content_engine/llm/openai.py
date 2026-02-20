@@ -18,14 +18,16 @@ class OpenAIClient(BaseLLMClient):
         self.client = openai.OpenAI(api_key=api_key)
 
     def generate(self, prompt: str, system_prompt: Optional[str] = None,
-                 max_tokens: Optional[int] = None, temperature: Optional[float] = None) -> LLMResponse:
+                 max_tokens: Optional[int] = None, temperature: Optional[float] = None,
+                 *, json_mode: bool = False) -> LLMResponse:
         """Generate a response using OpenAI.
-        
+
         Args:
             prompt: The user prompt
             system_prompt: Optional system prompt
             max_tokens: Override the default max_tokens if provided
             temperature: Override the default temperature if provided
+            json_mode: Request structured JSON output via response_format
         """
         messages = []
 
@@ -34,12 +36,17 @@ class OpenAIClient(BaseLLMClient):
 
         messages.append({"role": "user", "content": prompt})
 
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            max_tokens=max_tokens if max_tokens is not None else self.max_tokens,
-            temperature=temperature if temperature is not None else self.temperature,
-        )
+        kwargs = {
+            "model": self.model,
+            "messages": messages,
+            "max_tokens": max_tokens if max_tokens is not None else self.max_tokens,
+            "temperature": temperature if temperature is not None else self.temperature,
+        }
+
+        if json_mode:
+            kwargs["response_format"] = {"type": "json_object"}
+
+        response = self.client.chat.completions.create(**kwargs)
 
         choice = response.choices[0]
         return LLMResponse(
